@@ -1,0 +1,349 @@
+// Prisma schema — Arco-íris-mar
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  CORRETOR
+}
+
+/// Situação de aprovação do cadastro de corretor (CRECI validado manualmente pelo admin)
+enum CorretorStatus {
+  PENDENTE
+  APROVADO
+  REJEITADO
+}
+
+enum EmpreendimentoStatus {
+  EM_BREVE
+  LANCAMENTO
+  EM_OBRAS
+  PRONTO
+}
+
+enum UnidadeStatus {
+  DISPONIVEL
+  RESERVADO
+  VENDIDO
+  BLOQUEADO
+}
+
+enum ReservaStatus {
+  ATIVA
+  CANCELADA
+  CONVERTIDA
+  EXPIRADA
+}
+
+enum ReservaEventoTipo {
+  CRIADA
+  CANCELADA
+  CONFIRMADA
+  EXPIRADA
+}
+
+enum MidiaTipo {
+  FOTO
+  VIDEO
+  PLANTA
+}
+
+enum SistemaAmortizacao {
+  SAC
+  PRICE
+}
+
+// ---------------------------------------------------------------------------
+// Autenticação (modelos exigidos pelo Auth.js / Prisma Adapter)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  /// Hash da senha (bcrypt/argon2) — usado pelo provider de credenciais do Auth.js
+  password      String?
+
+  role Role @default(CORRETOR)
+
+  // Campos específicos do cadastro de corretor
+  telefone String?
+  creci    String?
+  status   CorretorStatus @default(PENDENTE)
+
+  accounts Account[]
+  sessions Session[]
+
+  reservasComoCorretor Reserva[]       @relation("ReservaCorretor")
+  reservaEventos       ReservaEvento[] @relation("ReservaEventoAutor")
+
+  historicoPrecosAlterados HistoricoPrecoUnidade[]  @relation("HistoricoPrecoAutor")
+  historicoStatusAlterados HistoricoStatusUnidade[] @relation("HistoricoStatusAutor")
+  configuracoesSimulacao   ConfiguracaoSimulacao[]  @relation("ConfiguracaoSimulacaoAutor")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role, status])
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Empreendimentos
+// ---------------------------------------------------------------------------
+
+model Empreendimento {
+  id        String               @id @default(cuid())
+  slug      String               @unique
+  nome      String
+  descricao String?              @db.Text
+  status    EmpreendimentoStatus @default(EM_BREVE)
+
+  endereco  String?
+  bairro    String?
+  cidade    String?
+  estado    String?
+  cep       String?
+  latitude  Float?
+  longitude Float?
+
+  entregaPrevista DateTime?
+
+  unidades       Unidade[]
+  midias         Midia[]
+  midiasExternas MidiaExterna[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("empreendimentos")
+}
+
+/// Galeria pública do empreendimento (fotos, vídeos, plantas)
+model Midia {
+  id               String    @id @default(cuid())
+  empreendimentoId String
+  tipo             MidiaTipo
+  url              String
+  titulo           String?
+  ordem            Int       @default(0)
+  /// Quando false, fica restrita à área do corretor (ex.: planta ainda não divulgada publicamente)
+  publico          Boolean   @default(true)
+
+  empreendimento Empreendimento @relation(fields: [empreendimentoId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([empreendimentoId, tipo])
+  @@map("midias")
+}
+
+/// Links externos (ex.: pasta de fotos em alta, materiais de divulgação) — visíveis somente na área do corretor
+model MidiaExterna {
+  id               String  @id @default(cuid())
+  empreendimentoId String
+  titulo           String
+  url              String
+  descricao        String?
+
+  empreendimento Empreendimento @relation(fields: [empreendimentoId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("midias_externas")
+}
+
+// ---------------------------------------------------------------------------
+// Unidades
+// ---------------------------------------------------------------------------
+
+model Unidade {
+  id               String @id @default(cuid())
+  empreendimentoId String
+
+  /// Identificador da unidade (ex.: "302", "Bloco A - 1201")
+  identificador String
+  /// Ex.: "2 dormitórios"
+  tipo          String
+  areaPrivativa Float
+  vagas         Int    @default(0)
+  andar         Int?
+
+  preco  Decimal       @db.Decimal(12, 2)
+  status UnidadeStatus @default(DISPONIVEL)
+
+  /// Marca a unidade como o apartamento decorado/showroom do empreendimento
+  isDecorado Boolean @default(false)
+
+  empreendimento Empreendimento @relation(fields: [empreendimentoId], references: [id], onDelete: Cascade)
+
+  // Histórico — visível somente para admins na aplicação
+  historicoPrecos HistoricoPrecoUnidade[]
+  historicoStatus HistoricoStatusUnidade[]
+  reservas        Reserva[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([empreendimentoId, identificador])
+  @@index([empreendimentoId, status])
+  @@map("unidades")
+}
+
+/// Histórico de alterações de preço de uma unidade — somente admin
+model HistoricoPrecoUnidade {
+  id            String  @id @default(cuid())
+  unidadeId     String
+  precoAnterior Decimal @db.Decimal(12, 2)
+  precoNovo     Decimal @db.Decimal(12, 2)
+  autorId       String
+  motivo        String?
+
+  unidade Unidade @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  autor   User    @relation("HistoricoPrecoAutor", fields: [autorId], references: [id], onDelete: Restrict)
+
+  criadoEm DateTime @default(now())
+
+  @@index([unidadeId, criadoEm])
+  @@map("historico_precos_unidade")
+}
+
+/// Histórico de alterações de status de uma unidade — somente admin
+model HistoricoStatusUnidade {
+  id             String        @id @default(cuid())
+  unidadeId      String
+  statusAnterior UnidadeStatus
+  statusNovo     UnidadeStatus
+  autorId        String
+  motivo         String?
+
+  unidade Unidade @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  autor   User    @relation("HistoricoStatusAutor", fields: [autorId], references: [id], onDelete: Restrict)
+
+  criadoEm DateTime @default(now())
+
+  @@index([unidadeId, criadoEm])
+  @@map("historico_status_unidade")
+}
+
+// ---------------------------------------------------------------------------
+// Reservas
+// ---------------------------------------------------------------------------
+
+model Reserva {
+  id         String @id @default(cuid())
+  unidadeId  String
+  corretorId String
+
+  clienteNome     String
+  clienteEmail    String?
+  clienteTelefone String?
+
+  status     ReservaStatus @default(ATIVA)
+  observacao String?
+
+  unidade  Unidade @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  corretor User    @relation("ReservaCorretor", fields: [corretorId], references: [id], onDelete: Restrict)
+
+  // Histórico de eventos da reserva (criada, cancelada, confirmada...) — somente admin
+  eventos ReservaEvento[]
+
+  criadaEm     DateTime @default(now())
+  atualizadaEm DateTime @updatedAt
+
+  @@index([unidadeId, status])
+  @@index([corretorId, status])
+  @@map("reservas")
+}
+
+/// Log de eventos do ciclo de vida de uma reserva — somente admin
+model ReservaEvento {
+  id         String            @id @default(cuid())
+  reservaId  String
+  tipo       ReservaEventoTipo
+  autorId    String
+  observacao String?
+
+  reserva Reserva @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+  autor   User    @relation("ReservaEventoAutor", fields: [autorId], references: [id], onDelete: Restrict)
+
+  criadoEm DateTime @default(now())
+
+  @@index([reservaId, criadoEm])
+  @@map("reserva_eventos")
+}
+
+// ---------------------------------------------------------------------------
+// Configuração de simulação de financiamento
+// ---------------------------------------------------------------------------
+
+/// Cada alteração gera uma nova linha (a mais recente por criadoEm é a vigente) — dá histórico "de graça"
+model ConfiguracaoSimulacao {
+  id                      String             @id @default(cuid())
+  taxaJurosAnual          Decimal            @db.Decimal(5, 2)
+  prazoMaximoMeses        Int
+  entradaMinimaPercentual Decimal            @db.Decimal(5, 2)
+  sistemaAmortizacao      SistemaAmortizacao @default(SAC)
+
+  autorId String
+  autor   User   @relation("ConfiguracaoSimulacaoAutor", fields: [autorId], references: [id], onDelete: Restrict)
+
+  criadoEm DateTime @default(now())
+
+  @@index([criadoEm])
+  @@map("configuracoes_simulacao")
+}
