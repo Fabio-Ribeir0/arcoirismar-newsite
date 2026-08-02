@@ -7,9 +7,14 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    seed: "tsx prisma/seed.ts",
   },
+  // Note: this Prisma version's config type only supports `url` and
+  // `shadowDatabaseUrl` here (no `directUrl`). DIRECT_URL (session pooler,
+  // port 5432) is kept in .env for manually swapping in schema-engine
+  // operations (`db push`/`migrate`) that don't work through the
+  // transaction pooler — see the DIRECT_URL comment in .env.example.
   datasource: {
     url: process.env["DATABASE_URL"],
-    directUrl: process.env["DIRECT_URL"],
   },
 });
