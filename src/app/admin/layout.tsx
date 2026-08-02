@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/dal";
+import { prisma } from "@/lib/prisma";
 import { LogoutButton } from "@/components/logout-button";
 
 export default async function AdminLayout({
@@ -8,6 +9,9 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const user = await requireAdmin();
+  const pendentes = await prisma.user.count({
+    where: { role: "CORRETOR", status: "PENDENTE" },
+  });
 
   return (
     <div className="flex flex-1 flex-col bg-mist">
@@ -19,6 +23,14 @@ export default async function AdminLayout({
             </Link>
             <Link href="/admin/empreendimentos" className="hover:text-accent">
               Empreendimentos
+            </Link>
+            <Link href="/admin/corretores" className="flex items-center gap-1.5 hover:text-accent">
+              Corretores
+              {pendentes > 0 && (
+                <span className="rounded-full bg-accent px-1.5 py-0.5 text-xs font-semibold text-primary">
+                  {pendentes}
+                </span>
+              )}
             </Link>
           </nav>
           <div className="flex items-center gap-4">
