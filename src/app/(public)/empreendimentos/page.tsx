@@ -70,7 +70,16 @@ export default async function EmpreendimentosPage({
             href={`/empreendimentos/${emp.slug}`}
             className="group block overflow-hidden rounded-xl border border-line bg-white transition hover:shadow-lg"
           >
-            <div className="h-56 bg-gradient-to-br from-primary-light to-primary" />
+            {emp.bannerUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- admin-managed Supabase Storage URL
+              <img
+                src={emp.bannerUrl}
+                alt={emp.nome}
+                className="h-56 w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+            ) : (
+              <div className="h-56 bg-gradient-to-br from-primary-light to-primary" />
+            )}
             <div className="p-6">
               <p className="mb-2 text-xs font-semibold tracking-wide text-accent uppercase">
                 {EMPREENDIMENTO_STATUS_LABEL[emp.status]}

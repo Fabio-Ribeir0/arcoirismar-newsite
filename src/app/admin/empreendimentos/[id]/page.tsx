@@ -6,6 +6,7 @@ import { atualizarEmpreendimento } from "../actions";
 import { GerarUnidadesButton } from "./unidades/gerar-unidades-button";
 import { UnidadesTable, type UnidadeRow } from "./unidades-table";
 import { calcularParcelaPlanoDireto } from "@/lib/plano-pagamento";
+import { BannerUpload } from "./banner-upload";
 
 export default async function EditarEmpreendimentoPage({
   params,
@@ -55,6 +56,8 @@ export default async function EditarEmpreendimentoPage({
           <p className="mt-1 text-sm text-ink/60">/{empreendimento.slug}</p>
         </div>
 
+        <BannerUpload empreendimentoId={empreendimento.id} bannerAtual={empreendimento.bannerUrl} />
+
         <EmpreendimentoForm
           action={atualizarEmpreendimento.bind(null, empreendimento.id)}
           submitLabel="Salvar alterações"
@@ -62,6 +65,7 @@ export default async function EditarEmpreendimentoPage({
             nome: empreendimento.nome,
             slug: empreendimento.slug,
             status: empreendimento.status,
+            slogan: empreendimento.slogan,
             descricao: empreendimento.descricao,
             endereco: empreendimento.endereco,
             bairro: empreendimento.bairro,

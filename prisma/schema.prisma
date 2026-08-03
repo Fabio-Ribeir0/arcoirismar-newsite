@@ -153,6 +153,11 @@ model Empreendimento {
   descricao String?              @db.Text
   status    EmpreendimentoStatus @default(EM_BREVE)
 
+  /// Chamada usada no banner/hero (ex.: "Um novo conceito de morar frente ao mar")
+  slogan    String?
+  /// URL pública da imagem de banner (Supabase Storage)
+  bannerUrl String?
+
   endereco  String?
   bairro    String?
   cidade    String?

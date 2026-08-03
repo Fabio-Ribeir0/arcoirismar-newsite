@@ -15,6 +15,7 @@ type DefaultValues = {
   nome?: string;
   slug?: string;
   status?: string;
+  slogan?: string | null;
   descricao?: string | null;
   endereco?: string | null;
   bairro?: string | null;
@@ -84,6 +85,14 @@ export function EmpreendimentoForm({
           errors={errors?.entregaPrevista}
         />
       </div>
+
+      <Field
+        label="Slogan"
+        name="slogan"
+        defaultValue={defaultValues?.slogan}
+        errors={errors?.slogan}
+        hint='Usado no banner/hero. Ex.: "Um novo conceito de morar frente ao mar"'
+      />
 
       <div className="space-y-1.5">
         <label htmlFor="descricao" className="text-sm font-medium text-ink">

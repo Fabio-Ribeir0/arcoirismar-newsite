@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { EMPREENDIMENTO_STATUS_LABEL } from "@/lib/empreendimento-display";
+import { eyebrowEmpreendimento } from "@/lib/empreendimento-display";
 
 export const dynamic = "force-dynamic";
 
@@ -58,15 +58,33 @@ export default async function EmpreendimentoPublicoPage({
     <>
       {/* Banner */}
       <section className="relative flex min-h-[420px] items-end overflow-hidden bg-primary pt-32 pb-10 text-white">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-light" />
+        {empreendimento.bannerUrl ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- admin-managed Supabase Storage URL */}
+            <img
+              src={empreendimento.bannerUrl}
+              alt={empreendimento.nome}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/60 to-primary/10" />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-light" />
+        )}
         <div className="relative w-full max-w-7xl mx-auto px-6">
           <p className="mb-3 text-xs font-semibold tracking-widest text-accent-light uppercase">
-            {EMPREENDIMENTO_STATUS_LABEL[empreendimento.status]}
-            {localizacao ? ` · ${localizacao}` : ""}
+            {eyebrowEmpreendimento({
+              bairro: empreendimento.bairro,
+              cidade: empreendimento.cidade,
+              status: empreendimento.status,
+            })}
           </p>
           <h1 className="font-display text-4xl leading-tight font-medium md:text-5xl">
             {empreendimento.nome}
           </h1>
+          {empreendimento.slogan && (
+            <p className="mt-3 max-w-xl text-lg text-white/80">{empreendimento.slogan}</p>
+          )}
         </div>
       </section>
 

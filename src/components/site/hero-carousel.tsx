@@ -8,6 +8,7 @@ export type HeroSlide = {
   titulo: string;
   subtitulo: string;
   href: string;
+  imagemUrl?: string | null;
 };
 
 export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
@@ -31,7 +32,19 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
           className="absolute inset-0 flex items-center transition-opacity duration-1000"
           style={{ opacity: index === atual ? 1 : 0 }}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-light" />
+          {slide.imagemUrl ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element -- admin-managed Supabase Storage URL */}
+              <img
+                src={slide.imagemUrl}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/70 to-primary/10" />
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-light" />
+          )}
           <div className="relative w-full max-w-7xl mx-auto px-6">
             <p className="mb-4 text-xs font-semibold tracking-widest text-accent-light uppercase">
               {slide.eyebrow}

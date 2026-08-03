@@ -18,6 +18,7 @@ export const EmpreendimentoSchema = z.object({
     .optional()
     .or(z.literal("")),
   status: z.enum(EMPREENDIMENTO_STATUS, { error: "Selecione um status válido." }),
+  slogan: z.string().trim().optional().or(z.literal("")),
   descricao: z.string().trim().optional().or(z.literal("")),
   endereco: z.string().trim().optional().or(z.literal("")),
   bairro: z.string().trim().optional().or(z.literal("")),
