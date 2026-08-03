@@ -26,7 +26,7 @@ export default async function CorretoresPage() {
 
         <div className="overflow-hidden rounded-xl border border-line bg-white">
           <table className="w-full text-sm">
-            <thead className="bg-mist text-left text-ink/60">
+            <thead className="bg-[#e9eaec] text-left text-ink/60">
               <tr>
                 <th className="px-4 py-3 font-medium">Nome</th>
                 <th className="px-4 py-3 font-medium">Contato</th>

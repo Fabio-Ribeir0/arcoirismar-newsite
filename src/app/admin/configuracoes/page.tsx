@@ -78,7 +78,7 @@ export default async function ConfiguracoesPage() {
             </h2>
             <div className="overflow-hidden rounded-xl border border-line bg-white">
               <table className="w-full text-sm">
-                <thead className="bg-mist text-left text-ink/60">
+                <thead className="bg-[#f9fafc] text-left text-ink/60">
                   <tr>
                     <th className="px-4 py-2 font-medium">Data</th>
                     <th className="px-4 py-2 font-medium">Taxa</th>

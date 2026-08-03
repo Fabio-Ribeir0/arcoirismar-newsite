@@ -107,16 +107,16 @@ export default async function HomePage() {
               Empresa
             </p>
             <h2 className="font-display mb-5 text-3xl font-medium text-primary md:text-4xl">
-              Sobre a Arco-íris-mar
+              Sobre a Arco-Íris Mar
             </h2>
             <p className="mb-8 text-lg text-ink/70">
-              Há mais de uma década construindo empreendimentos que unem qualidade
+              Há 32 anos construindo empreendimentos que unem qualidade
               construtiva, localização estratégica e respeito ao meio ambiente — do
               projeto à entrega das chaves.
             </p>
             <div className="grid grid-cols-3 gap-6">
               <div>
-                <p className="font-display text-3xl font-semibold text-primary">15+</p>
+                <p className="font-display text-3xl font-semibold text-primary">32</p>
                 <p className="text-sm text-ink/60">anos de mercado</p>
               </div>
               <div>

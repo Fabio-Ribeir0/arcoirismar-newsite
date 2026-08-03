@@ -40,7 +40,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                 alt=""
                 className="absolute inset-0 h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/70 to-primary/10" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/30 to-primary/10" />
             </>
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-light" />
