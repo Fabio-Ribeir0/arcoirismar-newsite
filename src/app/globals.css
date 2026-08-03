@@ -12,3 +12,15 @@
   --color-mist: #f4f2ee;
   --color-line: #e4e0d8;
 }
+
+.dropdown:hover .dropdown-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.dropdown-panel {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: all 0.15s ease-out;
+}
