@@ -22,6 +22,15 @@ type DefaultValues = {
   estado?: string | null;
   cep?: string | null;
   entregaPrevista?: string | null;
+  andares?: string | null;
+  unidadesPorAndar?: string | null;
+  valorBase?: string | null;
+  entradaPercentual?: string | null;
+  entregaChavesPercentual?: string | null;
+  parcelas?: string | null;
+  tipoPadrao?: string | null;
+  areaPrivativaPadrao?: string | null;
+  vagasPadrao?: string | null;
 };
 
 export function EmpreendimentoForm({
@@ -96,6 +105,83 @@ export function EmpreendimentoForm({
         <div className="grid grid-cols-2 gap-5">
           <Field label="Estado" name="estado" defaultValue={defaultValues?.estado} errors={errors?.estado} />
           <Field label="CEP" name="cep" defaultValue={defaultValues?.cep} errors={errors?.cep} />
+        </div>
+      </div>
+
+      <div className="space-y-4 border-t border-line pt-6">
+        <div>
+          <h3 className="font-display text-lg font-medium text-primary">Geração de unidades</h3>
+          <p className="text-sm text-ink/60">
+            Preencha estes campos e use o botão &quot;Gerar unidades&quot; (na página do
+            empreendimento) para criar automaticamente todas as unidades. Também definem a
+            coluna de parcelas na tabela de unidades.
+          </p>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-3">
+          <Field
+            label="Andares"
+            name="andares"
+            type="number"
+            defaultValue={defaultValues?.andares}
+            errors={errors?.andares}
+          />
+          <Field
+            label="Unidades por andar"
+            name="unidadesPorAndar"
+            type="number"
+            defaultValue={defaultValues?.unidadesPorAndar}
+            errors={errors?.unidadesPorAndar}
+          />
+          <Field
+            label="Valor base (R$)"
+            name="valorBase"
+            defaultValue={defaultValues?.valorBase}
+            errors={errors?.valorBase}
+            hint="Ex.: 350000.00"
+          />
+          <Field
+            label="Entrada (%)"
+            name="entradaPercentual"
+            defaultValue={defaultValues?.entradaPercentual}
+            errors={errors?.entradaPercentual}
+            hint="Ex.: 20.00"
+          />
+          <Field
+            label="Entrega das chaves (%)"
+            name="entregaChavesPercentual"
+            defaultValue={defaultValues?.entregaChavesPercentual}
+            errors={errors?.entregaChavesPercentual}
+            hint="Ex.: 10.00"
+          />
+          <Field
+            label="Parcelas"
+            name="parcelas"
+            type="number"
+            defaultValue={defaultValues?.parcelas}
+            errors={errors?.parcelas}
+          />
+        </div>
+        <div className="grid gap-5 sm:grid-cols-3">
+          <Field
+            label="Tipo padrão (opcional)"
+            name="tipoPadrao"
+            defaultValue={defaultValues?.tipoPadrao}
+            errors={errors?.tipoPadrao}
+            hint="Ex.: 2 dormitórios"
+          />
+          <Field
+            label="Área privativa padrão (m², opcional)"
+            name="areaPrivativaPadrao"
+            defaultValue={defaultValues?.areaPrivativaPadrao}
+            errors={errors?.areaPrivativaPadrao}
+          />
+          <Field
+            label="Vagas padrão (opcional)"
+            name="vagasPadrao"
+            type="number"
+            defaultValue={defaultValues?.vagasPadrao}
+            errors={errors?.vagasPadrao}
+          />
         </div>
       </div>
 

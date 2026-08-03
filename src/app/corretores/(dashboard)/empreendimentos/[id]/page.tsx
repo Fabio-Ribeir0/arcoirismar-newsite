@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { SimuladorFinanciamento } from "./simulador";
+import { calcularParcelaPlanoDireto } from "@/lib/plano-pagamento";
 
 const UNIDADE_STATUS_LABEL: Record<string, string> = {
   DISPONIVEL: "Disponível",
@@ -25,7 +26,7 @@ export default async function EmpreendimentoCorretorPage({
 
   const empreendimento = await prisma.empreendimento.findUnique({
     where: { id },
-    include: { unidades: { orderBy: { identificador: "asc" } } },
+    include: { unidades: { orderBy: [{ andar: "asc" }, { identificador: "asc" }] } },
   });
 
   if (!empreendimento) notFound();
@@ -35,6 +36,12 @@ export default async function EmpreendimentoCorretorPage({
   });
 
   const unidadesDisponiveis = empreendimento.unidades.filter((u) => u.status !== "VENDIDO");
+
+  const podeCalcularParcela =
+    empreendimento.parcelas !== null &&
+    empreendimento.entradaPercentual !== null &&
+    empreendimento.entregaChavesPercentual !== null;
+  const parcelasLabel = podeCalcularParcela ? `${empreendimento.parcelas}x` : null;
 
   return (
     <main className="px-6 py-16">
@@ -56,6 +63,7 @@ export default async function EmpreendimentoCorretorPage({
                 <th className="px-4 py-3 font-medium">Tipo</th>
                 <th className="px-4 py-3 font-medium">Área</th>
                 <th className="px-4 py-3 font-medium">Preço</th>
+                {parcelasLabel && <th className="px-4 py-3 font-medium">{parcelasLabel}</th>}
                 <th className="px-4 py-3 font-medium">Status</th>
               </tr>
             </thead>
@@ -78,6 +86,16 @@ export default async function EmpreendimentoCorretorPage({
                       currency: "BRL",
                     })}
                   </td>
+                  {parcelasLabel && (
+                    <td className="px-4 py-3 text-ink/70">
+                      {calcularParcelaPlanoDireto({
+                        preco: Number(unidade.preco),
+                        entradaPercentual: Number(empreendimento.entradaPercentual),
+                        entregaChavesPercentual: Number(empreendimento.entregaChavesPercentual),
+                        parcelas: empreendimento.parcelas!,
+                      }).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </td>
+                  )}
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-semibold ${UNIDADE_STATUS_STYLE[unidade.status]}`}
@@ -89,7 +107,7 @@ export default async function EmpreendimentoCorretorPage({
               ))}
               {empreendimento.unidades.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-ink/50">
+                  <td colSpan={parcelasLabel ? 6 : 5} className="px-4 py-8 text-center text-ink/50">
                     Nenhuma unidade cadastrada.
                   </td>
                 </tr>

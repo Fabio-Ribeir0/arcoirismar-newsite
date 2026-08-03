@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/dal";
+import { gerarIdentificadorUnidade } from "@/lib/numeracao-unidade";
 import { UnidadeSchema } from "./schema";
+import { registrarHistoricoUnidade } from "./service";
 
 export type UnidadeFormState =
   | { success: true }
@@ -110,10 +112,6 @@ export async function atualizarUnidade(
     };
   }
 
-  // Compare numerically, not as strings — "350000" and "350000.00" are the
-  // same price but would otherwise register as a spurious history entry.
-  const precoMudou = Number(atual.preco) !== Number(data.preco);
-  const statusMudou = data.status !== atual.status;
   const motivo = data.motivo || null;
 
   await prisma.$transaction(async (tx) => {
@@ -131,29 +129,15 @@ export async function atualizarUnidade(
       },
     });
 
-    if (precoMudou) {
-      await tx.historicoPrecoUnidade.create({
-        data: {
-          unidadeId,
-          precoAnterior: atual.preco,
-          precoNovo: data.preco,
-          autorId: admin.id,
-          motivo,
-        },
-      });
-    }
-
-    if (statusMudou) {
-      await tx.historicoStatusUnidade.create({
-        data: {
-          unidadeId,
-          statusAnterior: atual.status,
-          statusNovo: data.status,
-          autorId: admin.id,
-          motivo,
-        },
-      });
-    }
+    await registrarHistoricoUnidade(tx, {
+      unidadeId,
+      precoAnterior: atual.preco,
+      precoNovo: data.preco,
+      statusAnterior: atual.status,
+      statusNovo: data.status,
+      autorId: admin.id,
+      motivo,
+    });
   });
 
   revalidatePath(`/admin/empreendimentos/${empreendimentoId}`);
@@ -164,4 +148,74 @@ export async function excluirUnidade(empreendimentoId: string, unidadeId: string
   await requireAdmin();
   await prisma.unidade.delete({ where: { id: unidadeId } });
   revalidatePath(`/admin/empreendimentos/${empreendimentoId}`);
+}
+
+export type GerarUnidadesState =
+  | { success: true; criadas: number }
+  | { success: false; message: string }
+  | undefined;
+
+/**
+ * Idempotent: only creates the units that don't exist yet for the expected
+ * andar x unidadesPorAndar grid, so re-running after raising "andares" only
+ * adds the new floors — it never touches/overwrites existing units.
+ */
+export async function gerarUnidades(
+  empreendimentoId: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept to match useActionState's action signature
+  _prevState: GerarUnidadesState
+): Promise<GerarUnidadesState> {
+  await requireAdmin();
+
+  const empreendimento = await prisma.empreendimento.findUnique({
+    where: { id: empreendimentoId },
+  });
+  if (!empreendimento) {
+    return { success: false, message: "Empreendimento não encontrado." };
+  }
+
+  const { andares, unidadesPorAndar, valorBase, tipoPadrao, areaPrivativaPadrao, vagasPadrao } =
+    empreendimento;
+
+  if (!andares || !unidadesPorAndar || !valorBase) {
+    return {
+      success: false,
+      message:
+        'Preencha "Andares", "Unidades por andar" e "Valor base" no formulário acima e clique em "Salvar alterações" antes de gerar as unidades.',
+    };
+  }
+
+  const existentes = await prisma.unidade.findMany({
+    where: { empreendimentoId },
+    select: { identificador: true },
+  });
+  const identificadoresExistentes = new Set(existentes.map((u) => u.identificador));
+
+  const novasUnidades = [];
+  for (let andar = 1; andar <= andares; andar++) {
+    for (let posicao = 1; posicao <= unidadesPorAndar; posicao++) {
+      const identificador = gerarIdentificadorUnidade(andar, posicao);
+      if (identificadoresExistentes.has(identificador)) continue;
+      novasUnidades.push({
+        empreendimentoId,
+        identificador,
+        tipo: tipoPadrao ?? "",
+        areaPrivativa: areaPrivativaPadrao ?? 0,
+        vagas: vagasPadrao ?? 0,
+        andar,
+        preco: valorBase,
+        status: "DISPONIVEL" as const,
+        isDecorado: false,
+      });
+    }
+  }
+
+  if (novasUnidades.length === 0) {
+    return { success: false, message: "Todas as unidades esperadas já existem — nada para gerar." };
+  }
+
+  await prisma.unidade.createMany({ data: novasUnidades });
+
+  revalidatePath(`/admin/empreendimentos/${empreendimentoId}`);
+  return { success: true, criadas: novasUnidades.length };
 }

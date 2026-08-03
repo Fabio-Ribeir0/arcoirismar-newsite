@@ -24,7 +24,40 @@ function parseForm(formData: FormData) {
     estado: formData.get("estado"),
     cep: formData.get("cep"),
     entregaPrevista: formData.get("entregaPrevista"),
+    andares: formData.get("andares"),
+    unidadesPorAndar: formData.get("unidadesPorAndar"),
+    valorBase: formData.get("valorBase"),
+    entradaPercentual: formData.get("entradaPercentual"),
+    entregaChavesPercentual: formData.get("entregaChavesPercentual"),
+    parcelas: formData.get("parcelas"),
+    tipoPadrao: formData.get("tipoPadrao"),
+    areaPrivativaPadrao: formData.get("areaPrivativaPadrao"),
+    vagasPadrao: formData.get("vagasPadrao"),
   });
+}
+
+function buildEmpreendimentoData(data: ReturnType<typeof EmpreendimentoSchema.parse>, slug: string) {
+  return {
+    nome: data.nome,
+    slug,
+    status: data.status,
+    descricao: data.descricao || null,
+    endereco: data.endereco || null,
+    bairro: data.bairro || null,
+    cidade: data.cidade || null,
+    estado: data.estado || null,
+    cep: data.cep || null,
+    entregaPrevista: data.entregaPrevista ? new Date(data.entregaPrevista) : null,
+    andares: data.andares ? Number(data.andares) : null,
+    unidadesPorAndar: data.unidadesPorAndar ? Number(data.unidadesPorAndar) : null,
+    valorBase: data.valorBase || null,
+    entradaPercentual: data.entradaPercentual || null,
+    entregaChavesPercentual: data.entregaChavesPercentual || null,
+    parcelas: data.parcelas ? Number(data.parcelas) : null,
+    tipoPadrao: data.tipoPadrao || null,
+    areaPrivativaPadrao: data.areaPrivativaPadrao ? Number(data.areaPrivativaPadrao) : null,
+    vagasPadrao: data.vagasPadrao ? Number(data.vagasPadrao) : null,
+  };
 }
 
 export async function criarEmpreendimento(
@@ -47,18 +80,7 @@ export async function criarEmpreendimento(
   }
 
   const empreendimento = await prisma.empreendimento.create({
-    data: {
-      nome: data.nome,
-      slug,
-      status: data.status,
-      descricao: data.descricao || null,
-      endereco: data.endereco || null,
-      bairro: data.bairro || null,
-      cidade: data.cidade || null,
-      estado: data.estado || null,
-      cep: data.cep || null,
-      entregaPrevista: data.entregaPrevista ? new Date(data.entregaPrevista) : null,
-    },
+    data: buildEmpreendimentoData(data, slug),
   });
 
   revalidatePath("/admin/empreendimentos");
@@ -89,18 +111,7 @@ export async function atualizarEmpreendimento(
 
   await prisma.empreendimento.update({
     where: { id },
-    data: {
-      nome: data.nome,
-      slug,
-      status: data.status,
-      descricao: data.descricao || null,
-      endereco: data.endereco || null,
-      bairro: data.bairro || null,
-      cidade: data.cidade || null,
-      estado: data.estado || null,
-      cep: data.cep || null,
-      entregaPrevista: data.entregaPrevista ? new Date(data.entregaPrevista) : null,
-    },
+    data: buildEmpreendimentoData(data, slug),
   });
 
   revalidatePath("/admin/empreendimentos");
