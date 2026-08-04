@@ -80,6 +80,8 @@ export const EmpreendimentoSchema = z.object({
     .regex(/^\d+$/, { error: "Informe um número inteiro." })
     .optional()
     .or(z.literal("")),
+
+  motivo: z.string().trim().optional().or(z.literal("")),
 });
 
 export type EmpreendimentoInput = z.infer<typeof EmpreendimentoSchema>;

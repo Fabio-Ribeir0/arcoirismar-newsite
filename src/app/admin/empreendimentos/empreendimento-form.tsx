@@ -45,10 +45,12 @@ export function EmpreendimentoForm({
   action,
   defaultValues,
   submitLabel,
+  showMotivo,
 }: {
   action: (state: EmpreendimentoFormState, formData: FormData) => Promise<EmpreendimentoFormState>;
   defaultValues?: DefaultValues;
   submitLabel: string;
+  showMotivo?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const errors = state?.success === false ? state.errors : undefined;
@@ -222,6 +224,15 @@ export function EmpreendimentoForm({
             errors={errors?.vagasPadrao}
           />
         </div>
+
+        {showMotivo && (
+          <Field
+            label="Motivo da alteração (opcional)"
+            name="motivo"
+            errors={errors?.motivo}
+            hint="Registrado no histórico se o plano de pagamento (valor base, entrada, entrega das chaves ou parcelas) for alterado."
+          />
+        )}
       </div>
 
       {message && <p className="text-sm text-red-600">{message}</p>}

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/dal";
 import { slugify } from "@/lib/slug";
 import { EmpreendimentoSchema } from "./schema";
+import { registrarHistoricoPlanoPagamento } from "./service";
 
 export type EmpreendimentoFormState =
   | { success: true }
@@ -35,6 +36,9 @@ function parseForm(formData: FormData) {
     tipoPadrao: formData.get("tipoPadrao"),
     areaPrivativaPadrao: formData.get("areaPrivativaPadrao"),
     vagasPadrao: formData.get("vagasPadrao"),
+    // O campo "motivo" só existe no form de edição (showMotivo); quando ausente,
+    // FormData.get retorna null, que z.optional() rejeita — normaliza para "".
+    motivo: formData.get("motivo") ?? "",
   });
 }
 
@@ -96,7 +100,7 @@ export async function atualizarEmpreendimento(
   _prevState: EmpreendimentoFormState,
   formData: FormData
 ): Promise<EmpreendimentoFormState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const parsed = parseForm(formData);
   if (!parsed.success) {
@@ -106,6 +110,11 @@ export async function atualizarEmpreendimento(
   const data = parsed.data;
   const slug = data.slug || slugify(data.nome);
 
+  const atual = await prisma.empreendimento.findUnique({ where: { id } });
+  if (!atual) {
+    return { success: false, message: "Empreendimento não encontrado." };
+  }
+
   const conflict = await prisma.empreendimento.findFirst({
     where: { slug, NOT: { id } },
   });
@@ -113,9 +122,32 @@ export async function atualizarEmpreendimento(
     return { success: false, message: "Já existe outro empreendimento com esse slug." };
   }
 
-  await prisma.empreendimento.update({
-    where: { id },
-    data: buildEmpreendimentoData(data, slug),
+  const novaData = buildEmpreendimentoData(data, slug);
+  const motivo = data.motivo || null;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.empreendimento.update({
+      where: { id },
+      data: novaData,
+    });
+
+    await registrarHistoricoPlanoPagamento(tx, {
+      empreendimentoId: id,
+      anterior: {
+        valorBase: atual.valorBase,
+        entradaPercentual: atual.entradaPercentual,
+        entregaChavesPercentual: atual.entregaChavesPercentual,
+        parcelas: atual.parcelas,
+      },
+      novo: {
+        valorBase: novaData.valorBase,
+        entradaPercentual: novaData.entradaPercentual,
+        entregaChavesPercentual: novaData.entregaChavesPercentual,
+        parcelas: novaData.parcelas,
+      },
+      autorId: admin.id,
+      motivo,
+    });
   });
 
   revalidatePath("/admin/empreendimentos");

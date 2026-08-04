@@ -98,9 +98,10 @@ model User {
   reservasComoCorretor Reserva[]       @relation("ReservaCorretor")
   reservaEventos       ReservaEvento[] @relation("ReservaEventoAutor")
 
-  historicoPrecosAlterados HistoricoPrecoUnidade[]  @relation("HistoricoPrecoAutor")
-  historicoStatusAlterados HistoricoStatusUnidade[] @relation("HistoricoStatusAutor")
-  configuracoesSimulacao   ConfiguracaoSimulacao[]  @relation("ConfiguracaoSimulacaoAutor")
+  historicoPrecosAlterados         HistoricoPrecoUnidade[]                 @relation("HistoricoPrecoAutor")
+  historicoStatusAlterados         HistoricoStatusUnidade[]                @relation("HistoricoStatusAutor")
+  historicoPlanoPagamentoAlterados HistoricoPlanoPagamentoEmpreendimento[] @relation("HistoricoPlanoPagamentoAutor")
+  configuracoesSimulacao           ConfiguracaoSimulacao[]                 @relation("ConfiguracaoSimulacaoAutor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -196,14 +197,46 @@ model Empreendimento {
   areaPrivativaPadrao     Float?
   vagasPadrao             Int?
 
-  unidades       Unidade[]
-  midias         Midia[]
-  midiasExternas MidiaExterna[]
+  unidades                Unidade[]
+  midias                  Midia[]
+  midiasExternas          MidiaExterna[]
+  historicoPlanoPagamento HistoricoPlanoPagamentoEmpreendimento[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("empreendimentos")
+}
+
+/// Histórico do plano de pagamento do empreendimento (valor base, entrada, entrega das
+/// chaves, parcelas) — uma linha por salvamento que alterou pelo menos um desses campos,
+/// com o snapshot completo de antes/depois. Somente admin.
+model HistoricoPlanoPagamentoEmpreendimento {
+  id               String @id @default(cuid())
+  empreendimentoId String
+
+  valorBaseAnterior Decimal? @db.Decimal(12, 2)
+  valorBaseNovo     Decimal? @db.Decimal(12, 2)
+
+  entradaPercentualAnterior Decimal? @db.Decimal(5, 2)
+  entradaPercentualNovo     Decimal? @db.Decimal(5, 2)
+
+  entregaChavesPercentualAnterior Decimal? @db.Decimal(5, 2)
+  entregaChavesPercentualNovo     Decimal? @db.Decimal(5, 2)
+
+  parcelasAnterior Int?
+  parcelasNovo     Int?
+
+  autorId String
+  motivo  String?
+
+  empreendimento Empreendimento @relation(fields: [empreendimentoId], references: [id], onDelete: Cascade)
+  autor          User           @relation("HistoricoPlanoPagamentoAutor", fields: [autorId], references: [id], onDelete: Restrict)
+
+  criadoEm DateTime @default(now())
+
+  @@index([empreendimentoId, criadoEm])
+  @@map("historico_plano_pagamento_empreendimento")
 }
 
 /// Galeria pública do empreendimento (fotos, vídeos, plantas)
