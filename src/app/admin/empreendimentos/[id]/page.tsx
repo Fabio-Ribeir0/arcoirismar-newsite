@@ -9,8 +9,12 @@ import { UnidadesTable, type UnidadeRow } from "./unidades-table";
 import { calcularParcelaPlanoDireto } from "@/lib/plano-pagamento";
 import { BannerUpload } from "./banner-upload";
 import { VideoUpload } from "./video-upload";
+import { CapaTabelaUpload } from "./capa-tabela-upload";
 import { HistoryTable } from "@/components/admin/history-table";
 import { diferente } from "../service";
+import { Tabs } from "@/components/admin/tabs";
+import { DeleteButton } from "@/components/delete-button";
+import { excluirTodasUnidades } from "./unidades/actions";
 
 export default async function EditarEmpreendimentoPage({
   params,
@@ -56,7 +60,7 @@ export default async function EditarEmpreendimentoPage({
 
   return (
     <main className="px-6 py-16">
-      <div className="mx-auto max-w-3xl space-y-10">
+      <div className="mx-auto max-w-3xl space-y-8">
         <div>
           <h1 className="font-display text-3xl font-medium text-primary">
             {empreendimento.nome}
@@ -64,82 +68,125 @@ export default async function EditarEmpreendimentoPage({
           <p className="mt-1 text-sm text-ink/60">/{empreendimento.slug}</p>
         </div>
 
-        <BannerUpload empreendimentoId={empreendimento.id} bannerAtual={empreendimento.bannerUrl} />
+        <Tabs
+          tabs={[
+            {
+              id: "detalhes",
+              label: "Detalhes",
+              content: (
+                <EmpreendimentoForm
+                  action={atualizarEmpreendimento.bind(null, empreendimento.id)}
+                  submitLabel="Salvar alterações"
+                  showMotivo
+                  defaultValues={{
+                    nome: empreendimento.nome,
+                    slug: empreendimento.slug,
+                    status: empreendimento.status,
+                    destaque: empreendimento.destaque,
+                    slogan: empreendimento.slogan,
+                    descricao: empreendimento.descricao,
+                    endereco: empreendimento.endereco,
+                    bairro: empreendimento.bairro,
+                    cidade: empreendimento.cidade,
+                    estado: empreendimento.estado,
+                    cep: empreendimento.cep,
+                    entregaPrevista: empreendimento.entregaPrevista
+                      ? empreendimento.entregaPrevista.toISOString().slice(0, 10)
+                      : "",
+                    andares: empreendimento.andares?.toString() ?? "",
+                    unidadesPorAndar: empreendimento.unidadesPorAndar?.toString() ?? "",
+                    valorBase: empreendimento.valorBase?.toString() ?? "",
+                    entradaPercentual: empreendimento.entradaPercentual?.toString() ?? "",
+                    entregaChavesPercentual:
+                      empreendimento.entregaChavesPercentual?.toString() ?? "",
+                    parcelas: empreendimento.parcelas?.toString() ?? "",
+                    tipoPadrao: empreendimento.tipoPadrao,
+                    areaPrivativaPadrao: empreendimento.areaPrivativaPadrao?.toString() ?? "",
+                    vagasPadrao: empreendimento.vagasPadrao?.toString() ?? "",
+                  }}
+                />
+              ),
+            },
+            {
+              id: "midia",
+              label: "Mídia",
+              content: (
+                <>
+                  <BannerUpload
+                    empreendimentoId={empreendimento.id}
+                    bannerAtual={empreendimento.bannerUrl}
+                  />
+                  <VideoUpload
+                    empreendimentoId={empreendimento.id}
+                    videoAtual={empreendimento.bannerVideoUrl}
+                  />
+                  <CapaTabelaUpload
+                    empreendimentoId={empreendimento.id}
+                    capaAtual={empreendimento.capaTabelaUrl}
+                  />
+                </>
+              ),
+            },
+            {
+              id: "unidades",
+              label: "Unidades",
+              content: (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-display text-2xl font-medium text-primary">Unidades</h2>
+                    <div className="flex items-center gap-3">
+                      <GerarUnidadesButton empreendimentoId={empreendimento.id} />
+                      <Link
+                        href={`/admin/empreendimentos/${empreendimento.id}/unidades/novo`}
+                        className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-light"
+                      >
+                        Nova unidade
+                      </Link>
+                      {empreendimento.unidades.length > 0 && (
+                        <DeleteButton
+                          action={excluirTodasUnidades.bind(null, empreendimento.id)}
+                          label="Excluir todas"
+                          confirmMessage={`Excluir todas as ${empreendimento.unidades.length} unidades deste empreendimento? Essa ação não pode ser desfeita.`}
+                        />
+                      )}
+                    </div>
+                  </div>
 
-        <VideoUpload
-          empreendimentoId={empreendimento.id}
-          videoAtual={empreendimento.bannerVideoUrl}
+                  <UnidadesTable
+                    empreendimentoId={empreendimento.id}
+                    unidades={unidadeRows}
+                    parcelasLabel={
+                      podeCalcularParcela && empreendimento.parcelas
+                        ? `${empreendimento.parcelas}x`
+                        : null
+                    }
+                  />
+                </div>
+              ),
+            },
+            {
+              id: "log",
+              label: "Log",
+              content: (
+                <div className="space-y-4">
+                  <h2 className="font-display text-2xl font-medium text-primary">
+                    Histórico do plano de pagamento (somente admin)
+                  </h2>
+                  <HistoryTable
+                    rows={empreendimento.historicoPlanoPagamento.map((h) => ({
+                      id: h.id,
+                      data: h.criadoEm,
+                      autor: h.autor.name ?? h.autor.email,
+                      descricao: descricaoPlanoPagamento(h),
+                      motivo: h.motivo,
+                    }))}
+                    emptyMessage="Nenhuma alteração do plano de pagamento registrada."
+                  />
+                </div>
+              ),
+            },
+          ]}
         />
-
-        <EmpreendimentoForm
-          action={atualizarEmpreendimento.bind(null, empreendimento.id)}
-          submitLabel="Salvar alterações"
-          showMotivo
-          defaultValues={{
-            nome: empreendimento.nome,
-            slug: empreendimento.slug,
-            status: empreendimento.status,
-            destaque: empreendimento.destaque,
-            slogan: empreendimento.slogan,
-            descricao: empreendimento.descricao,
-            endereco: empreendimento.endereco,
-            bairro: empreendimento.bairro,
-            cidade: empreendimento.cidade,
-            estado: empreendimento.estado,
-            cep: empreendimento.cep,
-            entregaPrevista: empreendimento.entregaPrevista
-              ? empreendimento.entregaPrevista.toISOString().slice(0, 10)
-              : "",
-            andares: empreendimento.andares?.toString() ?? "",
-            unidadesPorAndar: empreendimento.unidadesPorAndar?.toString() ?? "",
-            valorBase: empreendimento.valorBase?.toString() ?? "",
-            entradaPercentual: empreendimento.entradaPercentual?.toString() ?? "",
-            entregaChavesPercentual: empreendimento.entregaChavesPercentual?.toString() ?? "",
-            parcelas: empreendimento.parcelas?.toString() ?? "",
-            tipoPadrao: empreendimento.tipoPadrao,
-            areaPrivativaPadrao: empreendimento.areaPrivativaPadrao?.toString() ?? "",
-            vagasPadrao: empreendimento.vagasPadrao?.toString() ?? "",
-          }}
-        />
-
-        <div className="space-y-4">
-          <h2 className="font-display text-2xl font-medium text-primary">
-            Histórico do plano de pagamento (somente admin)
-          </h2>
-          <HistoryTable
-            rows={empreendimento.historicoPlanoPagamento.map((h) => ({
-              id: h.id,
-              data: h.criadoEm,
-              autor: h.autor.name ?? h.autor.email,
-              descricao: descricaoPlanoPagamento(h),
-              motivo: h.motivo,
-            }))}
-            emptyMessage="Nenhuma alteração do plano de pagamento registrada."
-          />
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-2xl font-medium text-primary">Unidades</h2>
-            <div className="flex items-center gap-3">
-              <GerarUnidadesButton empreendimentoId={empreendimento.id} />
-              <Link
-                href={`/admin/empreendimentos/${empreendimento.id}/unidades/novo`}
-                className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-light"
-              >
-                Nova unidade
-              </Link>
-            </div>
-          </div>
-
-          <UnidadesTable
-            empreendimentoId={empreendimento.id}
-            unidades={unidadeRows}
-            parcelasLabel={
-              podeCalcularParcela && empreendimento.parcelas ? `${empreendimento.parcelas}x` : null
-            }
-          />
-        </div>
       </div>
     </main>
   );

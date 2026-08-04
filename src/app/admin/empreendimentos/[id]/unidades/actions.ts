@@ -154,6 +154,12 @@ export async function excluirUnidade(empreendimentoId: string, unidadeId: string
   revalidatePath(`/admin/empreendimentos/${empreendimentoId}`);
 }
 
+export async function excluirTodasUnidades(empreendimentoId: string) {
+  await requireAdmin();
+  await prisma.unidade.deleteMany({ where: { empreendimentoId } });
+  revalidatePath(`/admin/empreendimentos/${empreendimentoId}`);
+}
+
 export type GerarUnidadesState =
   | { success: true; criadas: number }
   | { success: false; message: string }

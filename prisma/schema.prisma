@@ -167,6 +167,9 @@ model Empreendimento {
   bannerUrl      String?
   /// URL pública do vídeo de banner (Supabase Storage) — usada só no hero, substituindo a imagem quando presente
   bannerVideoUrl String?
+  /// URL pública da imagem de capa da tabela de unidades (Supabase Storage) — usada como
+  /// página de capa quando o corretor exporta a tabela para PDF
+  capaTabelaUrl  String?
 
   /// Controla onde o empreendimento aparece na home (ver enum Destaque)
   destaque Destaque @default(NENHUM)

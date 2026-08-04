@@ -58,6 +58,12 @@ export default async function EmpreendimentoCorretorPage({
 
   return (
     <main className="px-6 py-16">
+      {empreendimento.capaTabelaUrl && (
+        <div className="print-cover">
+          {/* eslint-disable-next-line @next/next/no-img-element -- Supabase Storage URL, print-only cover */}
+          <img src={empreendimento.capaTabelaUrl} alt="" />
+        </div>
+      )}
       <div className="mx-auto max-w-5xl space-y-8">
         <div className="flex items-start justify-between gap-4">
           <div>
