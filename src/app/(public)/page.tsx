@@ -122,7 +122,7 @@ export default async function HomePage() {
           <div className="mt-12 text-center">
             <Link
               href="/empreendimentos"
-              className="inline-flex items-center justify-center rounded-md border border-line px-6 py-3 font-semibold text-primary transition hover:bg-mist"
+              className="inline-flex items-center justify-center rounded-md border border-line px-6 py-3 font-semibold text-primary transition hover:bg-[#f9fafc]"
             >
               Ver todos
             </Link>

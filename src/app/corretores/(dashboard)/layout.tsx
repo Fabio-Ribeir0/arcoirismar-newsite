@@ -10,7 +10,7 @@ export default async function CorretorDashboardLayout({
   const user = await requireCorretor();
 
   return (
-    <div className="flex flex-1 flex-col bg-mist">
+    <div className="flex flex-1 flex-col bg-[#f9fafc]">
       <header className="no-print border-b border-line bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <nav className="flex items-center gap-6 text-sm font-medium text-ink">

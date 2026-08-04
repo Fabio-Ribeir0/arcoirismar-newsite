@@ -79,7 +79,7 @@ export default async function EmpreendimentoCorretorPage({
 
         <div className="overflow-hidden rounded-xl border border-line bg-white">
           <table className="w-full text-sm">
-            <thead className="bg-mist text-left text-ink/60">
+            <thead className="bg-[#f9fafc] text-left text-ink/60">
               <tr>
                 <th className="px-4 py-3 font-medium">Unidade</th>
                 <th className="px-4 py-3 font-medium">Tipo</th>

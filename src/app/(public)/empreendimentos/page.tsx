@@ -43,7 +43,7 @@ export default async function EmpreendimentosPage({
           className={`rounded-md border px-4 py-2 text-sm font-medium transition ${
             !statusFiltro
               ? "border-primary bg-primary text-white"
-              : "border-line text-primary hover:bg-mist"
+              : "border-line text-primary hover:bg-[#f9fafc]"
           }`}
         >
           Todos
@@ -55,7 +55,7 @@ export default async function EmpreendimentosPage({
             className={`rounded-md border px-4 py-2 text-sm font-medium transition ${
               statusFiltro === value
                 ? "border-primary bg-primary text-white"
-                : "border-line text-primary hover:bg-mist"
+                : "border-line text-primary hover:bg-[#f9fafc]"
             }`}
           >
             {label}

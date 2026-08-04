@@ -5,7 +5,7 @@ export function ExportarPdfButton() {
     <button
       type="button"
       onClick={() => window.print()}
-      className="no-print rounded-md border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:bg-mist"
+      className="no-print rounded-md border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:bg-[#f9fafc]"
     >
       Exportar PDF
     </button>

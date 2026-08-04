@@ -158,7 +158,7 @@ export default async function EmpreendimentoPublicoPage({
             {empreendimento.unidades.length > 0 ? (
               <div className="overflow-hidden rounded-xl border border-line bg-white">
                 <table className="w-full text-sm">
-                  <thead className="bg-mist text-left text-ink/60">
+                  <thead className="bg-[#f9fafc] text-left text-ink/60">
                     <tr>
                       <th className="px-4 py-3 font-medium">Tipo</th>
                       <th className="px-4 py-3 font-medium">Área</th>
@@ -225,7 +225,7 @@ export default async function EmpreendimentoPublicoPage({
 
         {/* Sidebar */}
         <aside className="space-y-6">
-          <div className="rounded-xl border border-line bg-mist p-6">
+          <div className="rounded-xl border border-line bg-[#f9fafc] p-6">
             <p className="font-display mb-2 text-lg font-medium text-primary">
               Interessado neste empreendimento?
             </p>
