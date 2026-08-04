@@ -20,6 +20,7 @@ type DefaultValues = {
   preco?: string;
   status?: string;
   isDecorado?: boolean;
+  isTrocaArea?: boolean;
 };
 
 export function UnidadeForm({
@@ -107,15 +108,26 @@ export function UnidadeForm({
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm font-medium text-ink">
-        <input
-          type="checkbox"
-          name="isDecorado"
-          defaultChecked={defaultValues?.isDecorado}
-          className="size-4 rounded border-line"
-        />
-        Esta é a unidade decorada (showroom)
-      </label>
+      <div className="flex flex-wrap items-center gap-6">
+        <label className="flex items-center gap-2 text-sm font-medium text-ink">
+          <input
+            type="checkbox"
+            name="isDecorado"
+            defaultChecked={defaultValues?.isDecorado}
+            className="size-4 rounded border-line"
+          />
+          Esta é a unidade decorada (showroom)
+        </label>
+        <label className="flex items-center gap-2 text-sm font-medium text-ink">
+          <input
+            type="checkbox"
+            name="isTrocaArea"
+            defaultChecked={defaultValues?.isTrocaArea}
+            className="size-4 rounded border-line"
+          />
+          Troca de área
+        </label>
+      </div>
 
       {showMotivo && (
         <Field

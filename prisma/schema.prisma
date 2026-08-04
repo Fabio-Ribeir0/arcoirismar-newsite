@@ -293,7 +293,9 @@ model Unidade {
   status UnidadeStatus @default(DISPONIVEL)
 
   /// Marca a unidade como o apartamento decorado/showroom do empreendimento
-  isDecorado Boolean @default(false)
+  isDecorado  Boolean @default(false)
+  /// Marca a unidade como sujeita a troca de área — visível somente no admin
+  isTrocaArea Boolean @default(false)
 
   empreendimento Empreendimento @relation(fields: [empreendimentoId], references: [id], onDelete: Cascade)
 

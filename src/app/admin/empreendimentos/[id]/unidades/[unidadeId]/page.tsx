@@ -52,6 +52,7 @@ export default async function EditarUnidadePage({
             preco: unidade.preco.toString(),
             status: unidade.status,
             isDecorado: unidade.isDecorado,
+            isTrocaArea: unidade.isTrocaArea,
           }}
         />
 

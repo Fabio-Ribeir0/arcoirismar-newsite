@@ -51,6 +51,7 @@ export default async function EditarEmpreendimentoPage({
       : null,
     status: unidade.status,
     isDecorado: unidade.isDecorado,
+    isTrocaArea: unidade.isTrocaArea,
   }));
 
   return (

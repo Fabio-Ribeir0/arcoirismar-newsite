@@ -4,6 +4,7 @@ import { SimuladorFinanciamento } from "./simulador";
 import { calcularPlanoPagamentoUnidade } from "@/lib/plano-pagamento";
 import { ExportarPdfButton } from "./exportar-pdf-button";
 import type { UnidadeStatus } from "@/generated/prisma/client";
+import { StarIcon } from "@/components/icons";
 
 const UNIDADE_STATUS_LABEL: Record<string, string> = {
   DISPONIVEL: "Disponível",
@@ -103,8 +104,11 @@ export default async function EmpreendimentoCorretorPage({
                     <td className="px-4 py-3 font-medium text-primary">
                       {unidade.identificador}
                       {unidade.isDecorado && (
-                        <span className="ml-2 rounded-full bg-accent/20 px-2 py-0.5 text-xs font-semibold text-accent">
-                          Decorado
+                        <span
+                          title="Decorado"
+                          className="ml-2 inline-flex items-center justify-center rounded-full bg-accent/20 p-1 text-accent"
+                        >
+                          <StarIcon className="size-3" />
                         </span>
                       )}
                     </td>
@@ -141,6 +145,13 @@ export default async function EmpreendimentoCorretorPage({
               )}
             </tbody>
           </table>
+        </div>
+
+        <div className="flex items-center gap-2 text-sm text-ink/60">
+          <span className="inline-flex items-center justify-center rounded-full bg-accent/20 p-1 text-accent">
+            <StarIcon className="size-3" />
+          </span>
+          = Unidades decoradas
         </div>
 
         {configuracao && unidadesDisponiveis.length > 0 ? (

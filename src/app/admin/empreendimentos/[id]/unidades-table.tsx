@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DeleteButton } from "@/components/delete-button";
 import { excluirUnidade } from "./unidades/actions";
+import { StarIcon, ArrowsRightLeftIcon } from "@/components/icons";
 
 const UNIDADE_STATUS_LABEL: Record<string, string> = {
   DISPONIVEL: "Disponível",
@@ -12,6 +13,15 @@ const UNIDADE_STATUS_LABEL: Record<string, string> = {
   VENDIDO: "Vendido",
   BLOQUEADO: "Bloqueado",
 };
+
+const UNIDADE_STATUS_STYLE: Record<string, string> = {
+  DISPONIVEL: "bg-green-100 text-green-700",
+  RESERVADO: "bg-blue-100 text-blue-700",
+  VENDIDO: "bg-ink/10 text-ink/60",
+  BLOQUEADO: "bg-red-100 text-red-700",
+};
+
+const FILTRO_STATUS_OPCOES = ["TODOS", "DISPONIVEL", "RESERVADO", "VENDIDO", "BLOQUEADO"] as const;
 
 export type UnidadeRow = {
   id: string;
@@ -23,6 +33,7 @@ export type UnidadeRow = {
   parcela: number | null;
   status: string;
   isDecorado: boolean;
+  isTrocaArea: boolean;
 };
 
 export function UnidadesTable({
@@ -39,9 +50,16 @@ export function UnidadesTable({
   const [andarDe, setAndarDe] = useState("");
   const [andarAte, setAndarAte] = useState("");
   const [finalUnidade, setFinalUnidade] = useState("");
+  const [filtroStatus, setFiltroStatus] =
+    useState<(typeof FILTRO_STATUS_OPCOES)[number]>("TODOS");
 
   const formatCurrency = (value: number) =>
     value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const unidadesVisiveis = useMemo(
+    () => (filtroStatus === "TODOS" ? unidades : unidades.filter((u) => u.status === filtroStatus)),
+    [unidades, filtroStatus]
+  );
 
   function alternar(id: string) {
     setSelecionadas((prev) => {
@@ -53,7 +71,7 @@ export function UnidadesTable({
   }
 
   function selecionarTodas() {
-    setSelecionadas(new Set(unidades.map((u) => u.id)));
+    setSelecionadas(new Set(unidadesVisiveis.map((u) => u.id)));
   }
 
   function limparSelecao() {
@@ -65,7 +83,7 @@ export function UnidadesTable({
     const ate = andarAte ? Number(andarAte) : null;
     setSelecionadas((prev) => {
       const novo = new Set(prev);
-      unidades.forEach((u) => {
+      unidadesVisiveis.forEach((u) => {
         if (u.andar === null) return;
         const dentroDoIntervalo = (de === null || u.andar >= de) && (ate === null || u.andar <= ate);
         const bateComFinal = !finalUnidade || u.identificador.endsWith(finalUnidade);
@@ -76,8 +94,8 @@ export function UnidadesTable({
   }
 
   const todasSelecionadas = useMemo(
-    () => unidades.length > 0 && selecionadas.size === unidades.length,
-    [unidades, selecionadas]
+    () => unidadesVisiveis.length > 0 && unidadesVisiveis.every((u) => selecionadas.has(u.id)),
+    [unidadesVisiveis, selecionadas]
   );
 
   return (
@@ -110,6 +128,21 @@ export function UnidadesTable({
             placeholder="ex.: 01"
             className="w-28 rounded-md border border-line px-2 py-1.5 text-sm outline-none focus:border-primary"
           />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-ink/60">Filtrar por status</label>
+          <select
+            value={filtroStatus}
+            onChange={(e) => setFiltroStatus(e.target.value as (typeof FILTRO_STATUS_OPCOES)[number])}
+            className="rounded-md border border-line px-2 py-1.5 text-sm outline-none focus:border-primary"
+          >
+            <option value="TODOS">Todos</option>
+            {FILTRO_STATUS_OPCOES.filter((s) => s !== "TODOS").map((status) => (
+              <option key={status} value={status}>
+                {UNIDADE_STATUS_LABEL[status]}
+              </option>
+            ))}
+          </select>
         </div>
         <button
           type="button"
@@ -170,7 +203,7 @@ export function UnidadesTable({
             </tr>
           </thead>
           <tbody>
-            {unidades.map((unidade) => (
+            {unidadesVisiveis.map((unidade) => (
               <tr key={unidade.id} className="border-t border-line">
                 <td className="px-4 py-3">
                   <input
@@ -188,8 +221,19 @@ export function UnidadesTable({
                     {unidade.identificador}
                   </Link>
                   {unidade.isDecorado && (
-                    <span className="ml-2 rounded-full bg-accent/20 px-2 py-0.5 text-xs font-semibold text-accent">
-                      Decorado
+                    <span
+                      title="Decorado"
+                      className="ml-2 inline-flex items-center justify-center rounded-full bg-accent/20 p-1 text-accent"
+                    >
+                      <StarIcon className="size-3" />
+                    </span>
+                  )}
+                  {unidade.isTrocaArea && (
+                    <span
+                      title="Troca de área"
+                      className="ml-1 inline-flex items-center justify-center rounded-full bg-accent/20 p-1 text-accent"
+                    >
+                      <ArrowsRightLeftIcon className="size-3" />
                     </span>
                   )}
                 </td>
@@ -200,7 +244,13 @@ export function UnidadesTable({
                     {unidade.parcela !== null ? formatCurrency(unidade.parcela) : "—"}
                   </td>
                 )}
-                <td className="px-4 py-3 text-ink/70">{UNIDADE_STATUS_LABEL[unidade.status]}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${UNIDADE_STATUS_STYLE[unidade.status]}`}
+                  >
+                    {UNIDADE_STATUS_LABEL[unidade.status]}
+                  </span>
+                </td>
                 <td className="px-4 py-3 text-right">
                   <DeleteButton
                     action={excluirUnidade.bind(null, empreendimentoId, unidade.id)}
@@ -209,10 +259,12 @@ export function UnidadesTable({
                 </td>
               </tr>
             ))}
-            {unidades.length === 0 && (
+            {unidadesVisiveis.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-ink/50">
-                  Nenhuma unidade cadastrada ainda.
+                  {unidades.length === 0
+                    ? "Nenhuma unidade cadastrada ainda."
+                    : "Nenhuma unidade com esse status."}
                 </td>
               </tr>
             )}
