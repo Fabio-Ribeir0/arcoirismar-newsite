@@ -24,3 +24,13 @@
   transform: translateY(6px);
   transition: all 0.15s ease-out;
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}
