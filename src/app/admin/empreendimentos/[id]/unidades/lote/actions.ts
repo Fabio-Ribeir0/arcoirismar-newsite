@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/dal";
 import { UNIDADE_STATUS } from "../schema";
-import { registrarHistoricoUnidade } from "../service";
+import { registrarHistoricoUnidadesEmLote } from "../service";
 
 export type LoteFormState =
   | { success: true }
@@ -76,30 +76,30 @@ export async function atualizarUnidadesEmLote(
 
   const unidades = await prisma.unidade.findMany({
     where: { id: { in: unidadeIds }, empreendimentoId },
+    select: { id: true, preco: true, status: true },
   });
 
+  const data: Record<string, unknown> = {};
+  if (aplicarPreco && novoPreco !== undefined) data.preco = novoPreco;
+  if (aplicarStatus && novoStatus) data.status = novoStatus;
+  if (aplicarTipo && novoTipo !== undefined) data.tipo = novoTipo;
+  if (aplicarVagas && novasVagas !== undefined) data.vagas = novasVagas;
+  if (aplicarArea && novaArea !== undefined) data.areaPrivativa = novaArea;
+  if (aplicarDecorado) data.isDecorado = novoDecorado;
+
+  // Uma updateMany + até 2 createMany, em vez de um update + create por
+  // unidade — com dezenas/centenas de unidades selecionadas, o loop antigo
+  // estourava o timeout padrão (5s) da transação interativa do Prisma.
   await prisma.$transaction(async (tx) => {
-    for (const atual of unidades) {
-      const data: Record<string, unknown> = {};
-      if (aplicarPreco && novoPreco !== undefined) data.preco = novoPreco;
-      if (aplicarStatus && novoStatus) data.status = novoStatus;
-      if (aplicarTipo && novoTipo !== undefined) data.tipo = novoTipo;
-      if (aplicarVagas && novasVagas !== undefined) data.vagas = novasVagas;
-      if (aplicarArea && novaArea !== undefined) data.areaPrivativa = novaArea;
-      if (aplicarDecorado) data.isDecorado = novoDecorado;
+    await tx.unidade.updateMany({ where: { id: { in: unidadeIds }, empreendimentoId }, data });
 
-      await tx.unidade.update({ where: { id: atual.id }, data });
-
-      await registrarHistoricoUnidade(tx, {
-        unidadeId: atual.id,
-        precoAnterior: atual.preco,
-        precoNovo: aplicarPreco ? novoPreco : undefined,
-        statusAnterior: atual.status,
-        statusNovo: aplicarStatus ? novoStatus : undefined,
-        autorId: admin.id,
-        motivo,
-      });
-    }
+    await registrarHistoricoUnidadesEmLote(tx, {
+      unidades,
+      precoNovo: aplicarPreco ? novoPreco : undefined,
+      statusNovo: aplicarStatus ? novoStatus : undefined,
+      autorId: admin.id,
+      motivo,
+    });
   });
 
   revalidatePath(`/admin/empreendimentos/${empreendimentoId}`);

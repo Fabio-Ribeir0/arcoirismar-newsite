@@ -33,3 +33,54 @@ export async function registrarHistoricoUnidade(
     });
   }
 }
+
+/**
+ * Batch version for the "editar selecionadas" flow — writes history for many
+ * units with 2 createMany calls total instead of up to 2 queries per unit.
+ * A per-unit loop inside an interactive transaction was blowing past
+ * Prisma's default 5s transaction timeout once a selection got into the
+ * dozens of units (each round trip to the pooled connection adds up).
+ */
+export async function registrarHistoricoUnidadesEmLote(
+  tx: Prisma.TransactionClient,
+  params: {
+    unidades: { id: string; preco: Prisma.Decimal; status: UnidadeStatus }[];
+    precoNovo?: string;
+    statusNovo?: UnidadeStatus;
+    autorId: string;
+    motivo: string | null;
+  }
+) {
+  const { unidades, precoNovo, statusNovo, autorId, motivo } = params;
+
+  const historicoPrecos = [];
+  const historicoStatus = [];
+
+  for (const unidade of unidades) {
+    if (precoNovo !== undefined && Number(unidade.preco) !== Number(precoNovo)) {
+      historicoPrecos.push({
+        unidadeId: unidade.id,
+        precoAnterior: unidade.preco,
+        precoNovo,
+        autorId,
+        motivo,
+      });
+    }
+    if (statusNovo !== undefined && unidade.status !== statusNovo) {
+      historicoStatus.push({
+        unidadeId: unidade.id,
+        statusAnterior: unidade.status,
+        statusNovo,
+        autorId,
+        motivo,
+      });
+    }
+  }
+
+  if (historicoPrecos.length > 0) {
+    await tx.historicoPrecoUnidade.createMany({ data: historicoPrecos });
+  }
+  if (historicoStatus.length > 0) {
+    await tx.historicoStatusUnidade.createMany({ data: historicoStatus });
+  }
+}
