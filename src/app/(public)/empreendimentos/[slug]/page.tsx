@@ -92,7 +92,20 @@ export default async function EmpreendimentoPublicoPage({
       <section className="border-b border-line bg-white">
         <div className="mx-auto grid max-w-7xl gap-12 px-6 py-6 lg:grid-cols-3">
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4 lg:col-span-2">
-            <Ficha label="Tipos" valor={tipos.length > 0 ? tipos.join(", ") : "A definir"} />
+            <Ficha
+              label="Tipos"
+              valor={
+                tipos.length > 0 ? (
+                  <div className="space-y-0.5">
+                    {tipos.map((tipo) => (
+                      <div key={tipo}>{tipo}</div>
+                    ))}
+                  </div>
+                ) : (
+                  "A definir"
+                )
+              }
+            />
             <Ficha label="Área privativa" valor={areaFaixa} />
             <Ficha label="Vagas de garagem" valor={vagasFaixa} />
             <Ficha label="Entrega prevista" valor={entrega} />
@@ -246,11 +259,11 @@ export default async function EmpreendimentoPublicoPage({
   );
 }
 
-function Ficha({ label, valor }: { label: string; valor: string }) {
+function Ficha({ label, valor }: { label: string; valor: React.ReactNode }) {
   return (
     <div>
       <p className="mb-1 text-xs text-ink/60">{label}</p>
-      <p className="font-display text-lg font-semibold text-primary">{valor}</p>
+      <div className="font-display text-lg font-semibold text-primary">{valor}</div>
     </div>
   );
 }

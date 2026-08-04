@@ -27,7 +27,7 @@ export default async function HomePage() {
       }),
       prisma.empreendimento.findMany({
         orderBy: { createdAt: "desc" },
-        take: 3,
+        take: 6,
         include,
       }),
       prisma.empreendimento.count(),
@@ -39,7 +39,7 @@ export default async function HomePage() {
   const empreendimentosPortfolio =
     destacadosPortfolio.length > 0 ? destacadosPortfolio : recentes;
 
-  const slides: HeroSlide[] = empreendimentosCarrossel.slice(0, 3).map((emp) => ({
+  const slides: HeroSlide[] = empreendimentosCarrossel.slice(0, 6).map((emp) => ({
     eyebrow: eyebrowEmpreendimento({
       bairro: emp.bairro,
       cidade: emp.cidade,
@@ -82,7 +82,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            {empreendimentosPortfolio.slice(0, 3).map((emp) => (
+            {empreendimentosPortfolio.slice(0, 6).map((emp) => (
               <Link
                 key={emp.id}
                 href={`/empreendimentos/${emp.slug}`}
@@ -117,6 +117,15 @@ export default async function HomePage() {
             {empreendimentosPortfolio.length === 0 && (
               <p className="text-ink/50">Nenhum empreendimento publicado ainda.</p>
             )}
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link
+              href="/empreendimentos"
+              className="inline-flex items-center justify-center rounded-md border border-line px-6 py-3 font-semibold text-primary transition hover:bg-mist"
+            >
+              Ver todos
+            </Link>
           </div>
         </div>
       </section>
