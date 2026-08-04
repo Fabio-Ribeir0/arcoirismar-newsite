@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { EMPREENDIMENTO_STATUS } from "./schema";
+import { DESTAQUE_OPCOES, EMPREENDIMENTO_STATUS } from "./schema";
 import type { EmpreendimentoFormState } from "./actions";
 
 const STATUS_LABEL: Record<(typeof EMPREENDIMENTO_STATUS)[number], string> = {
@@ -11,10 +11,17 @@ const STATUS_LABEL: Record<(typeof EMPREENDIMENTO_STATUS)[number], string> = {
   PRONTO: "Pronto para morar",
 };
 
+const DESTAQUE_LABEL: Record<(typeof DESTAQUE_OPCOES)[number], string> = {
+  NENHUM: "Não destacar na home",
+  PORTFOLIO: "Destacar só no Portfólio",
+  CARROSSEL: "Destacar no carrossel (+ Portfólio)",
+};
+
 type DefaultValues = {
   nome?: string;
   slug?: string;
   status?: string;
+  destaque?: string;
   slogan?: string | null;
   descricao?: string | null;
   endereco?: string | null;
@@ -84,6 +91,29 @@ export function EmpreendimentoForm({
           defaultValue={defaultValues?.entregaPrevista ?? ""}
           errors={errors?.entregaPrevista}
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="destaque" className="text-sm font-medium text-ink">
+          Destaque na home
+        </label>
+        <select
+          id="destaque"
+          name="destaque"
+          defaultValue={defaultValues?.destaque ?? "NENHUM"}
+          className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
+        >
+          {DESTAQUE_OPCOES.map((value) => (
+            <option key={value} value={value}>
+              {DESTAQUE_LABEL[value]}
+            </option>
+          ))}
+        </select>
+        {errors?.destaque?.map((error) => (
+          <p key={error} className="text-sm text-red-600">
+            {error}
+          </p>
+        ))}
       </div>
 
       <Field

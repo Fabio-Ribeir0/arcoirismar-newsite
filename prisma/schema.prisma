@@ -33,6 +33,13 @@ enum EmpreendimentoStatus {
   PRONTO
 }
 
+/// Onde o empreendimento aparece na home: só no Portfólio, ou no carrossel (e no Portfólio)
+enum Destaque {
+  NENHUM
+  PORTFOLIO
+  CARROSSEL
+}
+
 enum UnidadeStatus {
   DISPONIVEL
   RESERVADO
@@ -154,9 +161,14 @@ model Empreendimento {
   status    EmpreendimentoStatus @default(EM_BREVE)
 
   /// Chamada usada no banner/hero (ex.: "Um novo conceito de morar frente ao mar")
-  slogan    String?
-  /// URL pública da imagem de banner (Supabase Storage)
-  bannerUrl String?
+  slogan         String?
+  /// URL pública da imagem de banner (Supabase Storage) — usada no hero, no card do Portfólio e na página de detalhe
+  bannerUrl      String?
+  /// URL pública do vídeo de banner (Supabase Storage) — usada só no hero, substituindo a imagem quando presente
+  bannerVideoUrl String?
+
+  /// Controla onde o empreendimento aparece na home (ver enum Destaque)
+  destaque Destaque @default(NENHUM)
 
   endereco  String?
   bairro    String?

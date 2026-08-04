@@ -10,16 +10,36 @@ import {
 } from "@/lib/empreendimento-display";
 
 export default async function HomePage() {
-  const [empreendimentos, totalEmpreendimentos] = await Promise.all([
-    prisma.empreendimento.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 6,
-      include: { _count: { select: { unidades: true } } },
-    }),
-    prisma.empreendimento.count(),
-  ]);
+  const include = { _count: { select: { unidades: true } } } as const;
 
-  const slides: HeroSlide[] = empreendimentos.slice(0, 3).map((emp) => ({
+  const [destacadosCarrossel, destacadosPortfolio, recentes, totalEmpreendimentos] =
+    await Promise.all([
+      prisma.empreendimento.findMany({
+        where: { destaque: "CARROSSEL" },
+        orderBy: { createdAt: "desc" },
+        include,
+      }),
+      prisma.empreendimento.findMany({
+        where: { destaque: { in: ["CARROSSEL", "PORTFOLIO"] } },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        include,
+      }),
+      prisma.empreendimento.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        include,
+      }),
+      prisma.empreendimento.count(),
+    ]);
+
+  // Sem nada marcado como destaque ainda: cai para os mais recentes, pra
+  // home não ficar vazia enquanto o admin não configura a curadoria.
+  const empreendimentosCarrossel = destacadosCarrossel.length > 0 ? destacadosCarrossel : recentes;
+  const empreendimentosPortfolio =
+    destacadosPortfolio.length > 0 ? destacadosPortfolio : recentes;
+
+  const slides: HeroSlide[] = empreendimentosCarrossel.slice(0, 3).map((emp) => ({
     eyebrow: eyebrowEmpreendimento({
       bairro: emp.bairro,
       cidade: emp.cidade,
@@ -34,6 +54,7 @@ export default async function HomePage() {
       }),
     href: `/empreendimentos/${emp.slug}`,
     imagemUrl: emp.bannerUrl,
+    videoUrl: emp.bannerVideoUrl,
   }));
 
   if (slides.length === 0) {
@@ -61,7 +82,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            {empreendimentos.slice(0, 3).map((emp) => (
+            {empreendimentosPortfolio.slice(0, 3).map((emp) => (
               <Link
                 key={emp.id}
                 href={`/empreendimentos/${emp.slug}`}
@@ -93,7 +114,7 @@ export default async function HomePage() {
                 </div>
               </Link>
             ))}
-            {empreendimentos.length === 0 && (
+            {empreendimentosPortfolio.length === 0 && (
               <p className="text-ink/50">Nenhum empreendimento publicado ainda.</p>
             )}
           </div>

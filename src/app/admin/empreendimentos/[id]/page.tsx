@@ -7,6 +7,7 @@ import { GerarUnidadesButton } from "./unidades/gerar-unidades-button";
 import { UnidadesTable, type UnidadeRow } from "./unidades-table";
 import { calcularParcelaPlanoDireto } from "@/lib/plano-pagamento";
 import { BannerUpload } from "./banner-upload";
+import { VideoUpload } from "./video-upload";
 
 export default async function EditarEmpreendimentoPage({
   params,
@@ -58,6 +59,11 @@ export default async function EditarEmpreendimentoPage({
 
         <BannerUpload empreendimentoId={empreendimento.id} bannerAtual={empreendimento.bannerUrl} />
 
+        <VideoUpload
+          empreendimentoId={empreendimento.id}
+          videoAtual={empreendimento.bannerVideoUrl}
+        />
+
         <EmpreendimentoForm
           action={atualizarEmpreendimento.bind(null, empreendimento.id)}
           submitLabel="Salvar alterações"
@@ -65,6 +71,7 @@ export default async function EditarEmpreendimentoPage({
             nome: empreendimento.nome,
             slug: empreendimento.slug,
             status: empreendimento.status,
+            destaque: empreendimento.destaque,
             slogan: empreendimento.slogan,
             descricao: empreendimento.descricao,
             endereco: empreendimento.endereco,

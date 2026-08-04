@@ -7,6 +7,8 @@ export const EMPREENDIMENTO_STATUS = [
   "PRONTO",
 ] as const;
 
+export const DESTAQUE_OPCOES = ["NENHUM", "PORTFOLIO", "CARROSSEL"] as const;
+
 export const EmpreendimentoSchema = z.object({
   nome: z.string().min(2, { error: "Informe o nome do empreendimento." }).trim(),
   slug: z
@@ -18,6 +20,7 @@ export const EmpreendimentoSchema = z.object({
     .optional()
     .or(z.literal("")),
   status: z.enum(EMPREENDIMENTO_STATUS, { error: "Selecione um status válido." }),
+  destaque: z.enum(DESTAQUE_OPCOES, { error: "Selecione uma opção de destaque válida." }),
   slogan: z.string().trim().optional().or(z.literal("")),
   descricao: z.string().trim().optional().or(z.literal("")),
   endereco: z.string().trim().optional().or(z.literal("")),

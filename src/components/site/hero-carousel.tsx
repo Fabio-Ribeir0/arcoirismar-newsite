@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 export type HeroSlide = {
@@ -9,6 +9,7 @@ export type HeroSlide = {
   subtitulo: string;
   href: string;
   imagemUrl?: string | null;
+  videoUrl?: string | null;
 };
 
 export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
@@ -32,7 +33,12 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
           className="absolute inset-0 flex items-center transition-opacity duration-1000"
           style={{ opacity: index === atual ? 1 : 0 }}
         >
-          {slide.imagemUrl ? (
+          {slide.videoUrl ? (
+            <>
+              <SlideVideo videoUrl={slide.videoUrl} imagemUrl={slide.imagemUrl} ativo={index === atual} />
+              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/30 to-primary/10" />
+            </>
+          ) : slide.imagemUrl ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element -- admin-managed Supabase Storage URL */}
               <img
@@ -85,5 +91,55 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * Vídeo de fundo do hero. Só toca de fato o slide ativo (os demais ficam
+ * pausados fora de tela) e é escondido no mobile — autoplay de vídeo pesa
+ * demais em dados móveis, então nesse caso cai para a imagem (poster).
+ */
+function SlideVideo({
+  videoUrl,
+  imagemUrl,
+  ativo,
+}: {
+  videoUrl: string;
+  imagemUrl?: string | null;
+  ativo: boolean;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (ativo) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  }, [ativo]);
+
+  return (
+    <>
+      {imagemUrl && (
+        // eslint-disable-next-line @next/next/no-img-element -- fallback shown on mobile / while video loads
+        <img
+          src={imagemUrl}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover md:hidden"
+        />
+      )}
+      <video
+        ref={videoRef}
+        src={videoUrl}
+        poster={imagemUrl ?? undefined}
+        muted
+        loop
+        playsInline
+        preload={ativo ? "auto" : "none"}
+        className="absolute inset-0 hidden h-full w-full object-cover md:block"
+      />
+    </>
   );
 }
