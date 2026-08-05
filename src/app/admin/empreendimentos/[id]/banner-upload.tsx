@@ -42,7 +42,7 @@ export function BannerUpload({
           name="banner"
           accept="image/png,image/jpeg,image/webp"
           required
-          className="text-sm text-ink/70 file:mr-4 file:rounded-md file:border-0 file:bg-[#f9fafc] file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-line"
+          className="text-sm text-ink/70 file:mr-4 file:rounded-md file:border-0 file:bg-mist file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-line"
         />
         <button
           type="submit"

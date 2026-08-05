@@ -122,7 +122,7 @@ export default async function HomePage() {
           <div className="mt-12 text-center">
             <Link
               href="/empreendimentos"
-              className="inline-flex items-center justify-center rounded-md border border-line px-6 py-3 font-semibold text-primary transition hover:bg-[#f9fafc]"
+              className="inline-flex items-center justify-center rounded-md border border-line px-6 py-3 font-semibold text-primary transition hover:bg-mist"
             >
               Ver todos
             </Link>
@@ -130,7 +130,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="sobre" className="border-t border-line bg-[#f9fafc] py-24">
+      <section id="sobre" className="border-t border-line bg-mist py-24">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2">
           <div>
             <p className="mb-3 text-xs font-semibold tracking-widest text-accent uppercase">

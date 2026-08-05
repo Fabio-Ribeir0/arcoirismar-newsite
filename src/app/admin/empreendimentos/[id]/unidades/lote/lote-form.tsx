@@ -99,7 +99,7 @@ function CampoTexto({
           type={type}
           step={step}
           disabled={!ativo}
-          className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary disabled:bg-[#f9fafc] disabled:text-ink/40"
+          className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary disabled:bg-mist disabled:text-ink/40"
         />
         {hint && <p className="text-xs text-ink/50">{hint}</p>}
       </div>
@@ -133,7 +133,7 @@ function CampoSelect({
           name={name}
           disabled={!ativo}
           defaultValue="DISPONIVEL"
-          className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary disabled:bg-[#f9fafc] disabled:text-ink/40"
+          className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary disabled:bg-mist disabled:text-ink/40"
         >
           {UNIDADE_STATUS.map((value) => (
             <option key={value} value={value}>

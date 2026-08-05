@@ -97,7 +97,7 @@ export function SimuladorFinanciamento({
       </div>
 
       {resultado && (
-        <div className="grid gap-4 rounded-lg bg-[#f9fafc] p-6 sm:grid-cols-4">
+        <div className="grid gap-4 rounded-lg bg-mist p-6 sm:grid-cols-4">
           <div>
             <p className="text-xs text-ink/60">Valor financiado</p>
             <p className="font-display text-lg font-semibold text-primary">

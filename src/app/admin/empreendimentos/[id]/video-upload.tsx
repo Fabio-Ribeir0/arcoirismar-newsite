@@ -106,7 +106,7 @@ export function VideoUpload({
           ref={inputRef}
           type="file"
           accept={TIPOS_ACEITOS}
-          className="text-sm text-ink/70 file:mr-4 file:rounded-md file:border-0 file:bg-[#f9fafc] file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-line"
+          className="text-sm text-ink/70 file:mr-4 file:rounded-md file:border-0 file:bg-mist file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-line"
         />
         <button
           type="button"
@@ -121,7 +121,7 @@ export function VideoUpload({
             type="button"
             onClick={handleRemover}
             disabled={pending}
-            className="rounded-md border border-line px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-[#f9fafc] disabled:opacity-60"
+            className="rounded-md border border-line px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-mist disabled:opacity-60"
           >
             Remover vídeo
           </button>

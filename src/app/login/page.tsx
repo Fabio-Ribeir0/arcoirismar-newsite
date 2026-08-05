@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [state, action, pending] = useActionState(loginAction, undefined);
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-[#f9fafc] px-6 py-24">
+    <main className="flex flex-1 items-center justify-center bg-mist px-6 py-24">
       <form
         action={action}
         className="w-full max-w-sm space-y-5 rounded-xl border border-line bg-white p-8"

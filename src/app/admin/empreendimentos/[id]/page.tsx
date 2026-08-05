@@ -10,6 +10,8 @@ import { calcularParcelaPlanoDireto } from "@/lib/plano-pagamento";
 import { BannerUpload } from "./banner-upload";
 import { VideoUpload } from "./video-upload";
 import { CapaTabelaUpload } from "./capa-tabela-upload";
+import { MidiaImagensSection } from "./midia-imagens-section";
+import { MidiaVideoSection } from "./midia-video-section";
 import { HistoryTable } from "@/components/admin/history-table";
 import { diferente } from "../service";
 import { Tabs } from "@/components/admin/tabs";
@@ -28,10 +30,15 @@ export default async function EditarEmpreendimentoPage({
     include: {
       unidades: { orderBy: [{ andar: "asc" }, { identificador: "asc" }] },
       historicoPlanoPagamento: { orderBy: { criadoEm: "desc" }, include: { autor: true } },
+      midias: { orderBy: { ordem: "asc" } },
     },
   });
 
   if (!empreendimento) notFound();
+
+  const fotos = empreendimento.midias.filter((m) => m.tipo === "FOTO");
+  const plantas = empreendimento.midias.filter((m) => m.tipo === "PLANTA");
+  const videos = empreendimento.midias.filter((m) => m.tipo === "VIDEO");
 
   const podeCalcularParcela =
     empreendimento.parcelas !== null &&
@@ -124,6 +131,21 @@ export default async function EditarEmpreendimentoPage({
                     empreendimentoId={empreendimento.id}
                     capaAtual={empreendimento.capaTabelaUrl}
                   />
+                  <MidiaImagensSection
+                    empreendimentoId={empreendimento.id}
+                    tipo="FOTO"
+                    titulo="Imagens"
+                    descricao="Fotos gerais do empreendimento — aparecem na seção Galeria da página pública."
+                    midias={fotos}
+                  />
+                  <MidiaImagensSection
+                    empreendimentoId={empreendimento.id}
+                    tipo="PLANTA"
+                    titulo="Plantas"
+                    descricao="Plantas humanizadas, com medidas etc. — aparecem na seção Plantas da página pública quando marcadas como 'Público'."
+                    midias={plantas}
+                  />
+                  <MidiaVideoSection empreendimentoId={empreendimento.id} midias={videos} />
                 </>
               ),
             },

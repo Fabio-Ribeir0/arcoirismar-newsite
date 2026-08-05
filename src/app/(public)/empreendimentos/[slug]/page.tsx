@@ -52,6 +52,7 @@ export default async function EmpreendimentoPublicoPage({
     .join(", ");
 
   const fotos = empreendimento.midias.filter((m) => m.tipo === "FOTO");
+  const plantas = empreendimento.midias.filter((m) => m.tipo === "PLANTA");
   const videos = empreendimento.midias.filter((m) => m.tipo === "VIDEO");
 
   return (
@@ -142,14 +143,40 @@ export default async function EmpreendimentoPublicoPage({
             </div>
           )}
 
+          {plantas.length > 0 && (
+            <div>
+              <h2 className="font-display mb-4 text-2xl font-medium text-primary">Plantas</h2>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                {plantas.map((planta) => (
+                  // eslint-disable-next-line @next/next/no-img-element -- external/admin-managed URLs, not local assets
+                  <img
+                    key={planta.id}
+                    src={planta.url}
+                    alt={planta.titulo ?? "Planta"}
+                    className="h-40 w-full rounded-lg border border-line object-cover"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {videos.length > 0 && (
             <div>
               <h2 className="font-display mb-4 text-2xl font-medium text-primary">
                 Vídeo institucional
               </h2>
-              <video controls muted className="w-full rounded-lg border border-line">
-                <source src={videos[0].url} />
-              </video>
+              <div className="space-y-4">
+                {videos.map((video) => (
+                  <video
+                    key={video.id}
+                    controls
+                    muted
+                    className="w-full rounded-lg border border-line"
+                  >
+                    <source src={video.url} />
+                  </video>
+                ))}
+              </div>
             </div>
           )}
 
@@ -158,7 +185,7 @@ export default async function EmpreendimentoPublicoPage({
             {empreendimento.unidades.length > 0 ? (
               <div className="overflow-hidden rounded-xl border border-line bg-white">
                 <table className="w-full text-sm">
-                  <thead className="bg-[#f9fafc] text-left text-ink/60">
+                  <thead className="bg-mist text-left text-ink/60">
                     <tr>
                       <th className="px-4 py-3 font-medium">Tipo</th>
                       <th className="px-4 py-3 font-medium">Área</th>
@@ -225,7 +252,7 @@ export default async function EmpreendimentoPublicoPage({
 
         {/* Sidebar */}
         <aside className="space-y-6">
-          <div className="rounded-xl border border-line bg-[#f9fafc] p-6">
+          <div className="rounded-xl border border-line bg-mist p-6">
             <p className="font-display mb-2 text-lg font-medium text-primary">
               Interessado neste empreendimento?
             </p>

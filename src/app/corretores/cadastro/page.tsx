@@ -8,7 +8,7 @@ export default function CadastroCorretorPage() {
 
   if (state?.success) {
     return (
-      <main className="flex flex-1 items-center justify-center bg-[#f9fafc] px-6 py-24">
+      <main className="flex flex-1 items-center justify-center bg-mist px-6 py-24">
         <div className="max-w-md space-y-3 text-center">
           <h1 className="font-display text-2xl font-medium text-primary">
             Cadastro enviado
@@ -26,7 +26,7 @@ export default function CadastroCorretorPage() {
   const message = state?.success === false ? state.message : undefined;
 
   return (
-    <main className="flex flex-1 items-center justify-center bg-[#f9fafc] px-6 py-16">
+    <main className="flex flex-1 items-center justify-center bg-mist px-6 py-16">
       <form
         action={action}
         className="w-full max-w-md space-y-5 rounded-xl border border-line bg-white p-8"

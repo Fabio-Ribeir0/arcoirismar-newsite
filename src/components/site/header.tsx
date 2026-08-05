@@ -42,19 +42,19 @@ export function SiteHeader() {
               <div className="rounded-lg border border-line bg-white py-2 shadow-lg">
                 <Link
                   href="/empreendimentos"
-                  className="block px-4 py-2 text-sm font-medium transition hover:bg-[#f9fafc] hover:text-accent"
+                  className="block px-4 py-2 text-sm font-medium transition hover:bg-mist hover:text-accent"
                 >
                   Todos os empreendimentos
                 </Link>
                 <Link
                   href="/empreendimentos?status=LANCAMENTO"
-                  className="block px-4 py-2 text-sm font-medium transition hover:bg-[#f9fafc] hover:text-accent"
+                  className="block px-4 py-2 text-sm font-medium transition hover:bg-mist hover:text-accent"
                 >
                   Em lançamento
                 </Link>
                 <Link
                   href="/empreendimentos?status=PRONTO"
-                  className="block px-4 py-2 text-sm font-medium transition hover:bg-[#f9fafc] hover:text-accent"
+                  className="block px-4 py-2 text-sm font-medium transition hover:bg-mist hover:text-accent"
                 >
                   Prontos para morar
                 </Link>
@@ -71,7 +71,7 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-6">
           <div className="hidden items-center gap-3 xl:flex">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#f9fafc] text-primary">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-mist text-primary">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"

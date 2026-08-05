@@ -147,21 +147,21 @@ export function UnidadesTable({
         <button
           type="button"
           onClick={selecionarPorPadrao}
-          className="rounded-md border border-line px-4 py-2 text-sm font-medium text-primary hover:bg-[#f9fafc]"
+          className="rounded-md border border-line px-4 py-2 text-sm font-medium text-primary hover:bg-mist"
         >
           Selecionar por padrão
         </button>
         <button
           type="button"
           onClick={selecionarTodas}
-          className="rounded-md border border-line px-4 py-2 text-sm font-medium text-primary hover:bg-[#f9fafc]"
+          className="rounded-md border border-line px-4 py-2 text-sm font-medium text-primary hover:bg-mist"
         >
           Selecionar todas
         </button>
         <button
           type="button"
           onClick={limparSelecao}
-          className="rounded-md border border-line px-4 py-2 text-sm font-medium text-ink/60 hover:bg-[#f9fafc]"
+          className="rounded-md border border-line px-4 py-2 text-sm font-medium text-ink/60 hover:bg-mist"
         >
           Limpar seleção
         </button>
@@ -184,7 +184,7 @@ export function UnidadesTable({
 
       <div className="overflow-hidden rounded-xl border border-line bg-white">
         <table className="w-full text-sm">
-          <thead className="bg-[#f9fafc] text-left text-ink/60">
+          <thead className="bg-mist text-left text-ink/60">
             <tr>
               <th className="px-4 py-3 font-medium">
                 <input
