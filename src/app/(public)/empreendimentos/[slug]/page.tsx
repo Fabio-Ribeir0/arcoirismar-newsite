@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { eyebrowEmpreendimento } from "@/lib/empreendimento-display";
+import { LightboxGallery } from "@/components/site/lightbox-gallery";
 
 export const dynamic = "force-dynamic";
 
@@ -129,34 +130,26 @@ export default async function EmpreendimentoPublicoPage({
           {fotos.length > 0 && (
             <div>
               <h2 className="font-display mb-4 text-2xl font-medium text-primary">Galeria</h2>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                {fotos.map((foto) => (
-                  // eslint-disable-next-line @next/next/no-img-element -- external/admin-managed URLs, not local assets
-                  <img
-                    key={foto.id}
-                    src={foto.url}
-                    alt={foto.titulo ?? empreendimento.nome}
-                    className="h-40 w-full rounded-lg border border-line object-cover"
-                  />
-                ))}
-              </div>
+              <LightboxGallery
+                images={fotos.map((foto) => ({
+                  id: foto.id,
+                  url: foto.url,
+                  alt: foto.titulo ?? empreendimento.nome,
+                }))}
+              />
             </div>
           )}
 
           {plantas.length > 0 && (
             <div>
               <h2 className="font-display mb-4 text-2xl font-medium text-primary">Plantas</h2>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                {plantas.map((planta) => (
-                  // eslint-disable-next-line @next/next/no-img-element -- external/admin-managed URLs, not local assets
-                  <img
-                    key={planta.id}
-                    src={planta.url}
-                    alt={planta.titulo ?? "Planta"}
-                    className="h-40 w-full rounded-lg border border-line object-cover"
-                  />
-                ))}
-              </div>
+              <LightboxGallery
+                images={plantas.map((planta) => ({
+                  id: planta.id,
+                  url: planta.url,
+                  alt: planta.titulo ?? "Planta",
+                }))}
+              />
             </div>
           )}
 

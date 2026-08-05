@@ -100,7 +100,7 @@ export function MidiaVideoSection({
                       midia.publico ? "bg-green-100 text-green-700" : "bg-ink/10 text-ink/60"
                     }`}
                   >
-                    {midia.publico ? "Público" : "Só corretores"}
+                    {midia.publico ? "Público" : "Oculto"}
                   </button>
                 </form>
                 <DeleteButton

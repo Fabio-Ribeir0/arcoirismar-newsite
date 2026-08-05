@@ -250,7 +250,7 @@ model Midia {
   url              String
   titulo           String?
   ordem            Int       @default(0)
-  /// Quando false, fica restrita à área do corretor (ex.: planta ainda não divulgada publicamente)
+  /// Quando false, fica oculta em todo o sistema (ex.: planta ainda não pronta pra divulgar)
   publico          Boolean   @default(true)
 
   empreendimento Empreendimento @relation(fields: [empreendimentoId], references: [id], onDelete: Cascade)
