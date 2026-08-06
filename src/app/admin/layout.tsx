@@ -35,6 +35,9 @@ export default async function AdminLayout({
             <Link href="/admin/configuracoes" className="hover:text-accent">
               Simulação
             </Link>
+            <Link href="/admin/administradores" className="hover:text-accent">
+              Administradores
+            </Link>
           </nav>
           <div className="flex items-center gap-4">
             <span className="text-sm text-ink/60">{user.name}</span>

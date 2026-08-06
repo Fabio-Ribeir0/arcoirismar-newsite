@@ -25,6 +25,9 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
 
   if (slides.length === 0) return null;
 
+  const anterior = () => setAtual((i) => (i - 1 + slides.length) % slides.length);
+  const proximo = () => setAtual((i) => (i + 1) % slides.length);
+
   return (
     <section className="relative min-h-[640px] overflow-hidden bg-primary text-white">
       {slides.map((slide, index) => (
@@ -78,19 +81,55 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
       ))}
 
       {slides.length > 1 && (
-        <div className="absolute inset-x-0 bottom-6 z-10 flex justify-center gap-3">
-          {slides.map((slide, index) => (
-            <button
-              key={slide.href + index}
-              type="button"
-              aria-label={`Slide ${index + 1}`}
-              onClick={() => setAtual(index)}
-              className={`size-2.5 rounded-full transition ${index === atual ? "bg-white" : "bg-white/40"}`}
-            />
-          ))}
-        </div>
+        <>
+          <button
+            type="button"
+            onClick={anterior}
+            aria-label="Slide anterior"
+            className="absolute top-1/2 left-2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:left-4"
+          >
+            <ChevronIcon direction="left" />
+          </button>
+          <button
+            type="button"
+            onClick={proximo}
+            aria-label="Próximo slide"
+            className="absolute top-1/2 right-2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:right-4"
+          >
+            <ChevronIcon direction="right" />
+          </button>
+
+          <div className="absolute inset-x-0 bottom-6 z-10 flex justify-center gap-3">
+            {slides.map((slide, index) => (
+              <button
+                key={slide.href + index}
+                type="button"
+                aria-label={`Slide ${index + 1}`}
+                onClick={() => setAtual(index)}
+                className={`size-2.5 rounded-full transition ${index === atual ? "bg-white" : "bg-white/40"}`}
+              />
+            ))}
+          </div>
+        </>
       )}
     </section>
+  );
+}
+
+function ChevronIcon({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-6"
+    >
+      <path d={direction === "left" ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6"} />
+    </svg>
   );
 }
 
