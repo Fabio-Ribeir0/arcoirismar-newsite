@@ -85,31 +85,31 @@ export default async function EmpreendimentoCorretorPage({
           <table className="w-full text-sm">
             <thead className="bg-mist text-left text-ink/60">
               <tr>
-                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                <th rowSpan={2} className="px-4 py-3 align-middle font-medium">
                   Apto
                 </th>
-                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
                   Área Priv.
                 </th>
                 <th colSpan={2} className="border-l border-line px-4 py-1.5 text-center font-medium">
                   Garagem
                 </th>
-                <th rowSpan={2} className="border-l border-line px-4 py-3 align-bottom font-medium">
+                <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
                   Área Total
                 </th>
-                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
                   Preço
                 </th>
-                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
                   Entrada
                 </th>
-                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
                   Entrega
                 </th>
-                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
                   Prestações
                 </th>
-                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
                   Status
                 </th>
               </tr>
@@ -117,7 +117,9 @@ export default async function EmpreendimentoCorretorPage({
                 <th className="border-l border-line px-4 py-1.5 text-xs font-normal text-ink/50">
                   Vagas
                 </th>
-                <th className="px-4 py-1.5 text-xs font-normal text-ink/50">Área (m²)</th>
+                <th className="border-l border-line px-4 py-1.5 text-xs font-normal text-ink/50">
+                  Área (m²)
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -138,23 +140,27 @@ export default async function EmpreendimentoCorretorPage({
                 return (
                   <tr key={unidade.id} className="border-t border-line">
                     <td className="px-4 py-3 font-medium text-primary">{unidade.identificador}</td>
-                    <td className="px-4 py-3 text-ink/70">{unidade.areaPrivativa} m²</td>
+                    <td className="border-l border-line px-4 py-3 text-ink/70">
+                      {unidade.areaPrivativa} m²
+                    </td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">{unidade.vagas}</td>
-                    <td className="px-4 py-3 text-ink/70">{unidade.areaGaragem} m²</td>
+                    <td className="border-l border-line px-4 py-3 text-ink/70">
+                      {unidade.areaGaragem} m²
+                    </td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">{areaTotal} m²</td>
-                    <td className="px-4 py-3 text-ink/70">
+                    <td className="border-l border-line px-4 py-3 text-ink/70">
                       {ocultarValores ? "—" : formatCurrency(preco)}
                     </td>
-                    <td className="px-4 py-3 text-ink/70">
+                    <td className="border-l border-line px-4 py-3 text-ink/70">
                       {ocultarValores || !plano ? "—" : formatCurrency(plano.valorEntrada)}
                     </td>
-                    <td className="px-4 py-3 text-ink/70">
+                    <td className="border-l border-line px-4 py-3 text-ink/70">
                       {ocultarValores || !plano ? "—" : formatCurrency(plano.valorChaves)}
                     </td>
-                    <td className="px-4 py-3 text-ink/70">
+                    <td className="border-l border-line px-4 py-3 text-ink/70">
                       {ocultarValores || !prestacoesLabel ? "—" : prestacoesLabel}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="border-l border-line px-4 py-3">
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-semibold ${UNIDADE_STATUS_STYLE[unidade.status]}`}
                       >
