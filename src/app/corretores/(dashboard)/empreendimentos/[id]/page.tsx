@@ -85,14 +85,39 @@ export default async function EmpreendimentoCorretorPage({
           <table className="w-full text-sm">
             <thead className="bg-mist text-left text-ink/60">
               <tr>
-                <th className="px-4 py-3 font-medium">Unidade</th>
-                <th className="px-4 py-3 font-medium">Tipo</th>
-                <th className="px-4 py-3 font-medium">Área</th>
-                <th className="px-4 py-3 font-medium">Preço</th>
-                <th className="px-4 py-3 font-medium">Entrada</th>
-                <th className="px-4 py-3 font-medium">Chaves</th>
-                <th className="px-4 py-3 font-medium">Prestações</th>
-                <th className="px-4 py-3 font-medium">Status</th>
+                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                  Apto
+                </th>
+                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                  Área Priv.
+                </th>
+                <th colSpan={2} className="border-l border-line px-4 py-1.5 text-center font-medium">
+                  Garagem
+                </th>
+                <th rowSpan={2} className="border-l border-line px-4 py-3 align-bottom font-medium">
+                  Área Total
+                </th>
+                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                  Preço
+                </th>
+                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                  Entrada
+                </th>
+                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                  Entrega
+                </th>
+                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                  Prestações
+                </th>
+                <th rowSpan={2} className="px-4 py-3 align-bottom font-medium">
+                  Status
+                </th>
+              </tr>
+              <tr>
+                <th className="border-l border-line px-4 py-1.5 text-xs font-normal text-ink/50">
+                  Vagas
+                </th>
+                <th className="px-4 py-1.5 text-xs font-normal text-ink/50">Área (m²)</th>
               </tr>
             </thead>
             <tbody>
@@ -108,12 +133,15 @@ export default async function EmpreendimentoCorretorPage({
                         parcelas: empreendimento.parcelas!,
                       })
                     : null;
+                const areaTotal = unidade.areaPrivativa + unidade.areaGaragem;
 
                 return (
                   <tr key={unidade.id} className="border-t border-line">
                     <td className="px-4 py-3 font-medium text-primary">{unidade.identificador}</td>
-                    <td className="px-4 py-3 text-ink/70">{unidade.tipo}</td>
                     <td className="px-4 py-3 text-ink/70">{unidade.areaPrivativa} m²</td>
+                    <td className="border-l border-line px-4 py-3 text-ink/70">{unidade.vagas}</td>
+                    <td className="px-4 py-3 text-ink/70">{unidade.areaGaragem} m²</td>
+                    <td className="border-l border-line px-4 py-3 text-ink/70">{areaTotal} m²</td>
                     <td className="px-4 py-3 text-ink/70">
                       {ocultarValores ? "—" : formatCurrency(preco)}
                     </td>
@@ -138,7 +166,7 @@ export default async function EmpreendimentoCorretorPage({
               })}
               {unidadesLista.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-ink/50">
+                  <td colSpan={10} className="px-4 py-8 text-center text-ink/50">
                     Nenhuma unidade disponível no momento.
                   </td>
                 </tr>
