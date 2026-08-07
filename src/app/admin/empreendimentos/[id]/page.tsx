@@ -66,7 +66,7 @@ export default async function EditarEmpreendimentoPage({
 
   return (
     <main className="px-6 py-16">
-      <div className="mx-auto max-w-3xl space-y-8">
+      <div className="mx-auto max-w-5xl space-y-8">
         <div>
           <h1 className="font-display text-3xl font-medium text-primary">
             {empreendimento.nome}
