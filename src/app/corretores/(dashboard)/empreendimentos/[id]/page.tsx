@@ -82,7 +82,7 @@ export default async function EmpreendimentoCorretorPage({
         </div>
 
         <div className="overflow-hidden rounded-xl border border-line bg-white">
-          <table className="w-full text-sm">
+          <table className="w-full text-[13px]">
             <thead className="bg-mist text-left text-ink/60">
               <tr>
                 <th rowSpan={2} className="px-4 py-3 align-middle font-medium">
@@ -107,7 +107,7 @@ export default async function EmpreendimentoCorretorPage({
                   Entrega
                 </th>
                 <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
-                  Prestações
+                  {prestacoesLabel ?? "Prestações"}
                 </th>
                 <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
                   Status
@@ -158,7 +158,7 @@ export default async function EmpreendimentoCorretorPage({
                       {ocultarValores || !plano ? "—" : formatCurrency(plano.valorChaves)}
                     </td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">
-                      {ocultarValores || !prestacoesLabel ? "—" : prestacoesLabel}
+                      {ocultarValores || !plano ? "—" : formatCurrency(plano.valorParcela)}
                     </td>
                     <td className="border-l border-line px-4 py-3">
                       <span
