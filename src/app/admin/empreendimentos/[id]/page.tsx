@@ -51,6 +51,7 @@ export default async function EditarEmpreendimentoPage({
     andar: unidade.andar,
     tipo: unidade.tipo,
     areaPrivativa: unidade.areaPrivativa,
+    areaGaragem: unidade.areaGaragem,
     preco: Number(unidade.preco),
     parcela: podeCalcularParcela
       ? calcularParcelaPlanoDireto({

@@ -48,6 +48,7 @@ export default async function EditarUnidadePage({
             tipo: unidade.tipo,
             areaPrivativa: unidade.areaPrivativa,
             vagas: unidade.vagas,
+            areaGaragem: unidade.areaGaragem,
             andar: unidade.andar,
             preco: unidade.preco.toString(),
             status: unidade.status,

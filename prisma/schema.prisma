@@ -290,6 +290,8 @@ model Unidade {
   tipo          String
   areaPrivativa Float
   vagas         Int    @default(0)
+  /// Área da garagem — somada à área privativa para compor a "Área Total" (não persistida, calculada na exibição)
+  areaGaragem   Float  @default(0)
   andar         Int?
 
   preco  Decimal       @db.Decimal(12, 2)

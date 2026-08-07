@@ -29,6 +29,7 @@ export type UnidadeRow = {
   andar: number | null;
   tipo: string;
   areaPrivativa: number;
+  areaGaragem: number;
   preco: number;
   parcela: number | null;
   status: string;
@@ -196,6 +197,7 @@ export function UnidadesTable({
               </th>
               <th className="px-4 py-3 font-medium">Unidade</th>
               <th className="px-4 py-3 font-medium">Tipo</th>
+              <th className="px-4 py-3 font-medium">Área Total</th>
               <th className="px-4 py-3 font-medium">Preço</th>
               {parcelasLabel && <th className="px-4 py-3 font-medium">{parcelasLabel}</th>}
               <th className="px-4 py-3 font-medium">Status</th>
@@ -238,6 +240,9 @@ export function UnidadesTable({
                   )}
                 </td>
                 <td className="px-4 py-3 text-ink/70">{unidade.tipo}</td>
+                <td className="px-4 py-3 text-ink/70">
+                  {(unidade.areaPrivativa + unidade.areaGaragem).toLocaleString("pt-BR")} m²
+                </td>
                 <td className="px-4 py-3 text-ink/70">{formatCurrency(unidade.preco)}</td>
                 {parcelasLabel && (
                   <td className="px-4 py-3 text-ink/70">
@@ -261,7 +266,7 @@ export function UnidadesTable({
             ))}
             {unidadesVisiveis.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-ink/50">
+                <td colSpan={8} className="px-4 py-8 text-center text-ink/50">
                   {unidades.length === 0
                     ? "Nenhuma unidade cadastrada ainda."
                     : "Nenhuma unidade com esse status."}
