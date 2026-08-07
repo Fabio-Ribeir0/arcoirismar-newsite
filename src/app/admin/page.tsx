@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function AdminPage() {
   return (
     <main className="px-6 py-16">
-      <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6">
         <h1 className="font-display text-3xl font-medium text-primary">
           Painel administrativo
         </h1>

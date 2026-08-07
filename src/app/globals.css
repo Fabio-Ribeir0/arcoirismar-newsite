@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Reserva o espaço da barra de rolagem vertical sempre, mesmo quando não
+   precisa dela — sem isso, páginas com abas (ex.: empreendimento no admin)
+   deslocam o conteúdo centralizado alguns pixels pra esquerda/direita ao
+   trocar de aba, dependendo se a aba ativa é alta o bastante pra precisar
+   de scroll. */
+html {
+  scrollbar-gutter: stable;
+}
+
 @theme {
   --font-sans: var(--font-dm-sans), sans-serif;
   --font-display: var(--font-red-hat-display), sans-serif;

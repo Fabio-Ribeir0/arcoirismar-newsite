@@ -14,7 +14,7 @@ export default async function AdministradoresPage() {
 
   return (
     <main className="px-6 py-16">
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6">
         <h1 className="font-display text-3xl font-medium text-primary">Administradores</h1>
 
         <ConvidarAdminForm />
