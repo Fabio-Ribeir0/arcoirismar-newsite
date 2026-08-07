@@ -9,6 +9,8 @@ const STATUS_LABEL: Record<string, string> = {
   RESERVADO: "Reservado",
   VENDIDO: "Vendido",
   BLOQUEADO: "Bloqueado",
+  DECORADO: "Decorado",
+  TROCA_AREA: "Troca de área",
 };
 
 export default async function EditarUnidadePage({
@@ -52,8 +54,6 @@ export default async function EditarUnidadePage({
             andar: unidade.andar,
             preco: unidade.preco.toString(),
             status: unidade.status,
-            isDecorado: unidade.isDecorado,
-            isTrocaArea: unidade.isTrocaArea,
           }}
         />
 

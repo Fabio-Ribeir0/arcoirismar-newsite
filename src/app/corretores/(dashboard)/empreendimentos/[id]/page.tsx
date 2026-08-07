@@ -4,25 +4,29 @@ import { SimuladorFinanciamento } from "./simulador";
 import { calcularPlanoPagamentoUnidade } from "@/lib/plano-pagamento";
 import { ExportarPdfButton } from "./exportar-pdf-button";
 import type { UnidadeStatus } from "@/generated/prisma/client";
-import { StarIcon } from "@/components/icons";
 
 const UNIDADE_STATUS_LABEL: Record<string, string> = {
   DISPONIVEL: "Disponível",
   RESERVADO: "Reservado",
   VENDIDO: "Vendido",
   BLOQUEADO: "Bloqueado",
+  DECORADO: "Decorado",
+  TROCA_AREA: "Troca de área",
 };
 
 const UNIDADE_STATUS_STYLE: Record<string, string> = {
   DISPONIVEL: "bg-green-100 text-green-700",
-  RESERVADO: "bg-accent/20 text-accent",
+  RESERVADO: "bg-blue-100 text-blue-700",
   VENDIDO: "bg-ink/10 text-ink/60",
   BLOQUEADO: "bg-red-100 text-red-700",
+  DECORADO: "bg-accent/20 text-accent",
+  TROCA_AREA: "bg-purple-100 text-purple-700",
 };
 
 // A lista da área do corretor só mostra unidades que ainda estão em jogo —
-// vendidas/bloqueadas não interessam pra quem está oferecendo ao cliente.
-const STATUS_VISIVEIS_NA_LISTA: UnidadeStatus[] = ["DISPONIVEL", "RESERVADO"];
+// vendidas/bloqueadas/em troca de área não interessam pra quem está
+// oferecendo ao cliente. Decorado aparece (sem valores, como Reservado).
+const STATUS_VISIVEIS_NA_LISTA: UnidadeStatus[] = ["DISPONIVEL", "RESERVADO", "DECORADO"];
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -94,8 +98,9 @@ export default async function EmpreendimentoCorretorPage({
             <tbody>
               {unidadesLista.map((unidade) => {
                 const preco = Number(unidade.preco);
+                const ocultarValores = unidade.status === "RESERVADO" || unidade.status === "DECORADO";
                 const plano =
-                  podeCalcularPlano && unidade.status !== "RESERVADO"
+                  podeCalcularPlano && !ocultarValores
                     ? calcularPlanoPagamentoUnidade({
                         preco,
                         entradaPercentual: Number(empreendimento.entradaPercentual),
@@ -103,21 +108,10 @@ export default async function EmpreendimentoCorretorPage({
                         parcelas: empreendimento.parcelas!,
                       })
                     : null;
-                const ocultarValores = unidade.status === "RESERVADO";
 
                 return (
                   <tr key={unidade.id} className="border-t border-line">
-                    <td className="px-4 py-3 font-medium text-primary">
-                      {unidade.identificador}
-                      {unidade.isDecorado && (
-                        <span
-                          title="Decorado"
-                          className="ml-2 inline-flex items-center justify-center rounded-full bg-accent/20 p-1 text-accent"
-                        >
-                          <StarIcon className="size-3" />
-                        </span>
-                      )}
-                    </td>
+                    <td className="px-4 py-3 font-medium text-primary">{unidade.identificador}</td>
                     <td className="px-4 py-3 text-ink/70">{unidade.tipo}</td>
                     <td className="px-4 py-3 text-ink/70">{unidade.areaPrivativa} m²</td>
                     <td className="px-4 py-3 text-ink/70">
@@ -151,13 +145,6 @@ export default async function EmpreendimentoCorretorPage({
               )}
             </tbody>
           </table>
-        </div>
-
-        <div className="flex items-center gap-2 text-sm text-ink/60">
-          <span className="inline-flex items-center justify-center rounded-full bg-accent/20 p-1 text-accent">
-            <StarIcon className="size-3" />
-          </span>
-          = Unidades decoradas
         </div>
 
         {configuracao && unidadesDisponiveis.length > 0 ? (

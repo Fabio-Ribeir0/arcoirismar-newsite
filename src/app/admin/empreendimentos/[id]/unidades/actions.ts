@@ -43,8 +43,6 @@ export async function criarUnidade(
   }
 
   const data = parsed.data;
-  const isDecorado = formData.get("isDecorado") === "on";
-  const isTrocaArea = formData.get("isTrocaArea") === "on";
 
   const existing = await prisma.unidade.findUnique({
     where: {
@@ -72,8 +70,6 @@ export async function criarUnidade(
       andar: data.andar ? Number(data.andar) : null,
       preco: data.preco,
       status: data.status,
-      isDecorado,
-      isTrocaArea,
     },
   });
 
@@ -95,8 +91,6 @@ export async function atualizarUnidade(
   }
 
   const data = parsed.data;
-  const isDecorado = formData.get("isDecorado") === "on";
-  const isTrocaArea = formData.get("isTrocaArea") === "on";
 
   const atual = await prisma.unidade.findUnique({ where: { id: unidadeId } });
   if (!atual) {
@@ -131,8 +125,6 @@ export async function atualizarUnidade(
         andar: data.andar ? Number(data.andar) : null,
         preco: data.preco,
         status: data.status,
-        isDecorado,
-        isTrocaArea,
       },
     });
 
@@ -219,8 +211,6 @@ export async function gerarUnidades(
         andar,
         preco: valorBase,
         status: "DISPONIVEL" as const,
-        isDecorado: false,
-        isTrocaArea: false,
       });
     }
   }

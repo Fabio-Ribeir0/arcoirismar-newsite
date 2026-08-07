@@ -9,6 +9,8 @@ const STATUS_LABEL: Record<(typeof UNIDADE_STATUS)[number], string> = {
   RESERVADO: "Reservado",
   VENDIDO: "Vendido",
   BLOQUEADO: "Bloqueado",
+  DECORADO: "Decorado",
+  TROCA_AREA: "Troca de área",
 };
 
 export function LoteForm({
@@ -36,9 +38,6 @@ export function LoteForm({
         type="number"
         step="0.01"
       />
-      <CampoDecorado />
-      <CampoTrocaArea />
-
       <div className="space-y-1.5">
         <label htmlFor="motivo" className="text-sm font-medium text-ink">
           Motivo da alteração (opcional)
@@ -142,62 +141,6 @@ function CampoSelect({
             </option>
           ))}
         </select>
-      </div>
-    </div>
-  );
-}
-
-function CampoDecorado() {
-  const [ativo, setAtivo] = useState(false);
-
-  return (
-    <div className="flex items-start gap-3">
-      <input
-        type="checkbox"
-        name="aplicarDecorado"
-        checked={ativo}
-        onChange={(e) => setAtivo(e.target.checked)}
-        className="mt-2.5 size-4 rounded border-line"
-      />
-      <div className="flex-1 space-y-1.5">
-        <label className="text-sm font-medium text-ink">Marca &quot;decorado&quot; (showroom)</label>
-        <label className="flex items-center gap-2 text-sm text-ink/70">
-          <input
-            type="checkbox"
-            name="isDecorado"
-            disabled={!ativo}
-            className="size-4 rounded border-line"
-          />
-          Definir todas as selecionadas como decoradas
-        </label>
-      </div>
-    </div>
-  );
-}
-
-function CampoTrocaArea() {
-  const [ativo, setAtivo] = useState(false);
-
-  return (
-    <div className="flex items-start gap-3">
-      <input
-        type="checkbox"
-        name="aplicarTrocaArea"
-        checked={ativo}
-        onChange={(e) => setAtivo(e.target.checked)}
-        className="mt-2.5 size-4 rounded border-line"
-      />
-      <div className="flex-1 space-y-1.5">
-        <label className="text-sm font-medium text-ink">Marca &quot;troca de área&quot;</label>
-        <label className="flex items-center gap-2 text-sm text-ink/70">
-          <input
-            type="checkbox"
-            name="isTrocaArea"
-            disabled={!ativo}
-            className="size-4 rounded border-line"
-          />
-          Definir todas as selecionadas como troca de área
-        </label>
       </div>
     </div>
   );

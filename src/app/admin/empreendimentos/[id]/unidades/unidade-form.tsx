@@ -9,6 +9,8 @@ const STATUS_LABEL: Record<(typeof UNIDADE_STATUS)[number], string> = {
   RESERVADO: "Reservado",
   VENDIDO: "Vendido",
   BLOQUEADO: "Bloqueado",
+  DECORADO: "Decorado",
+  TROCA_AREA: "Troca de área",
 };
 
 type DefaultValues = {
@@ -20,8 +22,6 @@ type DefaultValues = {
   andar?: number | null;
   preco?: string;
   status?: string;
-  isDecorado?: boolean;
-  isTrocaArea?: boolean;
 };
 
 export function UnidadeForm({
@@ -115,27 +115,6 @@ export function UnidadeForm({
             </p>
           ))}
         </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-6">
-        <label className="flex items-center gap-2 text-sm font-medium text-ink">
-          <input
-            type="checkbox"
-            name="isDecorado"
-            defaultChecked={defaultValues?.isDecorado}
-            className="size-4 rounded border-line"
-          />
-          Esta é a unidade decorada (showroom)
-        </label>
-        <label className="flex items-center gap-2 text-sm font-medium text-ink">
-          <input
-            type="checkbox"
-            name="isTrocaArea"
-            defaultChecked={defaultValues?.isTrocaArea}
-            className="size-4 rounded border-line"
-          />
-          Troca de área
-        </label>
       </div>
 
       {showMotivo && (

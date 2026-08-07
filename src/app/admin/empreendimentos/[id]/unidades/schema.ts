@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-export const UNIDADE_STATUS = ["DISPONIVEL", "RESERVADO", "VENDIDO", "BLOQUEADO"] as const;
+export const UNIDADE_STATUS = [
+  "DISPONIVEL",
+  "RESERVADO",
+  "VENDIDO",
+  "BLOQUEADO",
+  "DECORADO",
+  "TROCA_AREA",
+] as const;
 
 export const UnidadeSchema = z.object({
   identificador: z.string().min(1, { error: "Informe o identificador da unidade." }).trim(),

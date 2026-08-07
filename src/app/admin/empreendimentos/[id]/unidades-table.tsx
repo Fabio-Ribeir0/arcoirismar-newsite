@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DeleteButton } from "@/components/delete-button";
 import { excluirUnidade } from "./unidades/actions";
-import { StarIcon, ArrowsRightLeftIcon } from "@/components/icons";
 
 const UNIDADE_STATUS_LABEL: Record<string, string> = {
   DISPONIVEL: "Disponível",
   RESERVADO: "Reservado",
   VENDIDO: "Vendido",
   BLOQUEADO: "Bloqueado",
+  DECORADO: "Decorado",
+  TROCA_AREA: "Troca de área",
 };
 
 const UNIDADE_STATUS_STYLE: Record<string, string> = {
@@ -19,9 +20,19 @@ const UNIDADE_STATUS_STYLE: Record<string, string> = {
   RESERVADO: "bg-blue-100 text-blue-700",
   VENDIDO: "bg-ink/10 text-ink/60",
   BLOQUEADO: "bg-red-100 text-red-700",
+  DECORADO: "bg-accent/20 text-accent",
+  TROCA_AREA: "bg-purple-100 text-purple-700",
 };
 
-const FILTRO_STATUS_OPCOES = ["TODOS", "DISPONIVEL", "RESERVADO", "VENDIDO", "BLOQUEADO"] as const;
+const FILTRO_STATUS_OPCOES = [
+  "TODOS",
+  "DISPONIVEL",
+  "RESERVADO",
+  "VENDIDO",
+  "BLOQUEADO",
+  "DECORADO",
+  "TROCA_AREA",
+] as const;
 
 export type UnidadeRow = {
   id: string;
@@ -33,8 +44,6 @@ export type UnidadeRow = {
   preco: number;
   parcela: number | null;
   status: string;
-  isDecorado: boolean;
-  isTrocaArea: boolean;
 };
 
 export function UnidadesTable({
@@ -222,22 +231,6 @@ export function UnidadesTable({
                   >
                     {unidade.identificador}
                   </Link>
-                  {unidade.isDecorado && (
-                    <span
-                      title="Decorado"
-                      className="ml-2 inline-flex items-center justify-center rounded-full bg-accent/20 p-1 text-accent"
-                    >
-                      <StarIcon className="size-3" />
-                    </span>
-                  )}
-                  {unidade.isTrocaArea && (
-                    <span
-                      title="Troca de área"
-                      className="ml-1 inline-flex items-center justify-center rounded-full bg-accent/20 p-1 text-accent"
-                    >
-                      <ArrowsRightLeftIcon className="size-3" />
-                    </span>
-                  )}
                 </td>
                 <td className="px-4 py-3 text-ink/70">{unidade.tipo}</td>
                 <td className="px-4 py-3 text-ink/70">

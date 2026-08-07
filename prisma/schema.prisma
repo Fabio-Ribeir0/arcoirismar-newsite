@@ -45,6 +45,10 @@ enum UnidadeStatus {
   RESERVADO
   VENDIDO
   BLOQUEADO
+  /// Unidade decorada/showroom — aparece pro corretor sem valores, como Reservado
+  DECORADO
+  /// Unidade em negociação de troca de área — não aparece pro corretor, só no admin
+  TROCA_AREA
 }
 
 enum ReservaStatus {
@@ -296,11 +300,6 @@ model Unidade {
 
   preco  Decimal       @db.Decimal(12, 2)
   status UnidadeStatus @default(DISPONIVEL)
-
-  /// Marca a unidade como o apartamento decorado/showroom do empreendimento
-  isDecorado  Boolean @default(false)
-  /// Marca a unidade como sujeita a troca de área — visível somente no admin
-  isTrocaArea Boolean @default(false)
 
   empreendimento Empreendimento @relation(fields: [empreendimentoId], references: [id], onDelete: Cascade)
 
