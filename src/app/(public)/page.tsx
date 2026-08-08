@@ -164,6 +164,59 @@ export default async function HomePage() {
           <div className="h-80 rounded-xl border border-line bg-gradient-to-br from-primary-light to-primary md:h-full" />
         </div>
       </section>
+
+      <section className="border-t border-line bg-white py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mb-14 max-w-xl">
+            <p className="mb-3 text-xs font-semibold tracking-widest text-accent uppercase">
+              Missão, Visão e Valores
+            </p>
+            <h2 className="font-display text-3xl font-medium text-primary md:text-4xl">
+              O que nos move
+            </h2>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {PILARES.map((pilar) => (
+              <div
+                key={pilar.titulo}
+                className="overflow-hidden rounded-xl border border-line bg-white"
+              >
+                <div
+                  className={`h-48 w-full bg-gradient-to-br ${pilar.gradiente}`}
+                />
+                <div className="p-6">
+                  <h3 className="font-display mb-2 text-xl font-medium text-primary">
+                    {pilar.titulo}
+                  </h3>
+                  <p className="text-sm text-ink/70">{pilar.texto}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </>
   );
 }
+
+const PILARES = [
+  {
+    titulo: "Missão",
+    texto:
+      "Construir empreendimentos que unam qualidade construtiva, segurança e bem-estar, transformando sonhos em endereços reais para nossos clientes.",
+    gradiente: "from-primary-light to-primary",
+  },
+  {
+    titulo: "Visão",
+    texto:
+      "Ser referência em incorporação imobiliária na região, reconhecida pela excelência em cada projeto e pelo compromisso com quem confia na Arco-Íris Mar.",
+    gradiente: "from-accent to-accent-light",
+  },
+  {
+    titulo: "Valores",
+    texto:
+      "Transparência em cada etapa, respeito ao meio ambiente, compromisso com prazos e foco genuíno na satisfação de quem escolhe morar com a gente.",
+    gradiente: "from-primary to-primary-light",
+  },
+];
