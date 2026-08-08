@@ -8,30 +8,36 @@ import {
   eyebrowEmpreendimento,
   subtituloEmpreendimento,
 } from "@/lib/empreendimento-display";
+import { getConteudoSite, calcularAnosMercado } from "@/lib/conteudo-site";
+
+const PILAR_GRADIENTE: Record<string, string> = {
+  missao: "from-primary-light to-primary",
+  visao: "from-accent to-accent-light",
+  valores: "from-primary to-primary-light",
+};
 
 export default async function HomePage() {
   const include = { _count: { select: { unidades: true } } } as const;
 
-  const [destacadosCarrossel, destacadosPortfolio, recentes, totalEmpreendimentos] =
-    await Promise.all([
-      prisma.empreendimento.findMany({
-        where: { destaque: "CARROSSEL" },
-        orderBy: { createdAt: "desc" },
-        include,
-      }),
-      prisma.empreendimento.findMany({
-        where: { destaque: { in: ["CARROSSEL", "PORTFOLIO"] } },
-        orderBy: { createdAt: "desc" },
-        take: 6,
-        include,
-      }),
-      prisma.empreendimento.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 6,
-        include,
-      }),
-      prisma.empreendimento.count(),
-    ]);
+  const [destacadosCarrossel, destacadosPortfolio, recentes, conteudo] = await Promise.all([
+    prisma.empreendimento.findMany({
+      where: { destaque: "CARROSSEL" },
+      orderBy: { createdAt: "desc" },
+      include,
+    }),
+    prisma.empreendimento.findMany({
+      where: { destaque: { in: ["CARROSSEL", "PORTFOLIO"] } },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      include,
+    }),
+    prisma.empreendimento.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      include,
+    }),
+    getConteudoSite(),
+  ]);
 
   // Sem nada marcado como destaque ainda: cai para os mais recentes, pra
   // home não ficar vazia enquanto o admin não configura a curadoria.
@@ -65,6 +71,14 @@ export default async function HomePage() {
       href: "/empreendimentos",
     });
   }
+
+  const anosMercado = calcularAnosMercado(conteudo.fundacaoData);
+
+  const pilares = [
+    { chave: "missao", titulo: conteudo.missaoTitulo, texto: conteudo.missaoDescricao, imagem: conteudo.missaoImagemUrl },
+    { chave: "visao", titulo: conteudo.visaoTitulo, texto: conteudo.visaoDescricao, imagem: conteudo.visaoImagemUrl },
+    { chave: "valores", titulo: conteudo.valoresTitulo, texto: conteudo.valoresDescricao, imagem: conteudo.valoresImagemUrl },
+  ];
 
   return (
     <>
@@ -137,31 +151,38 @@ export default async function HomePage() {
               Empresa
             </p>
             <h2 className="font-display mb-5 text-3xl font-medium text-primary md:text-4xl">
-              Sobre a Arco-Íris Mar
+              {conteudo.sobreTitulo}
             </h2>
-            <p className="mb-8 text-lg text-ink/70">
-              Há 32 anos construindo empreendimentos que unem qualidade
-              construtiva, localização estratégica e respeito ao meio ambiente — do
-              projeto à entrega das chaves.
-            </p>
+            <p className="mb-8 text-lg text-ink/70">{conteudo.sobreDescricao}</p>
             <div className="grid grid-cols-3 gap-6">
               <div>
-                <p className="font-display text-3xl font-semibold text-primary">32</p>
+                <p className="font-display text-3xl font-semibold text-primary">{anosMercado}</p>
                 <p className="text-sm text-ink/60">anos de mercado</p>
               </div>
               <div>
                 <p className="font-display text-3xl font-semibold text-primary">
-                  {totalEmpreendimentos}
+                  {conteudo.stat2Valor}
                 </p>
-                <p className="text-sm text-ink/60">empreendimentos cadastrados</p>
+                <p className="text-sm text-ink/60">{conteudo.stat2Rotulo}</p>
               </div>
               <div>
-                <p className="font-display text-3xl font-semibold text-primary">98%</p>
-                <p className="text-sm text-ink/60">clientes satisfeitos</p>
+                <p className="font-display text-3xl font-semibold text-primary">
+                  {conteudo.stat3Valor}
+                </p>
+                <p className="text-sm text-ink/60">{conteudo.stat3Rotulo}</p>
               </div>
             </div>
           </div>
-          <div className="h-80 rounded-xl border border-line bg-gradient-to-br from-primary-light to-primary md:h-full" />
+          {conteudo.sobreImagemUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- admin-managed Supabase Storage URL
+            <img
+              src={conteudo.sobreImagemUrl}
+              alt={conteudo.sobreTitulo}
+              className="h-80 w-full rounded-xl border border-line object-cover md:h-full"
+            />
+          ) : (
+            <div className="h-80 rounded-xl border border-line bg-gradient-to-br from-primary-light to-primary md:h-full" />
+          )}
         </div>
       </section>
 
@@ -177,14 +198,23 @@ export default async function HomePage() {
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            {PILARES.map((pilar) => (
+            {pilares.map((pilar) => (
               <div
-                key={pilar.titulo}
+                key={pilar.chave}
                 className="overflow-hidden rounded-xl border border-line bg-white"
               >
-                <div
-                  className={`h-48 w-full bg-gradient-to-br ${pilar.gradiente}`}
-                />
+                {pilar.imagem ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- admin-managed Supabase Storage URL
+                  <img
+                    src={pilar.imagem}
+                    alt={pilar.titulo}
+                    className="h-48 w-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className={`h-48 w-full bg-gradient-to-br ${PILAR_GRADIENTE[pilar.chave]}`}
+                  />
+                )}
                 <div className="p-6">
                   <h3 className="font-display mb-2 text-xl font-medium text-primary">
                     {pilar.titulo}
@@ -199,24 +229,3 @@ export default async function HomePage() {
     </>
   );
 }
-
-const PILARES = [
-  {
-    titulo: "Missão",
-    texto:
-      "Construir empreendimentos que unam qualidade construtiva, segurança e bem-estar, transformando sonhos em endereços reais para nossos clientes.",
-    gradiente: "from-primary-light to-primary",
-  },
-  {
-    titulo: "Visão",
-    texto:
-      "Ser referência em incorporação imobiliária na região, reconhecida pela excelência em cada projeto e pelo compromisso com quem confia na Arco-Íris Mar.",
-    gradiente: "from-accent to-accent-light",
-  },
-  {
-    titulo: "Valores",
-    texto:
-      "Transparência em cada etapa, respeito ao meio ambiente, compromisso com prazos e foco genuíno na satisfação de quem escolhe morar com a gente.",
-    gradiente: "from-primary to-primary-light",
-  },
-];

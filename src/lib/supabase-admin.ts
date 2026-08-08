@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, EMPREENDIMENTOS_BUCKET } from "./supabase-shared";
+import { SUPABASE_URL, EMPREENDIMENTOS_BUCKET, SITE_BUCKET } from "./supabase-shared";
 
 /**
  * Service-role Supabase client — bypasses RLS. Server-only (never import
@@ -11,4 +11,4 @@ export const supabaseAdmin = createClient(SUPABASE_URL, process.env.SUPABASE_SER
   auth: { persistSession: false },
 });
 
-export { EMPREENDIMENTOS_BUCKET };
+export { EMPREENDIMENTOS_BUCKET, SITE_BUCKET };

@@ -33,7 +33,7 @@ export default async function AdminLayout({
               )}
             </Link>
             <Link href="/admin/configuracoes" className="hover:text-accent">
-              Simulação
+              Empresa
             </Link>
             <Link href="/admin/administradores" className="hover:text-accent">
               Administradores

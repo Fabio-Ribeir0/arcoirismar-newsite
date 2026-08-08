@@ -419,3 +419,43 @@ model ConfiguracaoSimulacao {
   @@index([criadoEm])
   @@map("configuracoes_simulacao")
 }
+
+// ---------------------------------------------------------------------------
+// Conteúdo institucional da home (seção "Sobre" + Missão/Visão/Valores)
+// ---------------------------------------------------------------------------
+
+/// Linha única (singleton, id fixo) — conteúdo editável pelo admin exibido na home
+model ConteudoSite {
+  id String @id @default("conteudo-site")
+
+  sobreTitulo    String
+  sobreDescricao String  @db.Text
+  sobreImagemUrl String?
+
+  /// Mês/ano de fundação — usado para calcular "X anos de mercado" automaticamente
+  fundacaoData DateTime
+
+  /// Ex.: "Empreendimentos entregues" — editado manualmente, não é uma contagem automática
+  stat2Valor  Int
+  stat2Rotulo String
+
+  /// Ex.: "Unidades entregues" — editado manualmente
+  stat3Valor  Int
+  stat3Rotulo String
+
+  missaoTitulo    String
+  missaoDescricao String  @db.Text
+  missaoImagemUrl String?
+
+  visaoTitulo    String
+  visaoDescricao String  @db.Text
+  visaoImagemUrl String?
+
+  valoresTitulo    String
+  valoresDescricao String  @db.Text
+  valoresImagemUrl String?
+
+  updatedAt DateTime @updatedAt
+
+  @@map("conteudo_site")
+}
