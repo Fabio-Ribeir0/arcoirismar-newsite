@@ -109,9 +109,6 @@ export default async function EmpreendimentoCorretorPage({
                 <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
                   {prestacoesLabel ?? "Prestações"}
                 </th>
-                <th rowSpan={2} className="border-l border-line px-4 py-3 align-middle font-medium">
-                  Status
-                </th>
               </tr>
               <tr>
                 <th className="border-l border-line px-4 py-1.5 text-xs font-normal text-ink/50">
@@ -136,6 +133,13 @@ export default async function EmpreendimentoCorretorPage({
                       })
                     : null;
                 const areaTotal = unidade.areaPrivativa + unidade.areaGaragem;
+                const statusBadge = (
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${UNIDADE_STATUS_STYLE[unidade.status]}`}
+                  >
+                    {UNIDADE_STATUS_LABEL[unidade.status]}
+                  </span>
+                );
 
                 return (
                   <tr key={unidade.id} className="border-t border-line">
@@ -149,30 +153,41 @@ export default async function EmpreendimentoCorretorPage({
                     </td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">{areaTotal} m²</td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">
-                      {ocultarValores ? "—" : formatCurrency(preco)}
+                      {formatCurrency(preco)}
                     </td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">
-                      {ocultarValores || !plano ? "—" : formatCurrency(plano.valorEntrada)}
+                      {ocultarValores ? (
+                        statusBadge
+                      ) : !plano ? (
+                        "—"
+                      ) : (
+                        formatCurrency(plano.valorEntrada)
+                      )}
                     </td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">
-                      {ocultarValores || !plano ? "—" : formatCurrency(plano.valorChaves)}
+                      {ocultarValores ? (
+                        statusBadge
+                      ) : !plano ? (
+                        "—"
+                      ) : (
+                        formatCurrency(plano.valorChaves)
+                      )}
                     </td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">
-                      {ocultarValores || !plano ? "—" : formatCurrency(plano.valorParcela)}
-                    </td>
-                    <td className="border-l border-line px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${UNIDADE_STATUS_STYLE[unidade.status]}`}
-                      >
-                        {UNIDADE_STATUS_LABEL[unidade.status]}
-                      </span>
+                      {ocultarValores ? (
+                        statusBadge
+                      ) : !plano ? (
+                        "—"
+                      ) : (
+                        formatCurrency(plano.valorParcela)
+                      )}
                     </td>
                   </tr>
                 );
               })}
               {unidadesLista.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-4 py-8 text-center text-ink/50">
+                  <td colSpan={9} className="px-4 py-8 text-center text-ink/50">
                     Nenhuma unidade disponível no momento.
                   </td>
                 </tr>
