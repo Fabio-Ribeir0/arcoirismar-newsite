@@ -7,9 +7,9 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      // Banner uploads are validated up to 5MB; the multipart wrapper adds a
-      // little overhead on top of the file itself, so leave some headroom.
-      bodySizeLimit: "6mb",
+      // Maior upload validado é o PDF de "Documentos adicionais" (até 15MB);
+      // o wrapper multipart adiciona uma pequena sobra além do arquivo em si.
+      bodySizeLimit: "16mb",
     },
   },
 };

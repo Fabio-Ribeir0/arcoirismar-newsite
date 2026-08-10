@@ -1,18 +1,8 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { SimuladorFinanciamento } from "./simulador";
-import { calcularPlanoPagamentoUnidade } from "@/lib/plano-pagamento";
 import { ExportarPdfButton } from "./exportar-pdf-button";
-import type { UnidadeStatus } from "@/generated/prisma/client";
-
-const UNIDADE_STATUS_LABEL: Record<string, string> = {
-  DISPONIVEL: "Disponível",
-  RESERVADO: "Reservado",
-  VENDIDO: "Vendido",
-  BLOQUEADO: "Bloqueado",
-  DECORADO: "Decorado",
-  TROCA_AREA: "Troca de área",
-};
+import { montarLinhasTabelaUnidades, UNIDADE_STATUS_LABEL } from "@/lib/tabela-unidades";
 
 const UNIDADE_STATUS_STYLE: Record<string, string> = {
   DISPONIVEL: "bg-green-100 text-green-700",
@@ -22,11 +12,6 @@ const UNIDADE_STATUS_STYLE: Record<string, string> = {
   DECORADO: "bg-accent/20 text-accent",
   TROCA_AREA: "bg-purple-100 text-purple-700",
 };
-
-// A lista da área do corretor só mostra unidades que ainda estão em jogo —
-// vendidas/bloqueadas/em troca de área não interessam pra quem está
-// oferecendo ao cliente. Decorado aparece (sem valores, como Reservado).
-const STATUS_VISIVEIS_NA_LISTA: UnidadeStatus[] = ["DISPONIVEL", "RESERVADO", "DECORADO"];
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -49,9 +34,7 @@ export default async function EmpreendimentoCorretorPage({
     orderBy: { criadoEm: "desc" },
   });
 
-  const unidadesLista = empreendimento.unidades.filter((u) =>
-    STATUS_VISIVEIS_NA_LISTA.includes(u.status)
-  );
+  const unidadesLista = montarLinhasTabelaUnidades(empreendimento, empreendimento.unidades);
   const unidadesDisponiveis = empreendimento.unidades.filter((u) => u.status !== "VENDIDO");
 
   const podeCalcularPlano =
@@ -78,7 +61,7 @@ export default async function EmpreendimentoCorretorPage({
               {[empreendimento.bairro, empreendimento.cidade].filter(Boolean).join(", ")}
             </p>
           </div>
-          <ExportarPdfButton />
+          <ExportarPdfButton empreendimentoId={empreendimento.id} slug={empreendimento.slug} />
         </div>
 
         <div className="overflow-hidden rounded-xl border border-line bg-white">
@@ -121,18 +104,6 @@ export default async function EmpreendimentoCorretorPage({
             </thead>
             <tbody>
               {unidadesLista.map((unidade) => {
-                const preco = Number(unidade.preco);
-                const ocultarValores = unidade.status === "RESERVADO" || unidade.status === "DECORADO";
-                const plano =
-                  podeCalcularPlano && !ocultarValores
-                    ? calcularPlanoPagamentoUnidade({
-                        preco,
-                        entradaPercentual: Number(empreendimento.entradaPercentual),
-                        entregaChavesPercentual: Number(empreendimento.entregaChavesPercentual),
-                        parcelas: empreendimento.parcelas!,
-                      })
-                    : null;
-                const areaTotal = unidade.areaPrivativa + unidade.areaGaragem;
                 const statusBadge = (
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-semibold ${UNIDADE_STATUS_STYLE[unidade.status]}`}
@@ -151,35 +122,37 @@ export default async function EmpreendimentoCorretorPage({
                     <td className="border-l border-line px-4 py-3 text-ink/70">
                       {unidade.areaGaragem} m²
                     </td>
-                    <td className="border-l border-line px-4 py-3 text-ink/70">{areaTotal} m²</td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">
-                      {formatCurrency(preco)}
+                      {unidade.areaTotal} m²
                     </td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">
-                      {ocultarValores ? (
+                      {formatCurrency(unidade.preco)}
+                    </td>
+                    <td className="border-l border-line px-4 py-3 text-ink/70">
+                      {unidade.oculto ? (
                         statusBadge
-                      ) : !plano ? (
+                      ) : unidade.valorEntrada === null ? (
                         "—"
                       ) : (
-                        formatCurrency(plano.valorEntrada)
+                        formatCurrency(unidade.valorEntrada)
                       )}
                     </td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">
-                      {ocultarValores ? (
+                      {unidade.oculto ? (
                         statusBadge
-                      ) : !plano ? (
+                      ) : unidade.valorChaves === null ? (
                         "—"
                       ) : (
-                        formatCurrency(plano.valorChaves)
+                        formatCurrency(unidade.valorChaves)
                       )}
                     </td>
                     <td className="border-l border-line px-4 py-3 text-ink/70">
-                      {ocultarValores ? (
+                      {unidade.oculto ? (
                         statusBadge
-                      ) : !plano ? (
+                      ) : unidade.valorParcela === null ? (
                         "—"
                       ) : (
-                        formatCurrency(plano.valorParcela)
+                        formatCurrency(unidade.valorParcela)
                       )}
                     </td>
                   </tr>

@@ -175,6 +175,14 @@ model Empreendimento {
   /// página de capa quando o corretor exporta a tabela para PDF
   capaTabelaUrl  String?
 
+  // --- Conteúdo da exportação em PDF da tabela de unidades (área do corretor) ---
+  /// HTML (rich text, pode conter imagens) exibido no topo de cada página da tabela
+  tabelaCabecalhoHtml String? @db.Text
+  /// HTML (rich text, pode conter imagens) exibido logo abaixo do cabeçalho, em cada página
+  tabelaDescricaoHtml String? @db.Text
+  /// HTML (rich text, pode conter imagens) exibido no rodapé de cada página da tabela
+  tabelaRodapeHtml    String? @db.Text
+
   /// Controla onde o empreendimento aparece na home (ver enum Destaque)
   destaque Destaque @default(NENHUM)
 
@@ -207,6 +215,7 @@ model Empreendimento {
   unidades                Unidade[]
   midias                  Midia[]
   midiasExternas          MidiaExterna[]
+  documentosAdicionais    DocumentoAdicional[]
   historicoPlanoPagamento HistoricoPlanoPagamentoEmpreendimento[]
 
   createdAt DateTime @default(now())
@@ -278,6 +287,23 @@ model MidiaExterna {
   createdAt DateTime @default(now())
 
   @@map("midias_externas")
+}
+
+/// PDFs anexados à tabela de unidades (ex.: memorial descritivo, tabela de acabamentos) —
+/// mesclados como páginas extras quando o corretor exporta a tabela para PDF
+model DocumentoAdicional {
+  id               String @id @default(cuid())
+  empreendimentoId String
+  titulo           String
+  url              String
+  ordem            Int    @default(0)
+
+  empreendimento Empreendimento @relation(fields: [empreendimentoId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([empreendimentoId])
+  @@map("documentos_adicionais")
 }
 
 // ---------------------------------------------------------------------------

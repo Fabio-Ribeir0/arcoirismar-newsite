@@ -12,6 +12,8 @@ import { VideoUpload } from "./video-upload";
 import { CapaTabelaUpload } from "./capa-tabela-upload";
 import { MidiaImagensSection } from "./midia-imagens-section";
 import { MidiaVideoSection } from "./midia-video-section";
+import { TabelaConteudoForm } from "./tabela-conteudo-form";
+import { DocumentosAdicionaisSection } from "./documentos-adicionais-section";
 import { HistoryTable } from "@/components/admin/history-table";
 import { diferente } from "../service";
 import { Tabs } from "@/components/admin/tabs";
@@ -31,6 +33,7 @@ export default async function EditarEmpreendimentoPage({
       unidades: { orderBy: [{ andar: "asc" }, { identificador: "asc" }] },
       historicoPlanoPagamento: { orderBy: { criadoEm: "desc" }, include: { autor: true } },
       midias: { orderBy: { ordem: "asc" } },
+      documentosAdicionais: { orderBy: { ordem: "asc" } },
     },
   });
 
@@ -114,41 +117,6 @@ export default async function EditarEmpreendimentoPage({
               ),
             },
             {
-              id: "midia",
-              label: "Mídia",
-              content: (
-                <>
-                  <BannerUpload
-                    empreendimentoId={empreendimento.id}
-                    bannerAtual={empreendimento.bannerUrl}
-                  />
-                  <VideoUpload
-                    empreendimentoId={empreendimento.id}
-                    videoAtual={empreendimento.bannerVideoUrl}
-                  />
-                  <CapaTabelaUpload
-                    empreendimentoId={empreendimento.id}
-                    capaAtual={empreendimento.capaTabelaUrl}
-                  />
-                  <MidiaImagensSection
-                    empreendimentoId={empreendimento.id}
-                    tipo="FOTO"
-                    titulo="Imagens"
-                    descricao="Fotos gerais do empreendimento — aparecem na seção Galeria da página pública."
-                    midias={fotos}
-                  />
-                  <MidiaImagensSection
-                    empreendimentoId={empreendimento.id}
-                    tipo="PLANTA"
-                    titulo="Plantas"
-                    descricao="Plantas humanizadas, com medidas etc. — aparecem na seção Plantas da página pública quando marcadas como 'Público'."
-                    midias={plantas}
-                  />
-                  <MidiaVideoSection empreendimentoId={empreendimento.id} midias={videos} />
-                </>
-              ),
-            },
-            {
               id: "unidades",
               label: "Unidades",
               content: (
@@ -183,6 +151,61 @@ export default async function EditarEmpreendimentoPage({
                     }
                   />
                 </div>
+              ),
+            },
+            {
+              id: "midia",
+              label: "Mídia",
+              content: (
+                <>
+                  <BannerUpload
+                    empreendimentoId={empreendimento.id}
+                    bannerAtual={empreendimento.bannerUrl}
+                  />
+                  <VideoUpload
+                    empreendimentoId={empreendimento.id}
+                    videoAtual={empreendimento.bannerVideoUrl}
+                  />
+                  <MidiaImagensSection
+                    empreendimentoId={empreendimento.id}
+                    tipo="FOTO"
+                    titulo="Imagens"
+                    descricao="Fotos gerais do empreendimento — aparecem na seção Galeria da página pública."
+                    midias={fotos}
+                  />
+                  <MidiaImagensSection
+                    empreendimentoId={empreendimento.id}
+                    tipo="PLANTA"
+                    titulo="Plantas"
+                    descricao="Plantas humanizadas, com medidas etc. — aparecem na seção Plantas da página pública quando marcadas como 'Público'."
+                    midias={plantas}
+                  />
+                  <MidiaVideoSection empreendimentoId={empreendimento.id} midias={videos} />
+                </>
+              ),
+            },
+            {
+              id: "tabela",
+              label: "Tabela",
+              content: (
+                <>
+                  <CapaTabelaUpload
+                    empreendimentoId={empreendimento.id}
+                    capaAtual={empreendimento.capaTabelaUrl}
+                  />
+                  <TabelaConteudoForm
+                    empreendimentoId={empreendimento.id}
+                    defaultValues={{
+                      cabecalhoHtml: empreendimento.tabelaCabecalhoHtml ?? "",
+                      descricaoHtml: empreendimento.tabelaDescricaoHtml ?? "",
+                      rodapeHtml: empreendimento.tabelaRodapeHtml ?? "",
+                    }}
+                  />
+                  <DocumentosAdicionaisSection
+                    empreendimentoId={empreendimento.id}
+                    documentos={empreendimento.documentosAdicionais}
+                  />
+                </>
               ),
             },
             {
