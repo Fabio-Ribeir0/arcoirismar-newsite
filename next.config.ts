@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "16mb",
     },
   },
+  // O tracer de output não inclui sozinho o binário do Chromium usado pra
+  // gerar o PDF da tabela em produção — sem isso a rota falha em runtime
+  // com "input directory .../chromium/bin does not exist".
+  outputFileTracingIncludes: {
+    "/api/corretores/empreendimentos/\\[id\\]/pdf": ["node_modules/@sparticuz/chromium/bin/**/*"],
+  },
 };
 
 export default nextConfig;
