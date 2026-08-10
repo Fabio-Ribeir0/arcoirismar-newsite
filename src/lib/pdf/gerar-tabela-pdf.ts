@@ -32,6 +32,10 @@ const ESTILOS = `
   .bloco-rico:empty { padding: 0; }
   .bloco-rico img { max-width: 100%; }
   .bloco-rico ul { margin: 0; padding-left: 18px; }
+  .bloco-rico ol { margin: 0; padding-left: 18px; }
+  .bloco-rico a { color: #c2a558; text-decoration: underline; }
+  .bloco-rico blockquote { margin: 0; padding-left: 8px; border-left: 2px solid #c2a558; font-style: italic; color: rgba(60, 63, 64, 0.7); }
+  .bloco-rico hr { border: none; border-top: 1px solid #e4e0d8; margin: 2mm 0; }
   .tabela-area { flex: 1 1 auto; overflow: hidden; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
   thead { background: #f4f2ee; color: rgba(60, 63, 64, 0.6); }
