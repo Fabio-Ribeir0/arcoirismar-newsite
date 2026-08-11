@@ -3,10 +3,11 @@ import { PDFDocument } from "pdf-lib";
 import { abrirNavegador } from "./browser";
 import { UNIDADE_STATUS_CORES, UNIDADE_STATUS_LABEL, type LinhaTabelaUnidade } from "../tabela-unidades";
 
-// A4 (210x297mm) menos 1cm de margem de cada lado.
-const MARGEM_PAGINA_MM = 10;
-const LARGURA_MM = 210 - MARGEM_PAGINA_MM * 2;
-const ALTURA_MM = 297 - MARGEM_PAGINA_MM * 2;
+// A4 (210x297mm) menos 1cm de margem no topo/rodapé e 0,5cm nas laterais.
+const MARGEM_VERTICAL_MM = 10;
+const MARGEM_LATERAL_MM = 5;
+const LARGURA_MM = 210 - MARGEM_LATERAL_MM * 2;
+const ALTURA_MM = 297 - MARGEM_VERTICAL_MM * 2;
 const MM_POR_PX = 25.4 / 96;
 const MARGEM_SEGURANCA_MM = 2;
 
@@ -241,10 +242,10 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
       format: "A4",
       printBackground: true,
       margin: {
-        top: `${MARGEM_PAGINA_MM}mm`,
-        right: `${MARGEM_PAGINA_MM}mm`,
-        bottom: `${MARGEM_PAGINA_MM}mm`,
-        left: `${MARGEM_PAGINA_MM}mm`,
+        top: `${MARGEM_VERTICAL_MM}mm`,
+        right: `${MARGEM_LATERAL_MM}mm`,
+        bottom: `${MARGEM_VERTICAL_MM}mm`,
+        left: `${MARGEM_LATERAL_MM}mm`,
       },
     });
 
