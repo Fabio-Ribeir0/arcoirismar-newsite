@@ -3,10 +3,10 @@ import { PDFDocument } from "pdf-lib";
 import { abrirNavegador } from "./browser";
 import { UNIDADE_STATUS_CORES, UNIDADE_STATUS_LABEL, type LinhaTabelaUnidade } from "../tabela-unidades";
 
-// A4 (210x297mm) menos 12mm de margem de cada lado — mesma folha usada hoje
-// no fallback de impressão via navegador (ver .print-cover em globals.css).
-const LARGURA_MM = 186;
-const ALTURA_MM = 273;
+// A4 (210x297mm) menos 1cm de margem de cada lado.
+const MARGEM_PAGINA_MM = 10;
+const LARGURA_MM = 210 - MARGEM_PAGINA_MM * 2;
+const ALTURA_MM = 297 - MARGEM_PAGINA_MM * 2;
 const MM_POR_PX = 25.4 / 96;
 const MARGEM_SEGURANCA_MM = 2;
 
@@ -37,7 +37,7 @@ const ESTILOS = `
   .bloco-rico blockquote { margin: 0; padding-left: 8px; border-left: 2px solid #c2a558; font-style: italic; color: rgba(60, 63, 64, 0.7); }
   .bloco-rico hr { border: none; border-top: 1px solid #e4e0d8; margin: 2mm 0; }
   .tabela-area { flex: 1 1 auto; overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; border: 1px solid #e4e0d8; }
   thead { background: #f4f2ee; color: rgba(60, 63, 64, 0.6); }
   th, td { padding: 5px 7px; text-align: left; vertical-align: middle; }
   th { font-weight: 600; }
@@ -240,7 +240,12 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "12mm", right: "12mm", bottom: "12mm", left: "12mm" },
+      margin: {
+        top: `${MARGEM_PAGINA_MM}mm`,
+        right: `${MARGEM_PAGINA_MM}mm`,
+        bottom: `${MARGEM_PAGINA_MM}mm`,
+        left: `${MARGEM_PAGINA_MM}mm`,
+      },
     });
 
     return pdf;
