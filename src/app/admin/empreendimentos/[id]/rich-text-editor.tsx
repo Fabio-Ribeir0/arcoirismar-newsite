@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { enviarImagemTabela } from "./tabela-actions";
 
 export function RichTextEditor({
@@ -14,8 +14,7 @@ export function RichTextEditor({
   label: string;
   defaultValueHtml: string;
 }) {
-  const editableRef = useRef<HTMLDivElement>(null);
-  const hiddenRef = useRef<HTMLInputElement>(null);
+  const editableRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [enviandoImagem, setEnviandoImagem] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -23,18 +22,26 @@ export function RichTextEditor({
   const [htmlAtual, setHtmlAtual] = useState(defaultValueHtml);
   const [codigoHtml, setCodigoHtml] = useState(defaultValueHtml);
 
-  // O input hidden fica fora do <div>/<textarea> condicional pra sobreviver
-  // à troca de modo — mas alternar o irmão condicional (contentEditable <->
-  // textarea) faz o React reaplicar o defaultValue original nele. Este
-  // effect reforça o valor atual depois de cada commit, vencendo esse reset.
-  useEffect(() => {
-    if (hiddenRef.current) hiddenRef.current.value = htmlAtual;
-  }, [htmlAtual, modoCodigo]);
+  // Espelho síncrono de htmlAtual — a callback ref abaixo precisa do valor
+  // mais recente NO MOMENTO do mount (que acontece durante o commit, antes
+  // de qualquer efeito rodar), então não dá pra confiar só no state.
+  const htmlAtualRef = useRef(defaultValueHtml);
+  const atualizarHtml = (novoHtml: string) => {
+    htmlAtualRef.current = novoHtml;
+    setHtmlAtual(novoHtml);
+  };
+
+  // Em vez de controlar o conteúdo via dangerouslySetInnerHTML (o que faz o
+  // React reaplicar o HTML — e resetar o cursor — a cada re-render), o
+  // conteúdo inicial é injetado imperativamente só no mount de fato. Depois
+  // disso o DOM manda: React nunca mais toca nos filhos desse elemento.
+  const setEditableNode = useCallback((node: HTMLDivElement | null) => {
+    editableRef.current = node;
+    if (node) node.innerHTML = htmlAtualRef.current;
+  }, []);
 
   const sync = () => {
-    if (hiddenRef.current && editableRef.current) {
-      hiddenRef.current.value = editableRef.current.innerHTML;
-    }
+    if (editableRef.current) atualizarHtml(editableRef.current.innerHTML);
   };
 
   const exec = (comando: string, valor?: string) => {
@@ -51,13 +58,12 @@ export function RichTextEditor({
 
   const alternarModoCodigo = () => {
     if (!modoCodigo) {
-      if (editableRef.current) setCodigoHtml(editableRef.current.innerHTML);
+      setCodigoHtml(htmlAtual);
       setModoCodigo(true);
       return;
     }
 
-    if (hiddenRef.current) hiddenRef.current.value = codigoHtml;
-    setHtmlAtual(codigoHtml);
+    atualizarHtml(codigoHtml);
     setModoCodigo(false);
   };
 
@@ -200,17 +206,16 @@ export function RichTextEditor({
         />
       ) : (
         <div
-          ref={editableRef}
+          ref={setEditableNode}
           contentEditable
           suppressContentEditableWarning
           onInput={sync}
           onBlur={sync}
           className="min-h-32 rounded-b-md border border-line px-3 py-2 text-sm outline-none focus:border-primary [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-ink/70 [&_hr]:my-3 [&_hr]:border-line [&_img]:my-2 [&_img]:max-w-full [&_a]:text-accent [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
-          dangerouslySetInnerHTML={{ __html: htmlAtual }}
         />
       )}
 
-      <input ref={hiddenRef} type="hidden" name={name} defaultValue={defaultValueHtml} />
+      <input type="hidden" name={name} value={htmlAtual} readOnly />
 
       {erro && <p className="text-sm text-red-600">{erro}</p>}
     </div>
