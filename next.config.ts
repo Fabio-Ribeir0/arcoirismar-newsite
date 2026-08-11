@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   // gerar o PDF da tabela em produção — sem isso a rota falha em runtime
   // com "input directory .../chromium/bin does not exist".
   outputFileTracingIncludes: {
-    "/api/corretores/empreendimentos/\\[id\\]/pdf": ["node_modules/@sparticuz/chromium/bin/**/*"],
+    "/admin/empreendimentos/\\[id\\]": ["node_modules/@sparticuz/chromium/bin/**/*"],
   },
 };
 

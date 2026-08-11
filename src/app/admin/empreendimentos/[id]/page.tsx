@@ -12,13 +12,19 @@ import { VideoUpload } from "./video-upload";
 import { CapaTabelaUpload } from "./capa-tabela-upload";
 import { MidiaImagensSection } from "./midia-imagens-section";
 import { MidiaVideoSection } from "./midia-video-section";
+import { LinkMidiaPublicaForm } from "./link-midia-publica-form";
 import { TabelaConteudoForm } from "./tabela-conteudo-form";
 import { DocumentosAdicionaisSection } from "./documentos-adicionais-section";
+import { GerarTabelaSection } from "./gerar-tabela-section";
 import { HistoryTable } from "@/components/admin/history-table";
 import { diferente } from "../service";
 import { Tabs } from "@/components/admin/tabs";
 import { DeleteButton } from "@/components/delete-button";
 import { excluirTodasUnidades } from "./unidades/actions";
+
+// A geração da tabela em PDF (Puppeteer) pode passar do timeout padrão da
+// plataforma — Server Actions usados nesta página herdam este valor.
+export const maxDuration = 60;
 
 export default async function EditarEmpreendimentoPage({
   params,
@@ -181,6 +187,10 @@ export default async function EditarEmpreendimentoPage({
                     midias={plantas}
                   />
                   <MidiaVideoSection empreendimentoId={empreendimento.id} midias={videos} />
+                  <LinkMidiaPublicaForm
+                    empreendimentoId={empreendimento.id}
+                    linkAtual={empreendimento.linkMidiaPublica}
+                  />
                 </>
               ),
             },
@@ -204,6 +214,11 @@ export default async function EditarEmpreendimentoPage({
                   <DocumentosAdicionaisSection
                     empreendimentoId={empreendimento.id}
                     documentos={empreendimento.documentosAdicionais}
+                  />
+                  <GerarTabelaSection
+                    empreendimentoId={empreendimento.id}
+                    urlAtual={empreendimento.tabelaPdfUrl}
+                    geradoEmAtual={empreendimento.tabelaPdfGeradoEm?.toISOString() ?? null}
                   />
                 </>
               ),

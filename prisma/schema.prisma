@@ -182,6 +182,14 @@ model Empreendimento {
   tabelaDescricaoHtml String? @db.Text
   /// HTML (rich text, pode conter imagens) exibido no rodapé de cada página da tabela
   tabelaRodapeHtml    String? @db.Text
+  /// URL pública do PDF da tabela já gerado pelo admin (Supabase Storage) — é isso que o
+  /// corretor acessa; não é gerado sob demanda na área do corretor
+  tabelaPdfUrl        String?
+  /// Quando o PDF da tabela foi gerado pela última vez (usado no rodapé do próprio PDF)
+  tabelaPdfGeradoEm   DateTime?
+
+  /// Link de biblioteca pública de mídia (Google Drive, OneDrive etc.) — visível só aos corretores
+  linkMidiaPublica String?
 
   /// Controla onde o empreendimento aparece na home (ver enum Destaque)
   destaque Destaque @default(NENHUM)

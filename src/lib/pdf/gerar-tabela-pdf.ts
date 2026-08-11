@@ -1,5 +1,5 @@
 import "server-only";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { abrirNavegador } from "./browser";
 import { UNIDADE_STATUS_CORES, UNIDADE_STATUS_LABEL, type LinhaTabelaUnidade } from "../tabela-unidades";
 
@@ -265,15 +265,62 @@ async function baixarBytes(url: string): Promise<Uint8Array | null> {
   }
 }
 
+/** "dd/mm/aaaa | hhmm", sempre no horário de Brasília independente do fuso do servidor. */
+function formatarDataHoraBR(data: Date): string {
+  const partes = new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(data);
+  const obter = (tipo: string) => partes.find((p) => p.type === tipo)?.value ?? "";
+  return `${obter("day")}/${obter("month")}/${obter("year")} | ${obter("hour")}${obter("minute")}`;
+}
+
+/**
+ * "Pág. n/t" (canto esquerdo) e a data/hora de geração (canto direito) em toda
+ * página do documento final — inclusive capa e documentos adicionais mesclados,
+ * já que "t" só fica correto depois que tudo foi mesclado.
+ */
+async function carimbarRodapePaginas(documento: PDFDocument, geradoEm: Date): Promise<void> {
+  const fonte = await documento.embedFont(StandardFonts.Helvetica);
+  const paginas = documento.getPages();
+  const total = paginas.length;
+  const dataHoraTexto = `Data de atualização: ${formatarDataHoraBR(geradoEm)}`;
+  const tamanhoFonte = 7;
+  const cor = rgb(0.5, 0.5, 0.5);
+  const y = 10;
+
+  paginas.forEach((pagina, indice) => {
+    const { width } = pagina.getSize();
+
+    pagina.drawText(`Pág. ${indice + 1}/${total}`, {
+      x: 12,
+      y,
+      size: tamanhoFonte,
+      font: fonte,
+      color: cor,
+    });
+
+    const larguraData = fonte.widthOfTextAtSize(dataHoraTexto, tamanhoFonte);
+    pagina.drawText(dataHoraTexto, {
+      x: width - 12 - larguraData,
+      y,
+      size: tamanhoFonte,
+      font: fonte,
+      color: cor,
+    });
+  });
+}
+
 export async function gerarTabelaPdfCompleta(
   dados: DadosPdfTabela,
   documentosAdicionais: { titulo: string; url: string }[]
 ): Promise<Uint8Array> {
   const pdfPrincipal = await gerarPdfCapaETabela(dados);
-
-  if (documentosAdicionais.length === 0) {
-    return pdfPrincipal;
-  }
 
   const documentoFinal = await PDFDocument.load(pdfPrincipal);
 
@@ -292,6 +339,8 @@ export async function gerarTabelaPdfCompleta(
       continue;
     }
   }
+
+  await carimbarRodapePaginas(documentoFinal, new Date());
 
   return documentoFinal.save();
 }

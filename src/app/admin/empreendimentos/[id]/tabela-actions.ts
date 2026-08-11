@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/dal";
 import { supabaseAdmin, EMPREENDIMENTOS_BUCKET } from "@/lib/supabase-admin";
+import { montarLinhasTabelaUnidades } from "@/lib/tabela-unidades";
+import { gerarTabelaPdfCompleta } from "@/lib/pdf/gerar-tabela-pdf";
 
 export type SalvarTabelaConteudoState =
   | { success: true }
@@ -154,6 +156,92 @@ export async function enviarDocumentoAdicional(
   revalidatePath(`/corretores/empreendimentos/${empreendimentoId}`);
 
   return { success: true };
+}
+
+export type GerarTabelaPdfState =
+  | { success: true; url: string; geradoEm: string }
+  | { success: false; message: string }
+  | undefined;
+
+export async function gerarTabelaPdfAdmin(
+  empreendimentoId: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept to match useActionState's action signature
+  _prevState: GerarTabelaPdfState
+): Promise<GerarTabelaPdfState> {
+  await requireAdmin();
+
+  const empreendimento = await prisma.empreendimento.findUnique({
+    where: { id: empreendimentoId },
+    include: {
+      unidades: { orderBy: [{ andar: "asc" }, { identificador: "asc" }] },
+      documentosAdicionais: { orderBy: { ordem: "asc" } },
+    },
+  });
+
+  if (!empreendimento) {
+    return { success: false, message: "Empreendimento não encontrado." };
+  }
+
+  const linhas = montarLinhasTabelaUnidades(empreendimento, empreendimento.unidades);
+  const podeCalcularPlano =
+    empreendimento.parcelas !== null &&
+    empreendimento.entradaPercentual !== null &&
+    empreendimento.entregaChavesPercentual !== null;
+  const prestacoesLabel = podeCalcularPlano ? `${empreendimento.parcelas}x` : "Prestações";
+
+  let pdf: Uint8Array;
+  try {
+    pdf = await gerarTabelaPdfCompleta(
+      {
+        cabecalhoHtml: empreendimento.tabelaCabecalhoHtml ?? "",
+        descricaoHtml: empreendimento.tabelaDescricaoHtml ?? "",
+        rodapeHtml: empreendimento.tabelaRodapeHtml ?? "",
+        capaUrl: empreendimento.capaTabelaUrl,
+        prestacoesLabel,
+        linhas,
+      },
+      empreendimento.documentosAdicionais.map((d) => ({ titulo: d.titulo, url: d.url }))
+    );
+  } catch (erro) {
+    console.error("Falha ao gerar PDF da tabela:", erro);
+    return { success: false, message: "Falha ao gerar o PDF. Tente novamente." };
+  }
+
+  const caminho = `${empreendimentoId}/tabela-gerada-${Date.now()}.pdf`;
+
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from(EMPREENDIMENTOS_BUCKET)
+    .upload(caminho, pdf, { contentType: "application/pdf", upsert: false });
+
+  if (uploadError) {
+    return { success: false, message: `Falha ao salvar o PDF: ${uploadError.message}` };
+  }
+
+  const {
+    data: { publicUrl },
+  } = supabaseAdmin.storage.from(EMPREENDIMENTOS_BUCKET).getPublicUrl(caminho);
+
+  // Best-effort: remove a versão anterior do PDF gerado, se houver.
+  if (empreendimento.tabelaPdfUrl) {
+    const prefixo = `/storage/v1/object/public/${EMPREENDIMENTOS_BUCKET}/`;
+    const idx = empreendimento.tabelaPdfUrl.indexOf(prefixo);
+    if (idx !== -1) {
+      const caminhoAntigo = empreendimento.tabelaPdfUrl.slice(idx + prefixo.length);
+      await supabaseAdmin.storage.from(EMPREENDIMENTOS_BUCKET).remove([caminhoAntigo]);
+    }
+  }
+
+  const geradoEm = new Date();
+
+  await prisma.empreendimento.update({
+    where: { id: empreendimentoId },
+    data: { tabelaPdfUrl: publicUrl, tabelaPdfGeradoEm: geradoEm },
+  });
+
+  revalidatePath(`/admin/empreendimentos/${empreendimentoId}`);
+  revalidatePath(`/corretores/empreendimentos/${empreendimentoId}`);
+
+  return { success: true, url: publicUrl, geradoEm: geradoEm.toISOString() };
 }
 
 export async function excluirDocumentoAdicional(empreendimentoId: string, documentoId: string) {
