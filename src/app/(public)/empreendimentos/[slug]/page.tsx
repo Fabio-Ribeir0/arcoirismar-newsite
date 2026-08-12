@@ -253,7 +253,11 @@ export default async function EmpreendimentoPublicoPage({
               Fale com nossa equipe e receba mais informações, plantas e condições.
             </p>
             <a
-              href="#contato"
+              href={`https://wa.me/5513974185096?text=${encodeURIComponent(
+                `Quero saber mais sobre o ${empreendimento.nome}!`
+              )}`}
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex w-full justify-center rounded-md bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-light"
             >
               Quero mais informações

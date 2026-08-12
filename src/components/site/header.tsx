@@ -70,7 +70,12 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-6">
-          <div className="hidden items-center gap-3 xl:flex">
+          <a
+            href="https://wa.me/551334957537"
+            target="_blank"
+            rel="noreferrer"
+            className="hidden items-center gap-3 xl:flex"
+          >
             <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-mist text-primary">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -90,7 +95,7 @@ export function SiteHeader() {
               <p className="text-xs text-ink/60">Central de Atendimento</p>
               <p className="text-sm font-bold text-primary">+55 13 3495 7537</p>
             </div>
-          </div>
+          </a>
 
           <Link
             href="/login"
