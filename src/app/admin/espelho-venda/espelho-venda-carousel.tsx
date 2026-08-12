@@ -5,7 +5,7 @@ import { UNIDADE_STATUS_LABEL, UNIDADE_STATUS_STYLE } from "@/lib/tabela-unidade
 
 export type UnidadeEspelho = { id: string; identificador: string; status: string };
 export type AndarEspelho = { andar: number; unidades: UnidadeEspelho[] };
-export type ContagemEspelho = { disponivel: number; reservado: number; vendido: number };
+export type ContagemEspelho = Record<string, number>;
 export type EmpreendimentoEspelho = {
   id: string;
   nome: string;
@@ -148,9 +148,9 @@ function BlocoEmpreendimento({ empreendimento }: { empreendimento: Empreendiment
       )}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-line pt-3 text-xs font-semibold text-ink/70">
-        <ContagemStatus status="DISPONIVEL" valor={empreendimento.contagem.disponivel} />
-        <ContagemStatus status="RESERVADO" valor={empreendimento.contagem.reservado} />
-        <ContagemStatus status="VENDIDO" valor={empreendimento.contagem.vendido} />
+        {STATUS_ORDEM.map((status) => (
+          <ContagemStatus key={status} status={status} valor={empreendimento.contagem[status] ?? 0} />
+        ))}
       </div>
     </div>
   );

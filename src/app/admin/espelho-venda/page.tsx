@@ -43,11 +43,10 @@ export default async function EspelhoVendaPage() {
         ),
       }));
 
-    const contagem = {
-      disponivel: empreendimento.unidades.filter((u) => u.status === "DISPONIVEL").length,
-      reservado: empreendimento.unidades.filter((u) => u.status === "RESERVADO").length,
-      vendido: empreendimento.unidades.filter((u) => u.status === "VENDIDO").length,
-    };
+    const contagem: Record<string, number> = {};
+    for (const unidade of empreendimento.unidades) {
+      contagem[unidade.status] = (contagem[unidade.status] ?? 0) + 1;
+    }
 
     return { id: empreendimento.id, nome: empreendimento.nome, andares, unidadesSemAndar, contagem };
   });
