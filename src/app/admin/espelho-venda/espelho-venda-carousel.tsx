@@ -48,7 +48,7 @@ export function EspelhoVendaCarousel({
 
   return (
     <div>
-      <div className="relative px-0 sm:px-12">
+      <div className="relative px-0 sm:px-10">
         <div className="flex items-end gap-6 overflow-x-auto pb-2">
           {visiveis.map((empreendimento) => (
             <div key={empreendimento.id} className="shrink-0">
