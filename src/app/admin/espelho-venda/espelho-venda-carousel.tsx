@@ -49,9 +49,11 @@ export function EspelhoVendaCarousel({
   return (
     <div>
       <div className="relative px-0 sm:px-12">
-        <div className="grid items-end gap-6 sm:grid-cols-2">
+        <div className="flex items-end gap-6 overflow-x-auto pb-2">
           {visiveis.map((empreendimento) => (
-            <BlocoEmpreendimento key={empreendimento.id} empreendimento={empreendimento} />
+            <div key={empreendimento.id} className="shrink-0">
+              <BlocoEmpreendimento empreendimento={empreendimento} />
+            </div>
           ))}
         </div>
 
@@ -114,12 +116,12 @@ function BlocoEmpreendimento({ empreendimento }: { empreendimento: Empreendiment
                 <span className="flex w-8 shrink-0 items-center justify-center text-xs font-semibold text-ink/50">
                   {andar}
                 </span>
-                <div className="flex flex-1 gap-1.5">
+                <div className="flex gap-1.5">
                   {unidades.map((unidade) => (
                     <span
                       key={unidade.id}
                       title={`${unidade.identificador} — ${UNIDADE_STATUS_LABEL[unidade.status] ?? unidade.status}`}
-                      className={`flex-1 rounded-md px-2 py-2 text-center text-xs font-semibold ${
+                      className={`flex w-14 shrink-0 items-center justify-center rounded-md px-2 py-2 text-center text-xs font-semibold ${
                         UNIDADE_STATUS_STYLE[unidade.status] ?? "bg-ink/10 text-ink/60"
                       }`}
                     >
