@@ -19,6 +19,7 @@ type DefaultValues = {
   areaPrivativa?: number;
   vagas?: number;
   areaGaragem?: number;
+  areaComum?: number;
   andar?: number | null;
   preco?: string;
   status?: string;
@@ -52,7 +53,7 @@ export function UnidadeForm({
         <Field label="Tipo" name="tipo" defaultValue={defaultValues?.tipo} errors={errors?.tipo} hint="Ex.: 2 dormitórios" />
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
         <Field
           label="Área privativa (m²)"
           name="areaPrivativa"
@@ -62,19 +63,27 @@ export function UnidadeForm({
           errors={errors?.areaPrivativa}
         />
         <Field
-          label="Vagas"
-          name="vagas"
-          type="number"
-          defaultValue={defaultValues?.vagas?.toString() ?? "0"}
-          errors={errors?.vagas}
-        />
-        <Field
           label="Área da garagem (m²)"
           name="areaGaragem"
           type="number"
           step="0.01"
           defaultValue={defaultValues?.areaGaragem?.toString() ?? "0"}
           errors={errors?.areaGaragem}
+        />
+        <Field
+          label="Área comum (m²)"
+          name="areaComum"
+          type="number"
+          step="0.01"
+          defaultValue={defaultValues?.areaComum?.toString() ?? "0"}
+          errors={errors?.areaComum}
+        />
+        <Field
+          label="Vagas"
+          name="vagas"
+          type="number"
+          defaultValue={defaultValues?.vagas?.toString() ?? "0"}
+          errors={errors?.vagas}
         />
         <Field
           label="Andar"

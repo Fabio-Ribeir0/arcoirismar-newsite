@@ -85,7 +85,7 @@ export function montarLinhasTabelaUnidades(
         areaPrivativa: unidade.areaPrivativa,
         vagas: unidade.vagas,
         areaGaragem: unidade.areaGaragem,
-        areaTotal: unidade.areaPrivativa + unidade.areaGaragem,
+        areaTotal: unidade.areaPrivativa + unidade.areaGaragem + unidade.areaComum,
         preco,
         status: unidade.status,
         oculto,

@@ -19,6 +19,9 @@ export const UnidadeSchema = z.object({
   areaGaragem: z.coerce
     .number({ error: "Informe a área da garagem." })
     .min(0, { error: "A área da garagem não pode ser negativa." }),
+  areaComum: z.coerce
+    .number({ error: "Informe a área comum." })
+    .min(0, { error: "A área comum não pode ser negativa." }),
   andar: z.string().trim().optional().or(z.literal("")),
   preco: z.string().regex(/^\d+(\.\d{1,2})?$/, {
     error: "Informe um preço válido (ex.: 350000.00).",

@@ -6,6 +6,10 @@ export type HistoryRow = {
   motivo: string | null;
 };
 
+export function formatarDataHoraBR(data: Date): string {
+  return data.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+}
+
 export function HistoryTable({
   rows,
   emptyMessage,
@@ -31,7 +35,7 @@ export function HistoryTable({
         <tbody>
           {rows.map((row) => (
             <tr key={row.id} className="border-t border-line">
-              <td className="px-4 py-2 text-ink/70">{row.data.toLocaleString("pt-BR")}</td>
+              <td className="px-4 py-2 text-ink/70">{formatarDataHoraBR(row.data)}</td>
               <td className="px-4 py-2 text-ink/70">{row.descricao}</td>
               <td className="px-4 py-2 text-ink/70">{row.autor}</td>
               <td className="px-4 py-2 text-ink/50">{row.motivo ?? "—"}</td>

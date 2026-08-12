@@ -16,7 +16,8 @@ import { LinkMidiaPublicaForm } from "./link-midia-publica-form";
 import { TabelaConteudoForm } from "./tabela-conteudo-form";
 import { DocumentosAdicionaisSection } from "./documentos-adicionais-section";
 import { GerarTabelaSection } from "./gerar-tabela-section";
-import { HistoryTable, type HistoryRow } from "@/components/admin/history-table";
+import type { HistoryRow } from "@/components/admin/history-table";
+import { LogBloco } from "@/components/admin/log-bloco";
 import { UNIDADE_STATUS_LABEL } from "@/lib/tabela-unidades";
 import { diferente } from "../service";
 import { Tabs } from "@/components/admin/tabs";
@@ -68,6 +69,7 @@ export default async function EditarEmpreendimentoPage({
     tipo: unidade.tipo,
     areaPrivativa: unidade.areaPrivativa,
     areaGaragem: unidade.areaGaragem,
+    areaComum: unidade.areaComum,
     preco: Number(unidade.preco),
     parcela: podeCalcularParcela
       ? calcularParcelaPlanoDireto({
@@ -110,6 +112,10 @@ export default async function EditarEmpreendimentoPage({
         </div>
 
         <Tabs
+          breadcrumb={[
+            { label: "Empreendimentos", href: "/admin/empreendimentos" },
+            { label: empreendimento.nome },
+          ]}
           tabs={[
             {
               id: "detalhes",
@@ -255,31 +261,25 @@ export default async function EditarEmpreendimentoPage({
               label: "Log",
               content: (
                 <div className="space-y-8">
-                  <div className="space-y-4">
-                    <h2 className="font-display text-2xl font-medium text-primary">
-                      Histórico de unidades (somente admin)
-                    </h2>
-                    <HistoryTable
-                      rows={logUnidades}
-                      emptyMessage="Nenhuma alteração de preço ou status de unidade registrada."
-                    />
-                  </div>
+                  <LogBloco
+                    titulo="Histórico de unidades (somente admin)"
+                    rows={logUnidades}
+                    emptyMessage="Nenhuma alteração de preço ou status de unidade registrada."
+                    nomeArquivoCsv={`historico-unidades-${empreendimento.slug}.csv`}
+                  />
 
-                  <div className="space-y-4">
-                    <h2 className="font-display text-2xl font-medium text-primary">
-                      Histórico do plano de pagamento (somente admin)
-                    </h2>
-                    <HistoryTable
-                      rows={empreendimento.historicoPlanoPagamento.map((h) => ({
-                        id: h.id,
-                        data: h.criadoEm,
-                        autor: h.autor.name ?? h.autor.email,
-                        descricao: descricaoPlanoPagamento(h),
-                        motivo: h.motivo,
-                      }))}
-                      emptyMessage="Nenhuma alteração do plano de pagamento registrada."
-                    />
-                  </div>
+                  <LogBloco
+                    titulo="Histórico do plano de pagamento (somente admin)"
+                    rows={empreendimento.historicoPlanoPagamento.map((h) => ({
+                      id: h.id,
+                      data: h.criadoEm,
+                      autor: h.autor.name ?? h.autor.email,
+                      descricao: descricaoPlanoPagamento(h),
+                      motivo: h.motivo,
+                    }))}
+                    emptyMessage="Nenhuma alteração do plano de pagamento registrada."
+                    nomeArquivoCsv={`historico-pagamento-${empreendimento.slug}.csv`}
+                  />
                 </div>
               ),
             },

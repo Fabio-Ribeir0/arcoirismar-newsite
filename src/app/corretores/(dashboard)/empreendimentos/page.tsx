@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { Breadcrumb } from "@/components/admin/breadcrumb";
 
 const STATUS_LABEL: Record<string, string> = {
   EM_BREVE: "Em breve",
@@ -17,6 +18,7 @@ export default async function EmpreendimentosCorretorPage() {
   return (
     <main className="px-6 py-16">
       <div className="mx-auto max-w-5xl space-y-6">
+        <Breadcrumb items={[{ label: "Empreendimentos" }]} />
         <h1 className="font-display text-3xl font-medium text-primary">Empreendimentos</h1>
 
         <div className="grid gap-4 sm:grid-cols-2">

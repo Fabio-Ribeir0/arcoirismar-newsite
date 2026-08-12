@@ -4,6 +4,7 @@ import { ConvidarAdminForm } from "./convidar-admin-form";
 import { DeleteButton } from "@/components/delete-button";
 import { cancelarConviteAdmin } from "./actions";
 import { PAGINAS_ADMIN } from "@/lib/admin-paginas";
+import { Breadcrumb } from "@/components/admin/breadcrumb";
 
 const PAGINA_LABEL: Record<string, string> = Object.fromEntries(
   PAGINAS_ADMIN.map((p) => [p.chave, p.label])
@@ -20,6 +21,7 @@ export default async function AdministradoresPage() {
   return (
     <main className="px-6 py-16">
       <div className="mx-auto max-w-5xl space-y-6">
+        <Breadcrumb items={[{ label: "Administradores" }]} />
         <h1 className="font-display text-3xl font-medium text-primary">Administradores</h1>
 
         <ConvidarAdminForm />

@@ -277,7 +277,7 @@ function formatarDataHoraBR(data: Date): string {
     hourCycle: "h23",
   }).formatToParts(data);
   const obter = (tipo: string) => partes.find((p) => p.type === tipo)?.value ?? "";
-  return `${obter("day")}/${obter("month")}/${obter("year")} | ${obter("hour")}${obter("minute")}`;
+  return `${obter("day")}/${obter("month")}/${obter("year")} | ${obter("hour")}:${obter("minute")}`;
 }
 
 /**

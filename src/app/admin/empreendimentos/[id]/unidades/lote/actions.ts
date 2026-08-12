@@ -26,6 +26,7 @@ export async function atualizarUnidadesEmLote(
   const aplicarVagas = formData.get("aplicarVagas") === "on";
   const aplicarArea = formData.get("aplicarArea") === "on";
   const aplicarAreaGaragem = formData.get("aplicarAreaGaragem") === "on";
+  const aplicarAreaComum = formData.get("aplicarAreaComum") === "on";
 
   if (
     !aplicarPreco &&
@@ -33,7 +34,8 @@ export async function atualizarUnidadesEmLote(
     !aplicarTipo &&
     !aplicarVagas &&
     !aplicarArea &&
-    !aplicarAreaGaragem
+    !aplicarAreaGaragem &&
+    !aplicarAreaComum
   ) {
     return { success: false, message: "Marque ao menos um campo para aplicar às unidades selecionadas." };
   }
@@ -86,6 +88,14 @@ export async function atualizarUnidadesEmLote(
     }
   }
 
+  let novaAreaComum: number | undefined;
+  if (aplicarAreaComum) {
+    novaAreaComum = Number(formData.get("areaComum"));
+    if (!Number.isFinite(novaAreaComum) || novaAreaComum < 0) {
+      return { success: false, message: "Área comum inválida." };
+    }
+  }
+
   const motivo = (String(formData.get("motivo") ?? "").trim() || null) as string | null;
 
   const unidades = await prisma.unidade.findMany({
@@ -100,6 +110,7 @@ export async function atualizarUnidadesEmLote(
   if (aplicarVagas && novasVagas !== undefined) data.vagas = novasVagas;
   if (aplicarArea && novaArea !== undefined) data.areaPrivativa = novaArea;
   if (aplicarAreaGaragem && novaAreaGaragem !== undefined) data.areaGaragem = novaAreaGaragem;
+  if (aplicarAreaComum && novaAreaComum !== undefined) data.areaComum = novaAreaComum;
 
   // Uma updateMany + até 2 createMany, em vez de um update + create por
   // unidade — com dezenas/centenas de unidades selecionadas, o loop antigo

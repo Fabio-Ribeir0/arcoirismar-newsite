@@ -24,6 +24,7 @@ export type UnidadeRow = {
   tipo: string;
   areaPrivativa: number;
   areaGaragem: number;
+  areaComum: number;
   preco: number;
   parcela: number | null;
   status: string;
@@ -217,7 +218,7 @@ export function UnidadesTable({
                 </td>
                 <td className="px-4 py-3 text-ink/70">{unidade.tipo}</td>
                 <td className="px-4 py-3 text-ink/70">
-                  {(unidade.areaPrivativa + unidade.areaGaragem).toLocaleString("pt-BR")} m²
+                  {(unidade.areaPrivativa + unidade.areaGaragem + unidade.areaComum).toLocaleString("pt-BR")} m²
                 </td>
                 <td className="px-4 py-3 text-ink/70">{formatCurrency(unidade.preco)}</td>
                 {parcelasLabel && (
