@@ -71,7 +71,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               </Link>
               <Link
                 href="/login"
-                className="rounded-md border border-white/30 px-6 py-3 font-semibold text-white transition hover:bg-white/10"
+                className="rounded-md bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-light"
               >
                 Sou corretor
               </Link>
