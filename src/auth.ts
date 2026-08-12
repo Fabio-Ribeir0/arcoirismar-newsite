@@ -38,6 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           email: user.email,
           role: user.role,
+          paginasPermitidas: user.paginasPermitidas,
         };
       },
     }),
@@ -47,6 +48,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.paginasPermitidas = user.paginasPermitidas;
       }
       return token;
     },
@@ -54,6 +56,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as "ADMIN" | "CORRETOR";
+        session.user.paginasPermitidas = (token.paginasPermitidas as string[]) ?? [];
       }
       return session;
     },

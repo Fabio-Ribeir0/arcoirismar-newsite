@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/dal";
 import { criarTokenAcesso } from "@/lib/auth-tokens";
 import { enviarEmail } from "@/lib/email";
 import { getBaseUrl } from "@/lib/base-url";
+import { PAGINAS_ADMIN } from "@/lib/admin-paginas";
 
 export type ConvidarAdminState =
   | { success: true; link: string; emailEnviado: boolean }
@@ -33,8 +34,13 @@ export async function convidarAdmin(
     return { success: false, message: "Já existe uma conta cadastrada com esse e-mail." };
   }
 
+  const chavesValidas = new Set<string>(PAGINAS_ADMIN.map((p) => p.chave));
+  const paginasPermitidas = formData.getAll("paginas").filter((valor): valor is string => {
+    return typeof valor === "string" && chavesValidas.has(valor);
+  });
+
   await prisma.user.create({
-    data: { email, name: nome, role: "ADMIN", password: null },
+    data: { email, name: nome, role: "ADMIN", password: null, paginasPermitidas },
   });
 
   const token = await criarTokenAcesso(email);

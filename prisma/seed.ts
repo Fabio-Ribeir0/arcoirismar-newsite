@@ -18,15 +18,27 @@ async function main() {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  // O admin de bootstrap sempre recebe acesso a todas as páginas — sem isso,
+  // rodar o seed do zero criaria um admin sem nenhuma permissão, incapaz de
+  // se auto-conceder acesso (nem à própria página de Administradores).
+  const paginasPermitidas = [
+    "empreendimentos",
+    "corretores",
+    "configuracoes",
+    "administradores",
+    "espelho-venda",
+  ];
+
   const admin = await prisma.user.upsert({
     where: { email },
-    update: { password: hashedPassword, role: "ADMIN", status: "APROVADO" },
+    update: { password: hashedPassword, role: "ADMIN", status: "APROVADO", paginasPermitidas },
     create: {
       email,
       name: "Administrador",
       password: hashedPassword,
       role: "ADMIN",
       status: "APROVADO",
+      paginasPermitidas,
     },
   });
 

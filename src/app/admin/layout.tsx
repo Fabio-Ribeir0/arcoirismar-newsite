@@ -21,26 +21,36 @@ export default async function AdminLayout({
             <Link href="/admin" className="font-display text-lg font-semibold text-primary">
               Painel admin
             </Link>
-            <Link href="/admin/empreendimentos" className="hover:text-accent">
-              Empreendimentos
-            </Link>
-            <Link href="/admin/corretores" className="flex items-center gap-1.5 hover:text-accent">
-              Corretores
-              {pendentes > 0 && (
-                <span className="rounded-full bg-accent px-1.5 py-0.5 text-xs font-semibold text-primary">
-                  {pendentes}
-                </span>
-              )}
-            </Link>
-            <Link href="/admin/configuracoes" className="hover:text-accent">
-              Empresa
-            </Link>
-            <Link href="/admin/administradores" className="hover:text-accent">
-              Administradores
-            </Link>
-            <Link href="/admin/espelho-venda" className="hover:text-accent">
-              Espelho de Venda
-            </Link>
+            {user.paginasPermitidas.includes("empreendimentos") && (
+              <Link href="/admin/empreendimentos" className="hover:text-accent">
+                Empreendimentos
+              </Link>
+            )}
+            {user.paginasPermitidas.includes("corretores") && (
+              <Link href="/admin/corretores" className="flex items-center gap-1.5 hover:text-accent">
+                Corretores
+                {pendentes > 0 && (
+                  <span className="rounded-full bg-accent px-1.5 py-0.5 text-xs font-semibold text-primary">
+                    {pendentes}
+                  </span>
+                )}
+              </Link>
+            )}
+            {user.paginasPermitidas.includes("configuracoes") && (
+              <Link href="/admin/configuracoes" className="hover:text-accent">
+                Empresa
+              </Link>
+            )}
+            {user.paginasPermitidas.includes("administradores") && (
+              <Link href="/admin/administradores" className="hover:text-accent">
+                Administradores
+              </Link>
+            )}
+            {user.paginasPermitidas.includes("espelho-venda") && (
+              <Link href="/admin/espelho-venda" className="hover:text-accent">
+                Espelho de Venda
+              </Link>
+            )}
           </nav>
           <div className="flex items-center gap-4">
             <span className="text-sm text-ink/60">{user.name}</span>

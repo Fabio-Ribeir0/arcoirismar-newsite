@@ -3,6 +3,11 @@ import { requireAdmin } from "@/lib/dal";
 import { ConvidarAdminForm } from "./convidar-admin-form";
 import { DeleteButton } from "@/components/delete-button";
 import { cancelarConviteAdmin } from "./actions";
+import { PAGINAS_ADMIN } from "@/lib/admin-paginas";
+
+const PAGINA_LABEL: Record<string, string> = Object.fromEntries(
+  PAGINAS_ADMIN.map((p) => [p.chave, p.label])
+);
 
 export default async function AdministradoresPage() {
   const admin = await requireAdmin();
@@ -26,6 +31,7 @@ export default async function AdministradoresPage() {
                 <th className="px-4 py-3 font-medium">Nome</th>
                 <th className="px-4 py-3 font-medium">E-mail</th>
                 <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Acesso</th>
                 <th className="px-4 py-3 font-medium">Desde</th>
                 <th className="px-4 py-3 font-medium" />
               </tr>
@@ -48,6 +54,22 @@ export default async function AdministradoresPage() {
                       >
                         {ativo ? "Ativo" : "Convite pendente"}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-ink/60">
+                      {a.paginasPermitidas.length === 0 ? (
+                        <span className="text-ink/40">Nenhuma</span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {a.paginasPermitidas.map((chave) => (
+                            <span
+                              key={chave}
+                              className="rounded-full bg-mist px-2 py-0.5 text-xs text-ink/70"
+                            >
+                              {PAGINA_LABEL[chave] ?? chave}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-ink/60">
                       {a.createdAt.toLocaleDateString("pt-BR")}

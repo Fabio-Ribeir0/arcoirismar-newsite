@@ -91,6 +91,10 @@ model User {
 
   role Role @default(CORRETOR)
 
+  /// Chaves das páginas do admin liberadas para este usuário (ver src/lib/admin-paginas.ts) — só
+  /// tem efeito para role=ADMIN; definido no convite, sem tela de edição por enquanto
+  paginasPermitidas String[] @default([])
+
   // Campos específicos do cadastro de corretor
   telefone String?
   creci    String?
