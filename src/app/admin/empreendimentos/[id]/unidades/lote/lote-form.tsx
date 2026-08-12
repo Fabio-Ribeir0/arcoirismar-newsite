@@ -38,6 +38,13 @@ export function LoteForm({
         type="number"
         step="0.01"
       />
+      <CampoTexto
+        name="areaGaragem"
+        aplicarName="aplicarAreaGaragem"
+        label="Área da garagem (m²)"
+        type="number"
+        step="0.01"
+      />
       <div className="space-y-1.5">
         <label htmlFor="motivo" className="text-sm font-medium text-ink">
           Motivo da alteração (opcional)
