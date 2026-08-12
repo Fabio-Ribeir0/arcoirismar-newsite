@@ -5,12 +5,21 @@ import { UNIDADE_STATUS_LABEL, UNIDADE_STATUS_STYLE } from "@/lib/tabela-unidade
 
 export type UnidadeEspelho = { id: string; identificador: string; status: string };
 export type AndarEspelho = { andar: number; unidades: UnidadeEspelho[] };
+export type ContagemEspelho = { disponivel: number; reservado: number; vendido: number };
 export type EmpreendimentoEspelho = {
   id: string;
   nome: string;
   andares: AndarEspelho[];
   unidadesSemAndar: number;
+  contagem: ContagemEspelho;
 };
+
+/** Borda mínima na mesma cor da fonte do status — deriva de UNIDADE_STATUS_STYLE (ex.: "text-green-700" -> "border-green-700"). */
+function corBorda(status: string): string {
+  const estilo = UNIDADE_STATUS_STYLE[status] ?? "bg-ink/10 text-ink/60";
+  const textoClasse = estilo.split(" ").find((c) => c.startsWith("text-")) ?? "text-ink/60";
+  return textoClasse.replace("text-", "border-");
+}
 
 const STATUS_ORDEM = [
   "DISPONIVEL",
@@ -108,31 +117,28 @@ function BlocoEmpreendimento({ empreendimento }: { empreendimento: Empreendiment
       {empreendimento.andares.length === 0 ? (
         <p className="text-sm text-ink/50">Nenhuma unidade com andar definido.</p>
       ) : (
-        <>
-          <p className="mb-2 text-xs font-semibold tracking-wide text-ink/40 uppercase">Andar</p>
-          <div className="space-y-1.5">
-            {empreendimento.andares.map(({ andar, unidades }) => (
-              <div key={andar} className="flex items-stretch gap-1.5">
-                <span className="flex w-8 shrink-0 items-center justify-center text-xs font-semibold text-ink/50">
-                  {andar}
-                </span>
-                <div className="flex gap-1.5">
-                  {unidades.map((unidade) => (
-                    <span
-                      key={unidade.id}
-                      title={`${unidade.identificador} — ${UNIDADE_STATUS_LABEL[unidade.status] ?? unidade.status}`}
-                      className={`flex w-14 shrink-0 items-center justify-center rounded-md px-2 py-2 text-center text-xs font-semibold ${
-                        UNIDADE_STATUS_STYLE[unidade.status] ?? "bg-ink/10 text-ink/60"
-                      }`}
-                    >
-                      {unidade.identificador}
-                    </span>
-                  ))}
-                </div>
+        <div className="space-y-1.5">
+          {empreendimento.andares.map(({ andar, unidades }) => (
+            <div key={andar} className="flex items-stretch gap-1.5">
+              <span className="flex w-8 shrink-0 items-center justify-center text-xs font-semibold text-ink/50">
+                {andar}
+              </span>
+              <div className="flex gap-1.5">
+                {unidades.map((unidade) => (
+                  <span
+                    key={unidade.id}
+                    title={`${unidade.identificador} — ${UNIDADE_STATUS_LABEL[unidade.status] ?? unidade.status}`}
+                    className={`flex w-14 shrink-0 items-center justify-center rounded-md border px-2 py-2 text-center text-xs font-semibold ${
+                      UNIDADE_STATUS_STYLE[unidade.status] ?? "bg-ink/10 text-ink/60"
+                    } ${corBorda(unidade.status)}`}
+                  >
+                    {unidade.identificador}
+                  </span>
+                ))}
               </div>
-            ))}
-          </div>
-        </>
+            </div>
+          ))}
+        </div>
       )}
 
       {empreendimento.unidadesSemAndar > 0 && (
@@ -140,7 +146,23 @@ function BlocoEmpreendimento({ empreendimento }: { empreendimento: Empreendiment
           {empreendimento.unidadesSemAndar} unidade(s) sem andar definido não exibida(s) aqui.
         </p>
       )}
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-line pt-3 text-xs font-semibold text-ink/70">
+        <ContagemStatus status="DISPONIVEL" valor={empreendimento.contagem.disponivel} />
+        <ContagemStatus status="RESERVADO" valor={empreendimento.contagem.reservado} />
+        <ContagemStatus status="VENDIDO" valor={empreendimento.contagem.vendido} />
+      </div>
     </div>
+  );
+}
+
+function ContagemStatus({ status, valor }: { status: string; valor: number }) {
+  const corFundo = (UNIDADE_STATUS_STYLE[status] ?? "bg-ink/10 text-ink/60").split(" ")[0];
+  return (
+    <span className="flex items-center gap-1.5">
+      <span className={`size-3 shrink-0 rounded border ${corFundo} ${corBorda(status)}`} />
+      {valor}
+    </span>
   );
 }
 
@@ -149,7 +171,9 @@ function Legenda() {
     <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line pt-6">
       {STATUS_ORDEM.map((status) => (
         <div key={status} className="flex items-center gap-2 text-sm text-ink/70">
-          <span className={`size-3.5 rounded ${UNIDADE_STATUS_STYLE[status].split(" ")[0]}`} />
+          <span
+            className={`size-3.5 rounded border ${UNIDADE_STATUS_STYLE[status].split(" ")[0]} ${corBorda(status)}`}
+          />
           {UNIDADE_STATUS_LABEL[status]}
         </div>
       ))}
