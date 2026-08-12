@@ -16,7 +16,8 @@ import { LinkMidiaPublicaForm } from "./link-midia-publica-form";
 import { TabelaConteudoForm } from "./tabela-conteudo-form";
 import { DocumentosAdicionaisSection } from "./documentos-adicionais-section";
 import { GerarTabelaSection } from "./gerar-tabela-section";
-import { HistoryTable } from "@/components/admin/history-table";
+import { HistoryTable, type HistoryRow } from "@/components/admin/history-table";
+import { UNIDADE_STATUS_LABEL } from "@/lib/tabela-unidades";
 import { diferente } from "../service";
 import { Tabs } from "@/components/admin/tabs";
 import { DeleteButton } from "@/components/delete-button";
@@ -36,7 +37,13 @@ export default async function EditarEmpreendimentoPage({
   const empreendimento = await prisma.empreendimento.findUnique({
     where: { id },
     include: {
-      unidades: { orderBy: [{ andar: "asc" }, { identificador: "asc" }] },
+      unidades: {
+        orderBy: [{ andar: "asc" }, { identificador: "asc" }],
+        include: {
+          historicoPrecos: { include: { autor: true } },
+          historicoStatus: { include: { autor: true } },
+        },
+      },
       historicoPlanoPagamento: { orderBy: { criadoEm: "desc" }, include: { autor: true } },
       midias: { orderBy: { ordem: "asc" } },
       documentosAdicionais: { orderBy: { ordem: "asc" } },
@@ -72,6 +79,25 @@ export default async function EditarEmpreendimentoPage({
       : null,
     status: unidade.status,
   }));
+
+  const logUnidades: HistoryRow[] = empreendimento.unidades
+    .flatMap((unidade) => [
+      ...unidade.historicoPrecos.map((h) => ({
+        id: h.id,
+        data: h.criadoEm,
+        autor: h.autor.name ?? h.autor.email,
+        descricao: `Unidade ${unidade.identificador}: Preço ${formatCurrencyOrNull(h.precoAnterior)} → ${formatCurrencyOrNull(h.precoNovo)}`,
+        motivo: h.motivo,
+      })),
+      ...unidade.historicoStatus.map((h) => ({
+        id: h.id,
+        data: h.criadoEm,
+        autor: h.autor.name ?? h.autor.email,
+        descricao: `Unidade ${unidade.identificador}: Status ${UNIDADE_STATUS_LABEL[h.statusAnterior] ?? h.statusAnterior} → ${UNIDADE_STATUS_LABEL[h.statusNovo] ?? h.statusNovo}`,
+        motivo: h.motivo,
+      })),
+    ])
+    .sort((a, b) => b.data.getTime() - a.data.getTime());
 
   return (
     <main className="px-6 py-16">
@@ -228,20 +254,32 @@ export default async function EditarEmpreendimentoPage({
               id: "log",
               label: "Log",
               content: (
-                <div className="space-y-4">
-                  <h2 className="font-display text-2xl font-medium text-primary">
-                    Histórico do plano de pagamento (somente admin)
-                  </h2>
-                  <HistoryTable
-                    rows={empreendimento.historicoPlanoPagamento.map((h) => ({
-                      id: h.id,
-                      data: h.criadoEm,
-                      autor: h.autor.name ?? h.autor.email,
-                      descricao: descricaoPlanoPagamento(h),
-                      motivo: h.motivo,
-                    }))}
-                    emptyMessage="Nenhuma alteração do plano de pagamento registrada."
-                  />
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <h2 className="font-display text-2xl font-medium text-primary">
+                      Histórico de unidades (somente admin)
+                    </h2>
+                    <HistoryTable
+                      rows={logUnidades}
+                      emptyMessage="Nenhuma alteração de preço ou status de unidade registrada."
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <h2 className="font-display text-2xl font-medium text-primary">
+                      Histórico do plano de pagamento (somente admin)
+                    </h2>
+                    <HistoryTable
+                      rows={empreendimento.historicoPlanoPagamento.map((h) => ({
+                        id: h.id,
+                        data: h.criadoEm,
+                        autor: h.autor.name ?? h.autor.email,
+                        descricao: descricaoPlanoPagamento(h),
+                        motivo: h.motivo,
+                      }))}
+                      emptyMessage="Nenhuma alteração do plano de pagamento registrada."
+                    />
+                  </div>
                 </div>
               ),
             },
