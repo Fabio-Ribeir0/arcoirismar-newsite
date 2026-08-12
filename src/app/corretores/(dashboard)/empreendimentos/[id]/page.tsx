@@ -85,7 +85,7 @@ export default async function EmpreendimentoCorretorPage({
                 href={empreendimento.linkMidiaPublica}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex w-fit items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-light"
+                className="inline-flex w-fit items-center justify-center rounded-md bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-light"
               >
                 Acessar mídia
               </a>
