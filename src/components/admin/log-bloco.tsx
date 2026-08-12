@@ -67,7 +67,7 @@ export function LogBloco({
             type="button"
             onClick={() => exportarCsv(nomeArquivoCsv, rows)}
             disabled={rows.length === 0}
-            className="rounded-md border border-line px-3 py-1.5 text-sm font-medium text-ink transition bg-primary hover:bg-primary-light disabled:opacity-40"
+            className="rounded-md border border-line px-3 py-1.5 text-sm font-medium text-white transition bg-primary hover:bg-primary-light disabled:opacity-40"
           >
             Exportar .csv
           </button>
