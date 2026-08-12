@@ -98,6 +98,7 @@ export default async function EditarEmpreendimentoPage({
                     slug: empreendimento.slug,
                     status: empreendimento.status,
                     destaque: empreendimento.destaque,
+                    espelhoVenda: empreendimento.espelhoVenda,
                     slogan: empreendimento.slogan,
                     descricao: empreendimento.descricao,
                     endereco: empreendimento.endereco,

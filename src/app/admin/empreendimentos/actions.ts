@@ -19,6 +19,9 @@ function parseForm(formData: FormData) {
     slug: formData.get("slug"),
     status: formData.get("status"),
     destaque: formData.get("destaque"),
+    // Checkbox: ausente no FormData quando desmarcado, o que z.optional() (só
+    // aceita undefined, não null) rejeitaria — normaliza pra "" como "motivo".
+    espelhoVenda: formData.get("espelhoVenda") ?? "",
     slogan: formData.get("slogan"),
     descricao: formData.get("descricao"),
     endereco: formData.get("endereco"),
@@ -48,6 +51,7 @@ function buildEmpreendimentoData(data: ReturnType<typeof EmpreendimentoSchema.pa
     slug,
     status: data.status,
     destaque: data.destaque,
+    espelhoVenda: data.espelhoVenda === "on",
     slogan: data.slogan || null,
     descricao: data.descricao || null,
     endereco: data.endereco || null,

@@ -194,6 +194,9 @@ model Empreendimento {
   /// Controla onde o empreendimento aparece na home (ver enum Destaque)
   destaque Destaque @default(NENHUM)
 
+  /// Quando true, aparece na página /admin/espelho-venda
+  espelhoVenda Boolean @default(false)
+
   endereco  String?
   bairro    String?
   cidade    String?

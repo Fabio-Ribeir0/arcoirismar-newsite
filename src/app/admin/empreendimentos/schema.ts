@@ -21,6 +21,7 @@ export const EmpreendimentoSchema = z.object({
     .or(z.literal("")),
   status: z.enum(EMPREENDIMENTO_STATUS, { error: "Selecione um status válido." }),
   destaque: z.enum(DESTAQUE_OPCOES, { error: "Selecione uma opção de destaque válida." }),
+  espelhoVenda: z.string().optional().or(z.literal("")),
   slogan: z.string().trim().optional().or(z.literal("")),
   descricao: z.string().trim().optional().or(z.literal("")),
   endereco: z.string().trim().optional().or(z.literal("")),

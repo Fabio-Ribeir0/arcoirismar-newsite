@@ -20,6 +20,16 @@ export const UNIDADE_STATUS_CORES: Record<string, { fundo: string; texto: string
   TROCA_AREA: { fundo: "#f3e8ff", texto: "#7e22ce" },
 };
 
+/** Mesmas cores acima, como classes Tailwind — usado em telas do admin (fora do PDF). */
+export const UNIDADE_STATUS_STYLE: Record<string, string> = {
+  DISPONIVEL: "bg-green-100 text-green-700",
+  RESERVADO: "bg-blue-100 text-blue-700",
+  VENDIDO: "bg-ink/10 text-ink/60",
+  BLOQUEADO: "bg-red-100 text-red-700",
+  DECORADO: "bg-accent/20 text-accent",
+  TROCA_AREA: "bg-purple-100 text-purple-700",
+};
+
 // A lista da área do corretor só mostra unidades que ainda estão em jogo —
 // vendidas/bloqueadas/em troca de área não interessam pra quem está
 // oferecendo ao cliente. Decorado aparece (sem valores, como Reservado).

@@ -22,6 +22,7 @@ type DefaultValues = {
   slug?: string;
   status?: string;
   destaque?: string;
+  espelhoVenda?: boolean;
   slogan?: string | null;
   descricao?: string | null;
   endereco?: string | null;
@@ -116,6 +117,21 @@ export function EmpreendimentoForm({
             {error}
           </p>
         ))}
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="flex items-center gap-2 text-sm font-medium text-ink">
+          <input
+            type="checkbox"
+            name="espelhoVenda"
+            defaultChecked={defaultValues?.espelhoVenda ?? false}
+            className="size-4 rounded border-line"
+          />
+          Espelho de Venda
+        </label>
+        <p className="text-xs text-ink/50">
+          Exibe este empreendimento na página Espelho de Venda (/admin/espelho-venda).
+        </p>
       </div>
 
       <Field

@@ -5,24 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DeleteButton } from "@/components/delete-button";
 import { excluirUnidade } from "./unidades/actions";
-
-const UNIDADE_STATUS_LABEL: Record<string, string> = {
-  DISPONIVEL: "Disponível",
-  RESERVADO: "Reservado",
-  VENDIDO: "Vendido",
-  BLOQUEADO: "Bloqueado",
-  DECORADO: "Decorado",
-  TROCA_AREA: "Troca de área",
-};
-
-const UNIDADE_STATUS_STYLE: Record<string, string> = {
-  DISPONIVEL: "bg-green-100 text-green-700",
-  RESERVADO: "bg-blue-100 text-blue-700",
-  VENDIDO: "bg-ink/10 text-ink/60",
-  BLOQUEADO: "bg-red-100 text-red-700",
-  DECORADO: "bg-accent/20 text-accent",
-  TROCA_AREA: "bg-purple-100 text-purple-700",
-};
+import { UNIDADE_STATUS_LABEL, UNIDADE_STATUS_STYLE } from "@/lib/tabela-unidades";
 
 const FILTRO_STATUS_OPCOES = [
   "TODOS",
