@@ -4,8 +4,8 @@ import { auth } from "@/auth";
 export default async function PainelPage() {
   const session = await auth();
 
-  if (session?.user.role === "ADMIN") redirect("/admin");
-  if (session?.user.role === "CORRETOR") redirect("/corretores");
+  if (session?.user.role === "ADMIN") redirect("/admin/empreendimentos");
+  if (session?.user.role === "CORRETOR") redirect("/corretores/empreendimentos");
 
   redirect("/login");
 }

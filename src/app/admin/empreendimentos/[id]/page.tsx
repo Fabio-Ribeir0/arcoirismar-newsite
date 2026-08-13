@@ -7,6 +7,7 @@ import { atualizarEmpreendimento } from "../actions";
 import { GerarUnidadesButton } from "./unidades/gerar-unidades-button";
 import { UnidadesTable, type UnidadeRow } from "./unidades-table";
 import { calcularParcelaPlanoDireto } from "@/lib/plano-pagamento";
+import { LogoUpload } from "./logo-upload";
 import { BannerUpload } from "./banner-upload";
 import { VideoUpload } from "./video-upload";
 import { CapaTabelaUpload } from "./capa-tabela-upload";
@@ -112,10 +113,6 @@ export default async function EditarEmpreendimentoPage({
         </div>
 
         <Tabs
-          breadcrumb={[
-            { label: "Empreendimentos", href: "/admin/empreendimentos" },
-            { label: empreendimento.nome },
-          ]}
           tabs={[
             {
               id: "detalhes",
@@ -197,6 +194,10 @@ export default async function EditarEmpreendimentoPage({
               label: "Mídia",
               content: (
                 <>
+                  <LogoUpload
+                    empreendimentoId={empreendimento.id}
+                    logoAtual={empreendimento.logoUrl}
+                  />
                   <BannerUpload
                     empreendimentoId={empreendimento.id}
                     bannerAtual={empreendimento.bannerUrl}

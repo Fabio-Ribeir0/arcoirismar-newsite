@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { LoteForm } from "./lote-form";
-import { Breadcrumb } from "@/components/admin/breadcrumb";
 import { atualizarUnidadesEmLote } from "./actions";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -31,22 +30,9 @@ export default async function EdicaoLotePage({
 
   if (unidades.length === 0) notFound();
 
-  const empreendimento = await prisma.empreendimento.findUnique({
-    where: { id },
-    select: { nome: true },
-  });
-
   return (
     <main className="px-6 py-16">
       <div className="mx-auto max-w-3xl space-y-8">
-        <Breadcrumb
-          items={[
-            { label: "Empreendimentos", href: "/admin/empreendimentos" },
-            { label: empreendimento?.nome ?? "Empreendimento", href: `/admin/empreendimentos/${id}` },
-            { label: "Unidades", href: `/admin/empreendimentos/${id}` },
-            { label: "Editar em lote" },
-          ]}
-        />
         <div>
           <h1 className="font-display text-3xl font-medium text-primary">
             Editar {unidades.length} unidade(s)

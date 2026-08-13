@@ -61,6 +61,7 @@ export default async function HomePage() {
     href: `/empreendimentos/${emp.slug}`,
     imagemUrl: emp.bannerUrl,
     videoUrl: emp.bannerVideoUrl,
+    logoUrl: emp.logoUrl,
   }));
 
   if (slides.length === 0) {

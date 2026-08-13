@@ -68,7 +68,7 @@ export default async function EmpreendimentosPage({
           <Link
             key={emp.id}
             href={`/empreendimentos/${emp.slug}`}
-            className="group block overflow-hidden rounded-xl border border-line bg-white transition hover:shadow-lg"
+            className="group block overflow-hidden rounded-xl border border-line bg-white transition duration-500 hover:bg-accent hover:shadow-lg"
           >
             {emp.bannerUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- admin-managed Supabase Storage URL
@@ -81,13 +81,13 @@ export default async function EmpreendimentosPage({
               <div className="h-56 bg-gradient-to-br from-primary-light to-primary" />
             )}
             <div className="p-6">
-              <p className="mb-2 text-xs font-semibold tracking-wide text-accent uppercase">
+              <p className="mb-2 text-xs font-semibold tracking-wide text-accent uppercase transition-colors duration-500 group-hover:text-white">
                 {EMPREENDIMENTO_STATUS_LABEL[emp.status]}
               </p>
-              <h3 className="font-display mb-2 text-xl font-medium text-primary">
+              <h3 className="font-display mb-2 text-xl font-medium text-primary transition-colors duration-500 group-hover:text-white">
                 {emp.nome}
               </h3>
-              <p className="text-sm text-ink/70">
+              <p className="text-sm text-ink/70 transition-colors duration-500 group-hover:text-white">
                 {subtituloEmpreendimento({
                   totalUnidades: emp._count.unidades,
                   entregaPrevista: emp.entregaPrevista,

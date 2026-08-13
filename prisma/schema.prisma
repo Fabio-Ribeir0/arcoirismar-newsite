@@ -171,6 +171,8 @@ model Empreendimento {
 
   /// Chamada usada no banner/hero (ex.: "Um novo conceito de morar frente ao mar")
   slogan         String?
+  /// URL pública do logo do empreendimento (Supabase Storage) — usado no hero da home, ao lado do nome
+  logoUrl        String?
   /// URL pública da imagem de banner (Supabase Storage) — usada no hero, no card do Portfólio e na página de detalhe
   bannerUrl      String?
   /// URL pública do vídeo de banner (Supabase Storage) — usada só no hero, substituindo a imagem quando presente

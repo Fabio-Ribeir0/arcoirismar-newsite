@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { DeleteButton } from "@/components/delete-button";
-import { Breadcrumb } from "@/components/admin/breadcrumb";
 import { excluirEmpreendimento } from "./actions";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -20,7 +19,6 @@ export default async function EmpreendimentosPage() {
   return (
     <main className="px-6 py-16">
       <div className="mx-auto max-w-5xl space-y-6">
-        <Breadcrumb items={[{ label: "Empreendimentos" }]} />
         <div className="flex items-center justify-between">
           <h1 className="font-display text-3xl font-medium text-primary">
             Empreendimentos

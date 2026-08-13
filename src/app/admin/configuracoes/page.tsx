@@ -32,7 +32,6 @@ export default async function ConfiguracoesPage() {
         <h1 className="font-display text-3xl font-medium text-primary">Configurações</h1>
 
         <Tabs
-          breadcrumb={[{ label: "Empresa" }]}
           tabs={[
             {
               id: "simulacao",

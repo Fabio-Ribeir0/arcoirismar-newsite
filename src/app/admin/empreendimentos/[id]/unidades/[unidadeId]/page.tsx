@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { UnidadeForm } from "../unidade-form";
 import { atualizarUnidade } from "../actions";
 import { HistoryTable } from "@/components/admin/history-table";
-import { Breadcrumb } from "@/components/admin/breadcrumb";
 
 const STATUS_LABEL: Record<string, string> = {
   DISPONIVEL: "Disponível",
@@ -35,14 +34,6 @@ export default async function EditarUnidadePage({
   return (
     <main className="px-6 py-16">
       <div className="mx-auto max-w-3xl space-y-10">
-        <Breadcrumb
-          items={[
-            { label: "Empreendimentos", href: "/admin/empreendimentos" },
-            { label: unidade.empreendimento.nome, href: `/admin/empreendimentos/${id}` },
-            { label: "Unidades", href: `/admin/empreendimentos/${id}` },
-            { label: unidade.identificador },
-          ]}
-        />
         <div>
           <h1 className="font-display text-3xl font-medium text-primary">
             Unidade {unidade.identificador}

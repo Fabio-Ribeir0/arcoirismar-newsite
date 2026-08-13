@@ -1,25 +1,12 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Breadcrumb, type BreadcrumbItem } from "./breadcrumb";
 
-export function Tabs({
-  tabs,
-  breadcrumb,
-}: {
-  tabs: { id: string; label: string; content: ReactNode }[];
-  breadcrumb?: BreadcrumbItem[];
-}) {
+export function Tabs({ tabs }: { tabs: { id: string; label: string; content: ReactNode }[] }) {
   const [ativa, setAtiva] = useState(tabs[0]?.id);
 
   return (
     <div className="space-y-6">
-      {breadcrumb && (
-        <Breadcrumb
-          items={[...breadcrumb, { label: tabs.find((tab) => tab.id === ativa)?.label ?? "" }]}
-        />
-      )}
-
       <div className="flex gap-1 border-b border-line">
         {tabs.map((tab) => (
           <button

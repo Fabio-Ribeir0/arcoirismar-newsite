@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { Breadcrumb } from "@/components/admin/breadcrumb";
 import { atualizarStatusCorretor } from "./actions";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -23,7 +22,6 @@ export default async function CorretoresPage() {
   return (
     <main className="px-6 py-16">
       <div className="mx-auto max-w-5xl space-y-6">
-        <Breadcrumb items={[{ label: "Corretores" }]} />
         <h1 className="font-display text-3xl font-medium text-primary">Corretores</h1>
 
         <div className="overflow-hidden rounded-xl border border-line bg-white">

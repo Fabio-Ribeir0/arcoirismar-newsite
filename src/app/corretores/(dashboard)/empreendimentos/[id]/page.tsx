@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { Breadcrumb } from "@/components/admin/breadcrumb";
 import { SimuladorFinanciamento } from "./simulador";
 
 export default async function EmpreendimentoCorretorPage({
@@ -30,12 +29,6 @@ export default async function EmpreendimentoCorretorPage({
   return (
     <main className="px-6 py-16">
       <div className="mx-auto max-w-5xl space-y-8">
-        <Breadcrumb
-          items={[
-            { label: "Empreendimentos", href: "/corretores/empreendimentos" },
-            { label: empreendimento.nome },
-          ]}
-        />
         <div>
           <h1 className="font-display text-3xl font-medium text-primary">
             {empreendimento.nome}
