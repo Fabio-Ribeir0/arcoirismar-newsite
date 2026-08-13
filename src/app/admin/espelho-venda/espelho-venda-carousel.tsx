@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { UNIDADE_STATUS_LABEL, UNIDADE_STATUS_STYLE } from "@/lib/tabela-unidades";
+import {
+  UNIDADE_STATUS_LABEL,
+  UNIDADE_STATUS_BORDA,
+  UNIDADE_STATUS_VIVIDO,
+} from "@/lib/tabela-unidades";
 
 export type UnidadeEspelho = { id: string; identificador: string; status: string };
 export type AndarEspelho = { andar: number; unidades: UnidadeEspelho[] };
@@ -14,11 +18,12 @@ export type EmpreendimentoEspelho = {
   contagem: ContagemEspelho;
 };
 
-/** Borda mínima na mesma cor da fonte do status — deriva de UNIDADE_STATUS_STYLE (ex.: "text-green-700" -> "border-green-700"). */
 function corBorda(status: string): string {
-  const estilo = UNIDADE_STATUS_STYLE[status] ?? "bg-ink/10 text-ink/60";
-  const textoClasse = estilo.split(" ").find((c) => c.startsWith("text-")) ?? "text-ink/60";
-  return textoClasse.replace("text-", "border-");
+  return UNIDADE_STATUS_BORDA[status] ?? "border-ink/60";
+}
+
+function corVivida(status: string): string {
+  return UNIDADE_STATUS_VIVIDO[status] ?? "bg-ink/60";
 }
 
 const STATUS_ORDEM = [
@@ -128,9 +133,7 @@ function BlocoEmpreendimento({ empreendimento }: { empreendimento: Empreendiment
                   <span
                     key={unidade.id}
                     title={`${unidade.identificador} — ${UNIDADE_STATUS_LABEL[unidade.status] ?? unidade.status}`}
-                    className={`flex w-14 shrink-0 items-center justify-center rounded-md border px-2 py-2 text-center text-xs font-semibold ${
-                      UNIDADE_STATUS_STYLE[unidade.status] ?? "bg-ink/10 text-ink/60"
-                    } ${corBorda(unidade.status)}`}
+                    className={`flex w-14 shrink-0 items-center justify-center rounded-md border px-2 py-2 text-center text-xs font-semibold text-white ${corVivida(unidade.status)} ${corBorda(unidade.status)}`}
                   >
                     {unidade.identificador}
                   </span>
@@ -157,10 +160,9 @@ function BlocoEmpreendimento({ empreendimento }: { empreendimento: Empreendiment
 }
 
 function ContagemStatus({ status, valor }: { status: string; valor: number }) {
-  const corFundo = (UNIDADE_STATUS_STYLE[status] ?? "bg-ink/10 text-ink/60").split(" ")[0];
   return (
     <span className="flex items-center gap-1.5">
-      <span className={`size-3 shrink-0 rounded border ${corFundo} ${corBorda(status)}`} />
+      <span className={`size-3 shrink-0 rounded border ${corVivida(status)} ${corBorda(status)}`} />
       {valor}
     </span>
   );
@@ -171,9 +173,7 @@ function Legenda() {
     <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-line pt-6">
       {STATUS_ORDEM.map((status) => (
         <div key={status} className="flex items-center gap-2 text-sm text-ink/70">
-          <span
-            className={`size-3.5 rounded border ${UNIDADE_STATUS_STYLE[status].split(" ")[0]} ${corBorda(status)}`}
-          />
+          <span className={`size-3.5 rounded border ${corVivida(status)} ${corBorda(status)}`} />
           {UNIDADE_STATUS_LABEL[status]}
         </div>
       ))}

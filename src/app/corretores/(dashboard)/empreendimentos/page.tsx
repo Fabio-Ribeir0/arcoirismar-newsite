@@ -14,9 +14,9 @@ export default async function EmpreendimentosCorretorPage() {
   });
 
   return (
-    <main className="px-6 py-16">
+    <main className="bg-black px-6 py-16">
       <div className="mx-auto max-w-5xl space-y-6">
-        <h1 className="font-display text-3xl font-medium text-primary">Empreendimentos</h1>
+        <h1 className="font-display text-3xl font-medium text-white">Empreendimentos</h1>
 
         <div className="grid gap-4 sm:grid-cols-2">
           {empreendimentos.map((emp) => (

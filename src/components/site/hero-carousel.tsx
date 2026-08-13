@@ -59,19 +59,9 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             <p className="mb-4 text-base font-semibold tracking-widest text-accent-light uppercase">
               {slide.eyebrow}
             </p>
-            <div className="flex items-center gap-4">
-              {slide.logoUrl && (
-                // eslint-disable-next-line @next/next/no-img-element -- admin-managed Supabase Storage URL
-                <img
-                  src={slide.logoUrl}
-                  alt=""
-                  className="h-12 w-auto shrink-0 object-contain md:h-16"
-                />
-              )}
-              <h1 className="font-display max-w-2xl text-4xl leading-tight font-medium md:text-6xl">
-                {slide.titulo}
-              </h1>
-            </div>
+            <h1 className="font-display max-w-2xl text-4xl leading-tight font-medium md:text-6xl">
+              {slide.titulo}
+            </h1>
             <p className="mt-6 max-w-xl text-lg text-white/70">{slide.subtitulo}</p>
             <div className="mt-10 flex flex-wrap gap-4">
               <Link

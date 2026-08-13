@@ -22,7 +22,7 @@ export function LogoUpload({
       <div>
         <h3 className="font-display text-lg font-medium text-primary">Logo do empreendimento</h3>
         <p className="text-sm text-ink/60">
-          Exibido ao lado do nome do empreendimento no banner da home. PNG, JPEG ou WebP, até 5MB.
+          Ainda sem uso definido no site. PNG, JPEG ou WebP, até 5MB.
         </p>
       </div>
 

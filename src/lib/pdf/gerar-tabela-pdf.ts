@@ -22,6 +22,11 @@ function escapeHtml(valor: string): string {
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+// Soma de floats (ex.: areaPrivativa + areaGaragem + areaComum) pode gerar
+// resíduos de ponto flutuante (85.50000000032) — trunca em vez de arredondar
+// pra nunca alterar o valor cadastrado, só cortar o "lixo" de casas decimais.
+const formatArea = (value: number) => (Math.trunc(value * 100) / 100).toFixed(2);
+
 const ESTILOS = `
   * { box-sizing: border-box; }
   body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #3c3f40; }
@@ -84,10 +89,10 @@ function linhaHtml(linha: LinhaTabelaUnidade): string {
   return `
     <tr>
       <td class="apto">${escapeHtml(linha.identificador)}</td>
-      <td class="bl">${linha.areaPrivativa} m²</td>
+      <td class="bl">${formatArea(linha.areaPrivativa)} m²</td>
       <td class="bl">${linha.vagas}</td>
-      <td class="bl">${linha.areaGaragem} m²</td>
-      <td class="bl">${linha.areaTotal} m²</td>
+      <td class="bl">${formatArea(linha.areaGaragem)} m²</td>
+      <td class="bl">${formatArea(linha.areaTotal)} m²</td>
       <td class="bl">${escapeHtml(formatCurrency(linha.preco))}</td>
       <td class="bl">${valorOuBadge(linha, linha.valorEntrada)}</td>
       <td class="bl">${valorOuBadge(linha, linha.valorChaves)}</td>

@@ -30,6 +30,29 @@ export const UNIDADE_STATUS_STYLE: Record<string, string> = {
   TROCA_AREA: "bg-purple-100 text-purple-700",
 };
 
+// Classes escritas por extenso (não construídas via .replace() em runtime) —
+// o Tailwind só gera CSS pra classes que aparecem como substring literal no
+// código-fonte; uma string montada dinamicamente (ex.: "border-" + cor) nunca
+// bate com nenhum arquivo escaneado e a classe sai sem estilo nenhum.
+export const UNIDADE_STATUS_BORDA: Record<string, string> = {
+  DISPONIVEL: "border-green-700",
+  RESERVADO: "border-blue-700",
+  VENDIDO: "border-ink/60",
+  BLOQUEADO: "border-red-700",
+  DECORADO: "border-accent",
+  TROCA_AREA: "border-purple-700",
+};
+
+/** Fundo "vivo" — mesma cor da borda acima, mas usada como preenchimento sólido do bloco. */
+export const UNIDADE_STATUS_VIVIDO: Record<string, string> = {
+  DISPONIVEL: "bg-green-700",
+  RESERVADO: "bg-blue-700",
+  VENDIDO: "bg-ink/60",
+  BLOQUEADO: "bg-red-700",
+  DECORADO: "bg-accent",
+  TROCA_AREA: "bg-purple-700",
+};
+
 // A lista da área do corretor só mostra unidades que ainda estão em jogo —
 // vendidas/bloqueadas/em troca de área não interessam pra quem está
 // oferecendo ao cliente. Decorado aparece (sem valores, como Reservado).
