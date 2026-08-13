@@ -65,13 +65,13 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
                 href={slide.href}
-                className="rounded-md bg-accent px-6 py-3 font-semibold text-primary transition hover:bg-accent-light"
+                className="rounded-md bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-light"
               >
                 Ver empreendimento
               </Link>
               <Link
                 href="/login"
-                className="rounded-md bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-light"
+                className="rounded-md bg-accent px-6 py-3 font-semibold text-primary transition hover:bg-accent-light"
               >
                 Sou corretor
               </Link>

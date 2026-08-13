@@ -84,13 +84,13 @@ export default async function HomePage() {
     <>
       <HeroCarousel slides={slides} />
 
-      <section className="bg-white py-24">
+      <section className="bg-black py-24">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-14 max-w-xl">
-            <p className="mb-3 text-xs font-semibold tracking-widest text-accent uppercase">
+            <p className="mb-3 text-xs font-semibold tracking-widest text-accent-light uppercase">
               Portfólio
             </p>
-            <h2 className="font-display text-3xl font-medium text-primary md:text-4xl">
+            <h2 className="font-display text-3xl font-medium text-white md:text-4xl">
               Empreendimentos em destaque
             </h2>
           </div>
@@ -100,7 +100,7 @@ export default async function HomePage() {
               <Link
                 key={emp.id}
                 href={`/empreendimentos/${emp.slug}`}
-                className="group block overflow-hidden rounded-xl border border-line bg-white transition hover:shadow-lg"
+                className="group block overflow-hidden rounded-xl border border-line bg-white transition duration-500 hover:bg-accent hover:shadow-lg"
               >
                 {emp.bannerUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element -- admin-managed Supabase Storage URL
@@ -113,13 +113,13 @@ export default async function HomePage() {
                   <div className="h-56 bg-gradient-to-br from-primary-light to-primary" />
                 )}
                 <div className="p-6">
-                  <p className="mb-2 text-xs font-semibold tracking-wide text-accent uppercase">
+                  <p className="mb-2 text-xs font-semibold tracking-wide text-accent uppercase transition-colors duration-500 group-hover:text-white">
                     {EMPREENDIMENTO_STATUS_LABEL[emp.status]}
                   </p>
-                  <h3 className="font-display mb-2 text-xl font-medium text-primary">
+                  <h3 className="font-display mb-2 text-xl font-medium text-primary transition-colors duration-500 group-hover:text-white">
                     {emp.nome}
                   </h3>
-                  <p className="text-sm text-ink/70">
+                  <p className="text-sm text-ink/70 transition-colors duration-500 group-hover:text-white">
                     {subtituloEmpreendimento({
                       totalUnidades: emp._count.unidades,
                       entregaPrevista: emp.entregaPrevista,
@@ -129,14 +129,14 @@ export default async function HomePage() {
               </Link>
             ))}
             {empreendimentosPortfolio.length === 0 && (
-              <p className="text-ink/50">Nenhum empreendimento publicado ainda.</p>
+              <p className="text-white/60">Nenhum empreendimento publicado ainda.</p>
             )}
           </div>
 
           <div className="mt-12 text-center">
             <Link
               href="/empreendimentos"
-              className="inline-flex items-center justify-center rounded-md border border-line px-6 py-3 font-semibold text-primary transition hover:bg-mist"
+              className="inline-flex items-center justify-center rounded-md bg-accent px-6 py-3 font-semibold text-primary transition hover:bg-accent-light"
             >
               Ver todos
             </Link>

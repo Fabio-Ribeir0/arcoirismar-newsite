@@ -22,6 +22,15 @@ html {
   --color-line: #e4e0d8;
 }
 
+/* Corte diagonal atrás do logo + nav no cabeçalho, só a partir do breakpoint
+   lg — abaixo disso o nav vira menu hambúrguer e a "faixa" preta some por
+   trás, então o corte nem faz sentido (o bloco vira só o logo). */
+@media (min-width: 64rem) {
+  .header-brand-clip {
+    clip-path: polygon(0 0, 100% 0, calc(100% - 48px) 100%, 0 100%);
+  }
+}
+
 .dropdown:hover .dropdown-panel {
   opacity: 1;
   visibility: visible;
