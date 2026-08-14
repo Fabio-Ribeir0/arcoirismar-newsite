@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { DeleteButton } from "@/components/delete-button";
+import { ImportarCsvModal } from "./importar-csv-modal";
 import { excluirEmpreendimento } from "./actions";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -23,12 +24,15 @@ export default async function EmpreendimentosPage() {
           <h1 className="font-display text-3xl font-medium text-primary">
             Empreendimentos
           </h1>
-          <Link
-            href="/admin/empreendimentos/novo"
-            className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-light"
-          >
-            Novo empreendimento
-          </Link>
+          <div className="flex items-center gap-3">
+            <ImportarCsvModal />
+            <Link
+              href="/admin/empreendimentos/novo"
+              className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-light"
+            >
+              Novo empreendimento
+            </Link>
+          </div>
         </div>
 
         <div className="overflow-hidden rounded-xl border border-line bg-white">

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { atualizarStatusCorretor } from "./actions";
+import { ExportarCorretoresCsvButton, type CorretorCsvRow } from "./exportar-csv-button";
 
 const STATUS_LABEL: Record<string, string> = {
   PENDENTE: "Pendente",
@@ -19,10 +20,22 @@ export default async function CorretoresPage() {
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
   });
 
+  const csvRows: CorretorCsvRow[] = corretores.map((corretor) => ({
+    nome: corretor.name ?? corretor.email,
+    email: corretor.email,
+    telefone: corretor.telefone,
+    creci: corretor.creci,
+    status: STATUS_LABEL[corretor.status] ?? corretor.status,
+    criadoEm: corretor.createdAt.toLocaleDateString("pt-BR"),
+  }));
+
   return (
     <main className="px-6 py-16">
       <div className="mx-auto max-w-5xl space-y-6">
-        <h1 className="font-display text-3xl font-medium text-primary">Corretores</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="font-display text-3xl font-medium text-primary">Corretores</h1>
+          <ExportarCorretoresCsvButton rows={csvRows} />
+        </div>
 
         <div className="overflow-hidden rounded-xl border border-line bg-white">
           <table className="w-full text-sm">
