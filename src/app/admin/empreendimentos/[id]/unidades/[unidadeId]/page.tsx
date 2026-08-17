@@ -47,7 +47,8 @@ export default async function EditarUnidadePage({
           showMotivo
           defaultValues={{
             identificador: unidade.identificador,
-            tipo: unidade.tipo,
+            dormitorios: unidade.dormitorios,
+            suites: unidade.suites,
             areaPrivativa: unidade.areaPrivativa,
             vagas: unidade.vagas,
             areaGaragem: unidade.areaGaragem,

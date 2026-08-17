@@ -53,6 +53,17 @@ export const UNIDADE_STATUS_VIVIDO: Record<string, string> = {
   TROCA_AREA: "bg-purple-700",
 };
 
+/**
+ * "3 dormitórios/2 suítes" — suíte é subconjunto de dormitório (nunca somado),
+ * seguindo a convenção já usada nos dados cadastrados: X dormitórios no total,
+ * dos quais Y têm banheiro privativo.
+ */
+export function formatTipoUnidade(dormitorios: number, suites: number): string {
+  const dormLabel = `${dormitorios} dormitório${dormitorios === 1 ? "" : "s"}`;
+  const suiteLabel = `${suites} suíte${suites === 1 ? "" : "s"}`;
+  return `${dormLabel}/${suiteLabel}`;
+}
+
 // A lista da área do corretor só mostra unidades que ainda estão em jogo —
 // vendidas/bloqueadas/em troca de área não interessam pra quem está
 // oferecendo ao cliente. Decorado aparece (sem valores, como Reservado).

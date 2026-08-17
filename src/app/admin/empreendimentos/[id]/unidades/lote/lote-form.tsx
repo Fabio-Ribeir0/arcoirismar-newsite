@@ -29,7 +29,14 @@ export function LoteForm({
 
       <CampoTexto name="preco" aplicarName="aplicarPreco" label="Preço (R$)" hint="Ex.: 350000.00" />
       <CampoSelect name="status" aplicarName="aplicarStatus" label="Status" />
-      <CampoTexto name="tipo" aplicarName="aplicarTipo" label="Tipo" hint="Ex.: 2 dormitórios" />
+      <CampoTexto name="dormitorios" aplicarName="aplicarDormitorios" label="Dormitórios" type="number" />
+      <CampoTexto
+        name="suites"
+        aplicarName="aplicarSuites"
+        label="Suítes"
+        type="number"
+        hint="Quantos dos dormitórios têm banheiro privativo."
+      />
       <CampoTexto name="vagas" aplicarName="aplicarVagas" label="Vagas" type="number" />
       <CampoTexto
         name="areaPrivativa"

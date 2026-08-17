@@ -225,7 +225,8 @@ model Empreendimento {
   /// Quantidade de parcelas do plano direto com a construtora
   parcelas                Int?
   // Valores padrão opcionais aplicados às unidades geradas em lote (não cobertos pela especificação original)
-  tipoPadrao              String?
+  dormitoriosPadrao       Int?
+  suitesPadrao            Int?
   areaPrivativaPadrao     Float?
   vagasPadrao             Int?
 
@@ -333,8 +334,10 @@ model Unidade {
 
   /// Identificador da unidade (ex.: "302", "Bloco A - 1201")
   identificador String
-  /// Ex.: "2 dormitórios"
-  tipo          String
+  /// Total de dormitórios, incluindo os que são suíte (ver campo `suites`)
+  dormitorios   Int
+  /// Quantos dos dormitórios são suíte — sempre <= dormitorios
+  suites        Int @default(0)
   areaPrivativa Float
   vagas         Int    @default(0)
   /// Área da garagem — somada à área privativa e à área comum para compor a "Área Total" (não persistida, calculada na exibição)

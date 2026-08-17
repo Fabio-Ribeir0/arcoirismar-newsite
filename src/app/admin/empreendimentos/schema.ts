@@ -29,6 +29,18 @@ export const EmpreendimentoSchema = z.object({
   cidade: z.string().trim().optional().or(z.literal("")),
   estado: z.string().trim().optional().or(z.literal("")),
   cep: z.string().trim().optional().or(z.literal("")),
+  latitude: z
+    .string()
+    .trim()
+    .regex(/^-?\d+(\.\d+)?$/, { error: "Coordenada inválida." })
+    .optional()
+    .or(z.literal("")),
+  longitude: z
+    .string()
+    .trim()
+    .regex(/^-?\d+(\.\d+)?$/, { error: "Coordenada inválida." })
+    .optional()
+    .or(z.literal("")),
   entregaPrevista: z.string().trim().optional().or(z.literal("")),
 
   // Geração de unidades em lote (todos opcionais — só exigidos ao clicar em "Gerar unidades")
@@ -68,7 +80,18 @@ export const EmpreendimentoSchema = z.object({
     .regex(/^\d+$/, { error: "Informe um número inteiro." })
     .optional()
     .or(z.literal("")),
-  tipoPadrao: z.string().trim().optional().or(z.literal("")),
+  dormitoriosPadrao: z
+    .string()
+    .trim()
+    .regex(/^\d+$/, { error: "Informe um número inteiro." })
+    .optional()
+    .or(z.literal("")),
+  suitesPadrao: z
+    .string()
+    .trim()
+    .regex(/^\d+$/, { error: "Informe um número inteiro." })
+    .optional()
+    .or(z.literal("")),
   areaPrivativaPadrao: z
     .string()
     .trim()
@@ -83,6 +106,14 @@ export const EmpreendimentoSchema = z.object({
     .or(z.literal("")),
 
   motivo: z.string().trim().optional().or(z.literal("")),
-});
+})
+  .refine(
+    (data) =>
+      !data.dormitoriosPadrao || !data.suitesPadrao || Number(data.suitesPadrao) <= Number(data.dormitoriosPadrao),
+    {
+      error: "O número de suítes não pode ser maior que o de dormitórios.",
+      path: ["suitesPadrao"],
+    }
+  );
 
 export type EmpreendimentoInput = z.infer<typeof EmpreendimentoSchema>;

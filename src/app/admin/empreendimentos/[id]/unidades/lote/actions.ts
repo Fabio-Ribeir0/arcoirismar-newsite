@@ -22,7 +22,8 @@ export async function atualizarUnidadesEmLote(
 
   const aplicarPreco = formData.get("aplicarPreco") === "on";
   const aplicarStatus = formData.get("aplicarStatus") === "on";
-  const aplicarTipo = formData.get("aplicarTipo") === "on";
+  const aplicarDormitorios = formData.get("aplicarDormitorios") === "on";
+  const aplicarSuites = formData.get("aplicarSuites") === "on";
   const aplicarVagas = formData.get("aplicarVagas") === "on";
   const aplicarArea = formData.get("aplicarArea") === "on";
   const aplicarAreaGaragem = formData.get("aplicarAreaGaragem") === "on";
@@ -31,7 +32,8 @@ export async function atualizarUnidadesEmLote(
   if (
     !aplicarPreco &&
     !aplicarStatus &&
-    !aplicarTipo &&
+    !aplicarDormitorios &&
+    !aplicarSuites &&
     !aplicarVagas &&
     !aplicarArea &&
     !aplicarAreaGaragem &&
@@ -58,10 +60,33 @@ export async function atualizarUnidadesEmLote(
     novoStatus = raw as (typeof UNIDADE_STATUS)[number];
   }
 
-  let novoTipo: string | undefined;
-  if (aplicarTipo) {
-    novoTipo = String(formData.get("tipo") ?? "").trim();
-    if (!novoTipo) return { success: false, message: "Informe o tipo." };
+  let novosDormitorios: number | undefined;
+  if (aplicarDormitorios) {
+    novosDormitorios = Number(formData.get("dormitorios"));
+    if (!Number.isInteger(novosDormitorios) || novosDormitorios < 0) {
+      return { success: false, message: "Número de dormitórios inválido." };
+    }
+  }
+
+  let novasSuites: number | undefined;
+  if (aplicarSuites) {
+    novasSuites = Number(formData.get("suites"));
+    if (!Number.isInteger(novasSuites) || novasSuites < 0) {
+      return { success: false, message: "Número de suítes inválido." };
+    }
+  }
+
+  if (
+    aplicarDormitorios &&
+    aplicarSuites &&
+    novasSuites !== undefined &&
+    novosDormitorios !== undefined &&
+    novasSuites > novosDormitorios
+  ) {
+    return {
+      success: false,
+      message: "O número de suítes não pode ser maior que o de dormitórios.",
+    };
   }
 
   let novasVagas: number | undefined;
@@ -106,7 +131,8 @@ export async function atualizarUnidadesEmLote(
   const data: Record<string, unknown> = {};
   if (aplicarPreco && novoPreco !== undefined) data.preco = novoPreco;
   if (aplicarStatus && novoStatus) data.status = novoStatus;
-  if (aplicarTipo && novoTipo !== undefined) data.tipo = novoTipo;
+  if (aplicarDormitorios && novosDormitorios !== undefined) data.dormitorios = novosDormitorios;
+  if (aplicarSuites && novasSuites !== undefined) data.suites = novasSuites;
   if (aplicarVagas && novasVagas !== undefined) data.vagas = novasVagas;
   if (aplicarArea && novaArea !== undefined) data.areaPrivativa = novaArea;
   if (aplicarAreaGaragem && novaAreaGaragem !== undefined) data.areaGaragem = novaAreaGaragem;

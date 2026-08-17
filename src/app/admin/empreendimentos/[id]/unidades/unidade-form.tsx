@@ -15,7 +15,8 @@ const STATUS_LABEL: Record<(typeof UNIDADE_STATUS)[number], string> = {
 
 type DefaultValues = {
   identificador?: string;
-  tipo?: string;
+  dormitorios?: number;
+  suites?: number;
   areaPrivativa?: number;
   vagas?: number;
   areaGaragem?: number;
@@ -42,7 +43,7 @@ export function UnidadeForm({
 
   return (
     <form action={formAction} className="space-y-6 rounded-xl border border-line bg-white p-8">
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-3">
         <Field
           label="Identificador"
           name="identificador"
@@ -50,7 +51,21 @@ export function UnidadeForm({
           errors={errors?.identificador}
           hint='Ex.: "302" ou "Bloco A - 1201"'
         />
-        <Field label="Tipo" name="tipo" defaultValue={defaultValues?.tipo} errors={errors?.tipo} hint="Ex.: 2 dormitórios" />
+        <Field
+          label="Dormitórios"
+          name="dormitorios"
+          type="number"
+          defaultValue={defaultValues?.dormitorios?.toString()}
+          errors={errors?.dormitorios}
+        />
+        <Field
+          label="Suítes"
+          name="suites"
+          type="number"
+          defaultValue={defaultValues?.suites?.toString() ?? "0"}
+          errors={errors?.suites}
+          hint="Quantos dos dormitórios têm banheiro privativo."
+        />
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">

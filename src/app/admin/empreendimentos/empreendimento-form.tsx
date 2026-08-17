@@ -1,8 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
+import dynamic from "next/dynamic";
 import { DESTAQUE_OPCOES, EMPREENDIMENTO_STATUS } from "./schema";
 import type { EmpreendimentoFormState } from "./actions";
+
+const MapaLocalizacao = dynamic(
+  () => import("./mapa-localizacao").then((mod) => mod.MapaLocalizacao),
+  { ssr: false, loading: () => <div className="h-80 w-full animate-pulse rounded-lg bg-mist" /> }
+);
 
 const STATUS_LABEL: Record<(typeof EMPREENDIMENTO_STATUS)[number], string> = {
   EM_BREVE: "Em breve",
@@ -30,6 +36,8 @@ type DefaultValues = {
   cidade?: string | null;
   estado?: string | null;
   cep?: string | null;
+  latitude?: string | null;
+  longitude?: string | null;
   entregaPrevista?: string | null;
   andares?: string | null;
   unidadesPorAndar?: string | null;
@@ -37,7 +45,8 @@ type DefaultValues = {
   entradaPercentual?: string | null;
   entregaChavesPercentual?: string | null;
   parcelas?: string | null;
-  tipoPadrao?: string | null;
+  dormitoriosPadrao?: string | null;
+  suitesPadrao?: string | null;
   areaPrivativaPadrao?: string | null;
   vagasPadrao?: string | null;
 };
@@ -165,6 +174,13 @@ export function EmpreendimentoForm({
         </div>
       </div>
 
+      <MapaLocalizacao
+        latitudeInicial={defaultValues?.latitude}
+        longitudeInicial={defaultValues?.longitude}
+        errosLatitude={errors?.latitude}
+        errosLongitude={errors?.longitude}
+      />
+
       <div className="space-y-4 border-t border-line pt-6">
         <div>
           <h3 className="font-display text-lg font-medium text-primary">Geração de unidades</h3>
@@ -218,13 +234,20 @@ export function EmpreendimentoForm({
             errors={errors?.parcelas}
           />
         </div>
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-4">
           <Field
-            label="Tipo padrão (opcional)"
-            name="tipoPadrao"
-            defaultValue={defaultValues?.tipoPadrao}
-            errors={errors?.tipoPadrao}
-            hint="Ex.: 2 dormitórios"
+            label="Dormitórios padrão (opcional)"
+            name="dormitoriosPadrao"
+            type="number"
+            defaultValue={defaultValues?.dormitoriosPadrao}
+            errors={errors?.dormitoriosPadrao}
+          />
+          <Field
+            label="Suítes padrão (opcional)"
+            name="suitesPadrao"
+            type="number"
+            defaultValue={defaultValues?.suitesPadrao}
+            errors={errors?.suitesPadrao}
           />
           <Field
             label="Área privativa padrão (m², opcional)"

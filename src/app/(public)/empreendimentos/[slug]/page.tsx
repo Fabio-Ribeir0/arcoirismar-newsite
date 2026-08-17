@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { eyebrowEmpreendimento } from "@/lib/empreendimento-display";
+import { formatTipoUnidade } from "@/lib/tabela-unidades";
 import { LightboxGallery } from "@/components/site/lightbox-gallery";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +26,11 @@ export default async function EmpreendimentoPublicoPage({
 
   const areas = empreendimento.unidades.map((u) => u.areaPrivativa).filter((a) => a > 0);
   const vagas = empreendimento.unidades.map((u) => u.vagas);
-  const tipos = Array.from(new Set(empreendimento.unidades.map((u) => u.tipo).filter(Boolean)));
+  const tipos = Array.from(
+    new Set(
+      empreendimento.unidades.map((u) => formatTipoUnidade(u.dormitorios, u.suites))
+    )
+  );
 
   const areaFaixa =
     areas.length > 0
@@ -188,7 +193,9 @@ export default async function EmpreendimentoPublicoPage({
                   </thead>
                   <tbody>
                     {tipos.map((tipo) => {
-                      const doTipo = empreendimento.unidades.filter((u) => u.tipo === tipo);
+                      const doTipo = empreendimento.unidades.filter(
+                        (u) => formatTipoUnidade(u.dormitorios, u.suites) === tipo
+                      );
                       const disponiveis = doTipo.filter((u) => u.status === "DISPONIVEL").length;
                       const areasDoTipo = doTipo.map((u) => u.areaPrivativa);
                       const vagasDoTipo = doTipo.map((u) => u.vagas);

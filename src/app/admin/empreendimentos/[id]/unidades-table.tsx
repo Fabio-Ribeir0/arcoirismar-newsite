@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DeleteButton } from "@/components/delete-button";
 import { excluirUnidade } from "./unidades/actions";
-import { UNIDADE_STATUS_LABEL, UNIDADE_STATUS_STYLE } from "@/lib/tabela-unidades";
+import { UNIDADE_STATUS_LABEL, UNIDADE_STATUS_STYLE, formatTipoUnidade } from "@/lib/tabela-unidades";
 
 const FILTRO_STATUS_OPCOES = [
   "TODOS",
@@ -21,7 +21,8 @@ export type UnidadeRow = {
   id: string;
   identificador: string;
   andar: number | null;
-  tipo: string;
+  dormitorios: number;
+  suites: number;
   areaPrivativa: number;
   areaGaragem: number;
   areaComum: number;
@@ -216,7 +217,9 @@ export function UnidadesTable({
                     {unidade.identificador}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-ink/70">{unidade.tipo}</td>
+                <td className="px-4 py-3 text-ink/70">
+                  {formatTipoUnidade(unidade.dormitorios, unidade.suites)}
+                </td>
                 <td className="px-4 py-3 text-ink/70">
                   {(unidade.areaPrivativa + unidade.areaGaragem + unidade.areaComum).toLocaleString("pt-BR")} m²
                 </td>

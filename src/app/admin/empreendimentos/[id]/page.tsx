@@ -67,7 +67,8 @@ export default async function EditarEmpreendimentoPage({
     id: unidade.id,
     identificador: unidade.identificador,
     andar: unidade.andar,
-    tipo: unidade.tipo,
+    dormitorios: unidade.dormitorios,
+    suites: unidade.suites,
     areaPrivativa: unidade.areaPrivativa,
     areaGaragem: unidade.areaGaragem,
     areaComum: unidade.areaComum,
@@ -135,6 +136,8 @@ export default async function EditarEmpreendimentoPage({
                     cidade: empreendimento.cidade,
                     estado: empreendimento.estado,
                     cep: empreendimento.cep,
+                    latitude: empreendimento.latitude?.toString() ?? "",
+                    longitude: empreendimento.longitude?.toString() ?? "",
                     entregaPrevista: empreendimento.entregaPrevista
                       ? empreendimento.entregaPrevista.toISOString().slice(0, 10)
                       : "",
@@ -145,7 +148,8 @@ export default async function EditarEmpreendimentoPage({
                     entregaChavesPercentual:
                       empreendimento.entregaChavesPercentual?.toString() ?? "",
                     parcelas: empreendimento.parcelas?.toString() ?? "",
-                    tipoPadrao: empreendimento.tipoPadrao,
+                    dormitoriosPadrao: empreendimento.dormitoriosPadrao?.toString() ?? "",
+                    suitesPadrao: empreendimento.suitesPadrao?.toString() ?? "",
                     areaPrivativaPadrao: empreendimento.areaPrivativaPadrao?.toString() ?? "",
                     vagasPadrao: empreendimento.vagasPadrao?.toString() ?? "",
                   }}

@@ -16,7 +16,8 @@ export type UnidadeFormState =
 function parseForm(formData: FormData) {
   return UnidadeSchema.safeParse({
     identificador: formData.get("identificador"),
-    tipo: formData.get("tipo"),
+    dormitorios: formData.get("dormitorios"),
+    suites: formData.get("suites"),
     areaPrivativa: formData.get("areaPrivativa"),
     vagas: formData.get("vagas"),
     areaGaragem: formData.get("areaGaragem"),
@@ -64,7 +65,8 @@ export async function criarUnidade(
     data: {
       empreendimentoId,
       identificador: data.identificador,
-      tipo: data.tipo,
+      dormitorios: data.dormitorios,
+      suites: data.suites,
       areaPrivativa: data.areaPrivativa,
       vagas: data.vagas,
       areaGaragem: data.areaGaragem,
@@ -120,7 +122,8 @@ export async function atualizarUnidade(
       where: { id: unidadeId },
       data: {
         identificador: data.identificador,
-        tipo: data.tipo,
+        dormitorios: data.dormitorios,
+        suites: data.suites,
         areaPrivativa: data.areaPrivativa,
         vagas: data.vagas,
         areaGaragem: data.areaGaragem,
@@ -182,8 +185,15 @@ export async function gerarUnidades(
     return { success: false, message: "Empreendimento não encontrado." };
   }
 
-  const { andares, unidadesPorAndar, valorBase, tipoPadrao, areaPrivativaPadrao, vagasPadrao } =
-    empreendimento;
+  const {
+    andares,
+    unidadesPorAndar,
+    valorBase,
+    dormitoriosPadrao,
+    suitesPadrao,
+    areaPrivativaPadrao,
+    vagasPadrao,
+  } = empreendimento;
 
   if (!andares || !unidadesPorAndar || !valorBase) {
     return {
@@ -207,7 +217,8 @@ export async function gerarUnidades(
       novasUnidades.push({
         empreendimentoId,
         identificador,
-        tipo: tipoPadrao ?? "",
+        dormitorios: dormitoriosPadrao ?? 0,
+        suites: suitesPadrao ?? 0,
         areaPrivativa: areaPrivativaPadrao ?? 0,
         vagas: vagasPadrao ?? 0,
         areaGaragem: 0,
