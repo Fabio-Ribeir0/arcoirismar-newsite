@@ -1,13 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   UNIDADE_STATUS_LABEL,
   UNIDADE_STATUS_BORDA,
   UNIDADE_STATUS_VIVIDO,
 } from "@/lib/tabela-unidades";
+import { atualizarStatusUnidadeEspelho } from "./actions";
 
-export type UnidadeEspelho = { id: string; identificador: string; status: string };
+export type UnidadeEspelho = {
+  id: string;
+  identificador: string;
+  status: string;
+  ultimaAnotacao: string | null;
+};
 export type AndarEspelho = { andar: number; unidades: UnidadeEspelho[] };
 export type ContagemEspelho = Record<string, number>;
 export type EmpreendimentoEspelho = {
@@ -37,6 +43,8 @@ const STATUS_ORDEM = [
 
 const POR_PAGINA = 4;
 
+type SelecaoModal = { unidade: UnidadeEspelho; empreendimentoNome: string };
+
 export function EspelhoVendaCarousel({
   empreendimentos,
 }: {
@@ -44,6 +52,7 @@ export function EspelhoVendaCarousel({
 }) {
   const totalPaginas = Math.ceil(empreendimentos.length / POR_PAGINA);
   const [pagina, setPagina] = useState(0);
+  const [selecao, setSelecao] = useState<SelecaoModal | null>(null);
 
   if (empreendimentos.length === 0) {
     return (
@@ -66,7 +75,12 @@ export function EspelhoVendaCarousel({
         <div className="flex items-end gap-6 overflow-x-auto pb-2">
           {visiveis.map((empreendimento) => (
             <div key={empreendimento.id} className="shrink-0">
-              <BlocoEmpreendimento empreendimento={empreendimento} />
+              <BlocoEmpreendimento
+                empreendimento={empreendimento}
+                onSelecionarUnidade={(unidade) =>
+                  setSelecao({ unidade, empreendimentoNome: empreendimento.nome })
+                }
+              />
             </div>
           ))}
         </div>
@@ -110,11 +124,25 @@ export function EspelhoVendaCarousel({
       )}
 
       <Legenda />
+
+      {selecao && (
+        <ModalUnidade
+          unidade={selecao.unidade}
+          empreendimentoNome={selecao.empreendimentoNome}
+          onFechar={() => setSelecao(null)}
+        />
+      )}
     </div>
   );
 }
 
-function BlocoEmpreendimento({ empreendimento }: { empreendimento: EmpreendimentoEspelho }) {
+function BlocoEmpreendimento({
+  empreendimento,
+  onSelecionarUnidade,
+}: {
+  empreendimento: EmpreendimentoEspelho;
+  onSelecionarUnidade: (unidade: UnidadeEspelho) => void;
+}) {
   return (
     <div className="rounded-xl border border-line bg-white p-6">
       <h2 className="font-display mb-4 text-lg font-medium text-primary">{empreendimento.nome}</h2>
@@ -130,13 +158,15 @@ function BlocoEmpreendimento({ empreendimento }: { empreendimento: Empreendiment
               </span>
               <div className="flex gap-1.5">
                 {unidades.map((unidade) => (
-                  <span
+                  <button
                     key={unidade.id}
-                    title={`${unidade.identificador} — ${UNIDADE_STATUS_LABEL[unidade.status] ?? unidade.status}`}
-                    className={`flex w-14 shrink-0 items-center justify-center rounded-md border px-2 py-2 text-center text-xs font-semibold text-white ${corVivida(unidade.status)} ${corBorda(unidade.status)}`}
+                    type="button"
+                    onClick={() => onSelecionarUnidade(unidade)}
+                    title={`${unidade.identificador} — ${UNIDADE_STATUS_LABEL[unidade.status] ?? unidade.status}${unidade.ultimaAnotacao ? `\nAnotação: ${unidade.ultimaAnotacao}` : ""}`}
+                    className={`flex w-14 shrink-0 items-center justify-center rounded-md border px-2 py-2 text-center text-xs font-semibold text-white transition hover:brightness-90 ${corVivida(unidade.status)} ${corBorda(unidade.status)}`}
                   >
                     {unidade.identificador}
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -177,6 +207,107 @@ function Legenda() {
           {UNIDADE_STATUS_LABEL[status]}
         </div>
       ))}
+    </div>
+  );
+}
+
+function ModalUnidade({
+  unidade,
+  empreendimentoNome,
+  onFechar,
+}: {
+  unidade: UnidadeEspelho;
+  empreendimentoNome: string;
+  onFechar: () => void;
+}) {
+  const [status, setStatus] = useState<(typeof STATUS_ORDEM)[number]>(
+    unidade.status as (typeof STATUS_ORDEM)[number]
+  );
+  const [motivo, setMotivo] = useState("");
+  const [erro, setErro] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function handleSalvar() {
+    setErro(null);
+    startTransition(async () => {
+      const resultado = await atualizarStatusUnidadeEspelho(unidade.id, status, motivo);
+      if (!resultado.success) {
+        setErro(resultado.message);
+        return;
+      }
+      onFechar();
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onFechar}
+    >
+      <div
+        className="w-full max-w-sm rounded-xl bg-white p-6 shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-xs font-semibold uppercase tracking-wide text-accent">
+          {empreendimentoNome}
+        </p>
+        <h3 className="font-display mt-1 text-xl font-medium text-primary">
+          Unidade {unidade.identificador}
+        </h3>
+
+        <div className="mt-5 space-y-4">
+          <div className="space-y-1.5">
+            <label htmlFor="espelho-status" className="text-sm font-medium text-ink">
+              Status
+            </label>
+            <select
+              id="espelho-status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as (typeof STATUS_ORDEM)[number])}
+              className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
+            >
+              {STATUS_ORDEM.map((valor) => (
+                <option key={valor} value={valor}>
+                  {UNIDADE_STATUS_LABEL[valor]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="espelho-motivo" className="text-sm font-medium text-ink">
+              Motivo da alteração (opcional)
+            </label>
+            <textarea
+              id="espelho-motivo"
+              rows={3}
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
+            />
+          </div>
+
+          {erro && <p className="text-sm text-red-600">{erro}</p>}
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onFechar}
+            className="rounded-md border border-line px-4 py-2 text-sm font-medium text-ink/70 hover:bg-mist"
+          >
+            Fechar
+          </button>
+          <button
+            type="button"
+            onClick={handleSalvar}
+            disabled={pending}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-light disabled:opacity-60"
+          >
+            {pending ? "Salvando..." : "Salvar"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

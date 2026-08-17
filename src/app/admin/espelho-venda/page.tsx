@@ -5,6 +5,16 @@ import {
   type UnidadeEspelho,
 } from "./espelho-venda-carousel";
 
+type HistoricoRecente = { motivo: string | null; criadoEm: Date } | undefined;
+
+/** Nota mais recente entre a última alteração de status e a última de preço, seja qual for a mais nova. */
+function ultimaAnotacao(status: HistoricoRecente, preco: HistoricoRecente): string | null {
+  if (status && preco) {
+    return status.criadoEm > preco.criadoEm ? status.motivo : preco.motivo;
+  }
+  return (status ?? preco)?.motivo ?? null;
+}
+
 export default async function EspelhoVendaPage() {
   const empreendimentos = await prisma.empreendimento.findMany({
     where: { espelhoVenda: true },
@@ -13,7 +23,22 @@ export default async function EspelhoVendaPage() {
       id: true,
       nome: true,
       unidades: {
-        select: { id: true, identificador: true, andar: true, status: true },
+        select: {
+          id: true,
+          identificador: true,
+          andar: true,
+          status: true,
+          historicoStatus: {
+            orderBy: { criadoEm: "desc" },
+            take: 1,
+            select: { motivo: true, criadoEm: true },
+          },
+          historicoPrecos: {
+            orderBy: { criadoEm: "desc" },
+            take: 1,
+            select: { motivo: true, criadoEm: true },
+          },
+        },
         orderBy: [{ andar: "desc" }, { identificador: "asc" }],
       },
     },
@@ -29,7 +54,12 @@ export default async function EspelhoVendaPage() {
         continue;
       }
       const lista = porAndar.get(unidade.andar) ?? [];
-      lista.push({ id: unidade.id, identificador: unidade.identificador, status: unidade.status });
+      lista.push({
+        id: unidade.id,
+        identificador: unidade.identificador,
+        status: unidade.status,
+        ultimaAnotacao: ultimaAnotacao(unidade.historicoStatus[0], unidade.historicoPrecos[0]),
+      });
       porAndar.set(unidade.andar, lista);
     }
 
