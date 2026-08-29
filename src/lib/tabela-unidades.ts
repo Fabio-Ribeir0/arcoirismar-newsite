@@ -89,14 +89,14 @@ export type LinhaTabelaUnidade = {
 export function montarLinhasTabelaUnidades(
   empreendimento: Pick<
     Empreendimento,
-    "parcelas" | "entradaPercentual" | "entregaChavesPercentual"
+    "parcelas" | "entradaValor" | "entradaTipo" | "entregaChavesValor" | "entregaChavesTipo"
   >,
   unidades: Unidade[]
 ): LinhaTabelaUnidade[] {
   const podeCalcularPlano =
     empreendimento.parcelas !== null &&
-    empreendimento.entradaPercentual !== null &&
-    empreendimento.entregaChavesPercentual !== null;
+    empreendimento.entradaValor !== null &&
+    empreendimento.entregaChavesValor !== null;
 
   return unidades
     .filter((u) => STATUS_VISIVEIS_NA_LISTA.includes(u.status))
@@ -107,8 +107,10 @@ export function montarLinhasTabelaUnidades(
         podeCalcularPlano && !oculto
           ? calcularPlanoPagamentoUnidade({
               preco,
-              entradaPercentual: Number(empreendimento.entradaPercentual),
-              entregaChavesPercentual: Number(empreendimento.entregaChavesPercentual),
+              entradaValor: Number(empreendimento.entradaValor),
+              entradaTipo: empreendimento.entradaTipo,
+              entregaChavesValor: Number(empreendimento.entregaChavesValor),
+              entregaChavesTipo: empreendimento.entregaChavesTipo,
               parcelas: empreendimento.parcelas!,
             })
           : null;

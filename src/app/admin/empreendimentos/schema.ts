@@ -62,18 +62,20 @@ export const EmpreendimentoSchema = z.object({
     .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um valor válido (ex.: 350000.00)." })
     .optional()
     .or(z.literal("")),
-  entradaPercentual: z
+  entradaValor: z
     .string()
     .trim()
-    .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um percentual válido (ex.: 20.00)." })
+    .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um valor válido (ex.: 20.00)." })
     .optional()
     .or(z.literal("")),
-  entregaChavesPercentual: z
+  entradaTipo: z.enum(["PERCENTUAL", "FIXO"]).optional().or(z.literal("")),
+  entregaChavesValor: z
     .string()
     .trim()
-    .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um percentual válido (ex.: 10.00)." })
+    .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um valor válido (ex.: 10.00)." })
     .optional()
     .or(z.literal("")),
+  entregaChavesTipo: z.enum(["PERCENTUAL", "FIXO"]).optional().or(z.literal("")),
   parcelas: z
     .string()
     .trim()

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import dynamic from "next/dynamic";
 import { DESTAQUE_OPCOES, EMPREENDIMENTO_STATUS } from "./schema";
 import type { EmpreendimentoFormState } from "./actions";
@@ -42,8 +42,10 @@ type DefaultValues = {
   andares?: string | null;
   unidadesPorAndar?: string | null;
   valorBase?: string | null;
-  entradaPercentual?: string | null;
-  entregaChavesPercentual?: string | null;
+  entradaValor?: string | null;
+  entradaTipo?: string | null;
+  entregaChavesValor?: string | null;
+  entregaChavesTipo?: string | null;
   parcelas?: string | null;
   dormitoriosPadrao?: string | null;
   suitesPadrao?: string | null;
@@ -212,19 +214,25 @@ export function EmpreendimentoForm({
             errors={errors?.valorBase}
             hint="Ex.: 350000.00"
           />
-          <Field
-            label="Entrada (%)"
-            name="entradaPercentual"
-            defaultValue={defaultValues?.entradaPercentual}
-            errors={errors?.entradaPercentual}
-            hint="Ex.: 20.00"
+          <CampoValorTipo
+            label="Entrada"
+            nomeValor="entradaValor"
+            nomeTipo="entradaTipo"
+            defaultValue={defaultValues?.entradaValor}
+            defaultTipo={defaultValues?.entradaTipo}
+            errosValor={errors?.entradaValor}
+            hintPercentual="Percentual do preço da unidade. Ex.: 20.00"
+            hintFixo="Valor fixo em R$, igual para todas as unidades. Ex.: 20000.00"
           />
-          <Field
-            label="Entrega das chaves (%)"
-            name="entregaChavesPercentual"
-            defaultValue={defaultValues?.entregaChavesPercentual}
-            errors={errors?.entregaChavesPercentual}
-            hint="Ex.: 10.00"
+          <CampoValorTipo
+            label="Entrega das chaves"
+            nomeValor="entregaChavesValor"
+            nomeTipo="entregaChavesTipo"
+            defaultValue={defaultValues?.entregaChavesValor}
+            defaultTipo={defaultValues?.entregaChavesTipo}
+            errosValor={errors?.entregaChavesValor}
+            hintPercentual="Percentual do preço da unidade. Ex.: 10.00"
+            hintFixo="Valor fixo em R$, igual para todas as unidades. Ex.: 10000.00"
           />
           <Field
             label="Parcelas"
@@ -316,6 +324,73 @@ function Field({
       />
       {hint && <p className="text-xs text-ink/50">{hint}</p>}
       {errors?.map((error) => (
+        <p key={error} className="text-sm text-red-600">
+          {error}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+/** Valor com um switch % / R$ ao lado — o campo de texto aceita o mesmo formato nos dois casos. */
+function CampoValorTipo({
+  label,
+  nomeValor,
+  nomeTipo,
+  defaultValue,
+  defaultTipo,
+  errosValor,
+  hintPercentual,
+  hintFixo,
+}: {
+  label: string;
+  nomeValor: string;
+  nomeTipo: string;
+  defaultValue?: string | null;
+  defaultTipo?: string | null;
+  errosValor?: string[];
+  hintPercentual: string;
+  hintFixo: string;
+}) {
+  const [fixo, setFixo] = useState((defaultTipo ?? "PERCENTUAL") === "FIXO");
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <label htmlFor={nomeValor} className="text-sm font-medium text-ink">
+          {label}
+        </label>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={fixo}
+          aria-label={`${label}: alternar entre percentual e valor fixo em R$`}
+          onClick={() => setFixo((valor) => !valor)}
+          className="flex shrink-0 items-center gap-1.5 text-xs font-semibold"
+        >
+          <span className={fixo ? "text-ink/40" : "text-primary"}>%</span>
+          <span className={`relative h-5 w-9 rounded-full transition ${fixo ? "bg-primary" : "bg-line"}`}>
+            <span
+              className={`absolute top-0.5 size-4 rounded-full bg-white shadow transition-transform ${
+                fixo ? "translate-x-4" : "translate-x-0.5"
+              }`}
+            />
+          </span>
+          <span className={fixo ? "text-primary" : "text-ink/40"}>R$</span>
+        </button>
+      </div>
+
+      <input type="hidden" name={nomeTipo} value={fixo ? "FIXO" : "PERCENTUAL"} />
+      <input
+        id={nomeValor}
+        name={nomeValor}
+        type="text"
+        inputMode="decimal"
+        defaultValue={defaultValue ?? ""}
+        className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
+      />
+      <p className="text-xs text-ink/50">{fixo ? hintFixo : hintPercentual}</p>
+      {errosValor?.map((error) => (
         <p key={error} className="text-sm text-red-600">
           {error}
         </p>

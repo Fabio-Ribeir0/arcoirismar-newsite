@@ -185,8 +185,8 @@ export async function gerarTabelaPdfAdmin(
   const linhas = montarLinhasTabelaUnidades(empreendimento, empreendimento.unidades);
   const podeCalcularPlano =
     empreendimento.parcelas !== null &&
-    empreendimento.entradaPercentual !== null &&
-    empreendimento.entregaChavesPercentual !== null;
+    empreendimento.entradaValor !== null &&
+    empreendimento.entregaChavesValor !== null;
   const prestacoesLabel = podeCalcularPlano ? `${empreendimento.parcelas}x` : "Prestações";
 
   let pdf: Uint8Array;

@@ -76,6 +76,12 @@ enum SistemaAmortizacao {
   PRICE
 }
 
+/// Como interpretar um valor do plano direto: percentual do preço ou valor fixo em R$
+enum TipoValorPlano {
+  PERCENTUAL
+  FIXO
+}
+
 // ---------------------------------------------------------------------------
 // Autenticação (modelos exigidos pelo Auth.js / Prisma Adapter)
 // ---------------------------------------------------------------------------
@@ -218,10 +224,12 @@ model Empreendimento {
   unidadesPorAndar        Int?
   /// Preço aplicado a cada unidade recém-gerada (editável por unidade depois)
   valorBase               Decimal? @db.Decimal(12, 2)
-  /// Percentual do preço pago como entrada — usado para calcular a coluna "parcelas"
-  entradaPercentual       Decimal? @db.Decimal(5, 2)
-  /// Percentual do preço pago na entrega das chaves — usado para calcular a coluna "parcelas"
-  entregaChavesPercentual Decimal? @db.Decimal(5, 2)
+  /// Entrada do plano direto — percentual do preço ou valor fixo em R$, conforme `entradaTipo`
+  entradaValor            Decimal?       @db.Decimal(12, 2)
+  entradaTipo             TipoValorPlano @default(PERCENTUAL)
+  /// Entrega das chaves do plano direto — percentual do preço ou valor fixo em R$, conforme `entregaChavesTipo`
+  entregaChavesValor      Decimal?       @db.Decimal(12, 2)
+  entregaChavesTipo       TipoValorPlano @default(PERCENTUAL)
   /// Quantidade de parcelas do plano direto com a construtora
   parcelas                Int?
   // Valores padrão opcionais aplicados às unidades geradas em lote (não cobertos pela especificação original)
@@ -252,11 +260,15 @@ model HistoricoPlanoPagamentoEmpreendimento {
   valorBaseAnterior Decimal? @db.Decimal(12, 2)
   valorBaseNovo     Decimal? @db.Decimal(12, 2)
 
-  entradaPercentualAnterior Decimal? @db.Decimal(5, 2)
-  entradaPercentualNovo     Decimal? @db.Decimal(5, 2)
+  entradaValorAnterior Decimal?       @db.Decimal(12, 2)
+  entradaValorNovo     Decimal?       @db.Decimal(12, 2)
+  entradaTipoAnterior  TipoValorPlano @default(PERCENTUAL)
+  entradaTipoNovo      TipoValorPlano @default(PERCENTUAL)
 
-  entregaChavesPercentualAnterior Decimal? @db.Decimal(5, 2)
-  entregaChavesPercentualNovo     Decimal? @db.Decimal(5, 2)
+  entregaChavesValorAnterior Decimal?       @db.Decimal(12, 2)
+  entregaChavesValorNovo     Decimal?       @db.Decimal(12, 2)
+  entregaChavesTipoAnterior  TipoValorPlano @default(PERCENTUAL)
+  entregaChavesTipoNovo      TipoValorPlano @default(PERCENTUAL)
 
   parcelasAnterior Int?
   parcelasNovo     Int?

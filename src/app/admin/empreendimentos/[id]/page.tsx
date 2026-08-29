@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import type { Prisma } from "@/generated/prisma/client";
+import type { Prisma, TipoValorPlano } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { EmpreendimentoForm } from "../empreendimento-form";
 import { atualizarEmpreendimento } from "../actions";
@@ -60,8 +60,8 @@ export default async function EditarEmpreendimentoPage({
 
   const podeCalcularParcela =
     empreendimento.parcelas !== null &&
-    empreendimento.entradaPercentual !== null &&
-    empreendimento.entregaChavesPercentual !== null;
+    empreendimento.entradaValor !== null &&
+    empreendimento.entregaChavesValor !== null;
 
   const unidadeRows: UnidadeRow[] = empreendimento.unidades.map((unidade) => ({
     id: unidade.id,
@@ -76,8 +76,10 @@ export default async function EditarEmpreendimentoPage({
     parcela: podeCalcularParcela
       ? calcularParcelaPlanoDireto({
           preco: Number(unidade.preco),
-          entradaPercentual: Number(empreendimento.entradaPercentual),
-          entregaChavesPercentual: Number(empreendimento.entregaChavesPercentual),
+          entradaValor: Number(empreendimento.entradaValor),
+          entradaTipo: empreendimento.entradaTipo,
+          entregaChavesValor: Number(empreendimento.entregaChavesValor),
+          entregaChavesTipo: empreendimento.entregaChavesTipo,
           parcelas: empreendimento.parcelas!,
         })
       : null,
@@ -144,9 +146,10 @@ export default async function EditarEmpreendimentoPage({
                     andares: empreendimento.andares?.toString() ?? "",
                     unidadesPorAndar: empreendimento.unidadesPorAndar?.toString() ?? "",
                     valorBase: empreendimento.valorBase?.toString() ?? "",
-                    entradaPercentual: empreendimento.entradaPercentual?.toString() ?? "",
-                    entregaChavesPercentual:
-                      empreendimento.entregaChavesPercentual?.toString() ?? "",
+                    entradaValor: empreendimento.entradaValor?.toString() ?? "",
+                    entradaTipo: empreendimento.entradaTipo,
+                    entregaChavesValor: empreendimento.entregaChavesValor?.toString() ?? "",
+                    entregaChavesTipo: empreendimento.entregaChavesTipo,
                     parcelas: empreendimento.parcelas?.toString() ?? "",
                     dormitoriosPadrao: empreendimento.dormitoriosPadrao?.toString() ?? "",
                     suitesPadrao: empreendimento.suitesPadrao?.toString() ?? "",
@@ -299,8 +302,12 @@ function formatCurrencyOrNull(value: unknown) {
   return value === null ? "—" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function formatPercentOrNull(value: unknown) {
-  return value === null ? "—" : `${Number(value).toFixed(2)}%`;
+/** Formata conforme o tipo salvo junto do valor: "R$ 20.000,00" (fixo) ou "20.00%" (percentual). */
+function formatValorPlano(value: unknown, tipo: TipoValorPlano) {
+  if (value === null) return "—";
+  return tipo === "FIXO"
+    ? Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+    : `${Number(value).toFixed(2)}%`;
 }
 
 function formatIntOrNull(value: unknown) {
@@ -311,10 +318,14 @@ function formatIntOrNull(value: unknown) {
 function descricaoPlanoPagamento(h: {
   valorBaseAnterior: Prisma.Decimal | null;
   valorBaseNovo: Prisma.Decimal | null;
-  entradaPercentualAnterior: Prisma.Decimal | null;
-  entradaPercentualNovo: Prisma.Decimal | null;
-  entregaChavesPercentualAnterior: Prisma.Decimal | null;
-  entregaChavesPercentualNovo: Prisma.Decimal | null;
+  entradaValorAnterior: Prisma.Decimal | null;
+  entradaValorNovo: Prisma.Decimal | null;
+  entradaTipoAnterior: TipoValorPlano;
+  entradaTipoNovo: TipoValorPlano;
+  entregaChavesValorAnterior: Prisma.Decimal | null;
+  entregaChavesValorNovo: Prisma.Decimal | null;
+  entregaChavesTipoAnterior: TipoValorPlano;
+  entregaChavesTipoNovo: TipoValorPlano;
   parcelasAnterior: number | null;
   parcelasNovo: number | null;
 }) {
@@ -325,14 +336,17 @@ function descricaoPlanoPagamento(h: {
       `Valor base: ${formatCurrencyOrNull(h.valorBaseAnterior)} → ${formatCurrencyOrNull(h.valorBaseNovo)}`
     );
   }
-  if (diferente(h.entradaPercentualAnterior, h.entradaPercentualNovo)) {
+  if (diferente(h.entradaValorAnterior, h.entradaValorNovo) || h.entradaTipoAnterior !== h.entradaTipoNovo) {
     partes.push(
-      `Entrada: ${formatPercentOrNull(h.entradaPercentualAnterior)} → ${formatPercentOrNull(h.entradaPercentualNovo)}`
+      `Entrada: ${formatValorPlano(h.entradaValorAnterior, h.entradaTipoAnterior)} → ${formatValorPlano(h.entradaValorNovo, h.entradaTipoNovo)}`
     );
   }
-  if (diferente(h.entregaChavesPercentualAnterior, h.entregaChavesPercentualNovo)) {
+  if (
+    diferente(h.entregaChavesValorAnterior, h.entregaChavesValorNovo) ||
+    h.entregaChavesTipoAnterior !== h.entregaChavesTipoNovo
+  ) {
     partes.push(
-      `Entrega das chaves: ${formatPercentOrNull(h.entregaChavesPercentualAnterior)} → ${formatPercentOrNull(h.entregaChavesPercentualNovo)}`
+      `Entrega das chaves: ${formatValorPlano(h.entregaChavesValorAnterior, h.entregaChavesTipoAnterior)} → ${formatValorPlano(h.entregaChavesValorNovo, h.entregaChavesTipoNovo)}`
     );
   }
   if (diferente(h.parcelasAnterior, h.parcelasNovo)) {

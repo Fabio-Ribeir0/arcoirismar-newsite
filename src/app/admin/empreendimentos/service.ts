@@ -1,11 +1,13 @@
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma, type TipoValorPlano } from "@/generated/prisma/client";
 
 type Numerico = Prisma.Decimal | string | number | null;
 
 type PlanoPagamentoValores = {
   valorBase: Numerico;
-  entradaPercentual: Numerico;
-  entregaChavesPercentual: Numerico;
+  entradaValor: Numerico;
+  entradaTipo: TipoValorPlano;
+  entregaChavesValor: Numerico;
+  entregaChavesTipo: TipoValorPlano;
   parcelas: Numerico;
 };
 
@@ -20,7 +22,8 @@ export function diferente(a: Numerico, b: Numerico) {
  * Grava um snapshot completo do plano de pagamento (valor base, entrada,
  * entrega das chaves, parcelas) quando pelo menos um desses campos muda —
  * uma linha por salvamento, não uma por campo, porque os 4 juntos formam o
- * plano usado por calcularParcelaPlanoDireto.
+ * plano usado por calcularParcelaPlanoDireto. Trocar entre % e R$ fixo conta
+ * como mudança mesmo que o número digitado seja o mesmo.
  */
 export async function registrarHistoricoPlanoPagamento(
   tx: Prisma.TransactionClient,
@@ -36,8 +39,10 @@ export async function registrarHistoricoPlanoPagamento(
 
   const mudou =
     diferente(anterior.valorBase, novo.valorBase) ||
-    diferente(anterior.entradaPercentual, novo.entradaPercentual) ||
-    diferente(anterior.entregaChavesPercentual, novo.entregaChavesPercentual) ||
+    diferente(anterior.entradaValor, novo.entradaValor) ||
+    anterior.entradaTipo !== novo.entradaTipo ||
+    diferente(anterior.entregaChavesValor, novo.entregaChavesValor) ||
+    anterior.entregaChavesTipo !== novo.entregaChavesTipo ||
     diferente(anterior.parcelas, novo.parcelas);
 
   if (!mudou) return;
@@ -47,10 +52,14 @@ export async function registrarHistoricoPlanoPagamento(
       empreendimentoId,
       valorBaseAnterior: anterior.valorBase,
       valorBaseNovo: novo.valorBase,
-      entradaPercentualAnterior: anterior.entradaPercentual,
-      entradaPercentualNovo: novo.entradaPercentual,
-      entregaChavesPercentualAnterior: anterior.entregaChavesPercentual,
-      entregaChavesPercentualNovo: novo.entregaChavesPercentual,
+      entradaValorAnterior: anterior.entradaValor,
+      entradaValorNovo: novo.entradaValor,
+      entradaTipoAnterior: anterior.entradaTipo,
+      entradaTipoNovo: novo.entradaTipo,
+      entregaChavesValorAnterior: anterior.entregaChavesValor,
+      entregaChavesValorNovo: novo.entregaChavesValor,
+      entregaChavesTipoAnterior: anterior.entregaChavesTipo,
+      entregaChavesTipoNovo: novo.entregaChavesTipo,
       parcelasAnterior: anterior.parcelas === null ? null : Number(anterior.parcelas),
       parcelasNovo: novo.parcelas === null ? null : Number(novo.parcelas),
       autorId,
