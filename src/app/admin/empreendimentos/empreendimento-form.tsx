@@ -369,10 +369,12 @@ function CampoValorTipo({
           className="flex shrink-0 items-center gap-1.5 text-xs font-semibold"
         >
           <span className={fixo ? "text-ink/40" : "text-primary"}>%</span>
-          <span className={`relative h-5 w-9 rounded-full transition ${fixo ? "bg-primary" : "bg-line"}`}>
+          <span
+            className={`inline-flex h-5 w-9 items-center rounded-full p-0.5 transition-colors ${fixo ? "bg-primary" : "bg-line"}`}
+          >
             <span
-              className={`absolute top-0.5 size-4 rounded-full bg-white shadow transition-transform ${
-                fixo ? "translate-x-4" : "translate-x-0.5"
+              className={`size-4 rounded-full bg-white shadow transition-transform ${
+                fixo ? "translate-x-4" : "translate-x-0"
               }`}
             />
           </span>
