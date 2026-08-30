@@ -1,9 +1,18 @@
 "use client";
 
-import { useActionState } from "react";
-import { enviarMidiaImagem, excluirMidia, alternarPublicoMidia } from "./midia-actions";
-import type { MidiaImagemUploadState } from "./midia-actions";
+import { useRef, useState } from "react";
+import { supabaseBrowser } from "@/lib/supabase-browser";
+import { EMPREENDIMENTOS_BUCKET } from "@/lib/supabase-shared";
+import {
+  prepararUploadMidiaImagem,
+  confirmarUploadMidiaImagem,
+  excluirMidia,
+  alternarPublicoMidia,
+} from "./midia-actions";
 import { DeleteButton } from "@/components/delete-button";
+
+const TIPOS_ACEITOS = "image/png,image/jpeg,image/webp";
+const TAMANHO_MAXIMO = 5 * 1024 * 1024; // 5MB
 
 export type MidiaImagemRow = {
   id: string;
@@ -25,10 +34,59 @@ export function MidiaImagensSection({
   descricao: string;
   midias: MidiaImagemRow[];
 }) {
-  const [state, formAction, pending] = useActionState<MidiaImagemUploadState, FormData>(
-    (prevState, formData) => enviarMidiaImagem(empreendimentoId, tipo, prevState, formData),
-    undefined
-  );
+  const [pending, setPending] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const tituloRef = useRef<HTMLInputElement>(null);
+  const publicoRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload() {
+    const arquivo = inputRef.current?.files?.[0];
+    if (!arquivo) {
+      setErro("Selecione uma imagem.");
+      return;
+    }
+    if (arquivo.size > TAMANHO_MAXIMO) {
+      setErro("Imagem muito grande (máximo 5MB).");
+      return;
+    }
+
+    setErro(null);
+    setPending(true);
+    try {
+      const preparo = await prepararUploadMidiaImagem(empreendimentoId, tipo, arquivo.type, arquivo.size);
+      if (!preparo.success) {
+        setErro(preparo.message);
+        return;
+      }
+
+      const { error: uploadError } = await supabaseBrowser.storage
+        .from(EMPREENDIMENTOS_BUCKET)
+        .uploadToSignedUrl(preparo.path, preparo.token, arquivo, { contentType: arquivo.type });
+
+      if (uploadError) {
+        setErro(`Falha ao enviar a imagem: ${uploadError.message}`);
+        return;
+      }
+
+      const confirmacao = await confirmarUploadMidiaImagem(
+        empreendimentoId,
+        tipo,
+        preparo.path,
+        tituloRef.current?.value.trim() ?? "",
+        publicoRef.current?.checked ?? true
+      );
+      if (!confirmacao.success) {
+        setErro(confirmacao.message);
+        return;
+      }
+
+      if (inputRef.current) inputRef.current.value = "";
+      if (tituloRef.current) tituloRef.current.value = "";
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <div className="space-y-4 rounded-xl border border-line bg-white p-8">
@@ -69,39 +127,39 @@ export function MidiaImagensSection({
         </div>
       )}
 
-      <form action={formAction} className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-wrap items-end gap-4">
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-ink/60">Imagem</label>
           <input
+            ref={inputRef}
             type="file"
-            name="arquivo"
-            accept="image/png,image/jpeg,image/webp"
-            required
+            accept={TIPOS_ACEITOS}
             className="block text-sm text-ink/70 file:mr-4 file:rounded-md file:border-0 file:bg-[#f9fafc] file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-line"
           />
         </div>
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-ink/60">Título (opcional)</label>
           <input
+            ref={tituloRef}
             type="text"
-            name="titulo"
             className="rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
           />
         </div>
         <label className="flex items-center gap-2 pb-2.5 text-sm font-medium text-ink">
-          <input type="checkbox" name="publico" defaultChecked className="size-4 rounded border-line" />
+          <input ref={publicoRef} type="checkbox" defaultChecked className="size-4 rounded border-line" />
           Público
         </label>
         <button
-          type="submit"
+          type="button"
+          onClick={handleUpload}
           disabled={pending}
           className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-light disabled:opacity-60"
         >
           {pending ? "Enviando..." : "Adicionar"}
         </button>
-      </form>
+      </div>
 
-      {state?.success === false && <p className="text-sm text-red-600">{state.message}</p>}
+      {erro && <p className="text-sm text-red-600">{erro}</p>}
     </div>
   );
 }

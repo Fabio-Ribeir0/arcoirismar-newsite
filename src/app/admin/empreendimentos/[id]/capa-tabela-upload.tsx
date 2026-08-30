@@ -1,7 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
-import { enviarCapaTabelaEmpreendimento, type CapaTabelaUploadState } from "./capa-tabela-actions";
+import { useRef, useState } from "react";
+import { supabaseBrowser } from "@/lib/supabase-browser";
+import { EMPREENDIMENTOS_BUCKET } from "@/lib/supabase-shared";
+import { prepararUploadCapaTabela, confirmarUploadCapaTabela } from "./capa-tabela-actions";
+
+const TIPOS_ACEITOS = "image/png,image/jpeg,image/webp";
+const TAMANHO_MAXIMO = 5 * 1024 * 1024; // 5MB
 
 export function CapaTabelaUpload({
   empreendimentoId,
@@ -10,12 +15,52 @@ export function CapaTabelaUpload({
   empreendimentoId: string;
   capaAtual: string | null;
 }) {
-  const [state, formAction, pending] = useActionState<CapaTabelaUploadState, FormData>(
-    (prevState, formData) => enviarCapaTabelaEmpreendimento(empreendimentoId, prevState, formData),
-    undefined
-  );
+  const [capa, setCapa] = useState(capaAtual);
+  const [pending, setPending] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const capaExibida = state?.success ? state.url : capaAtual;
+  async function handleUpload() {
+    const arquivo = inputRef.current?.files?.[0];
+    if (!arquivo) {
+      setErro("Selecione uma imagem.");
+      return;
+    }
+    if (arquivo.size > TAMANHO_MAXIMO) {
+      setErro("Imagem muito grande (máximo 5MB).");
+      return;
+    }
+
+    setErro(null);
+    setPending(true);
+    try {
+      const preparo = await prepararUploadCapaTabela(empreendimentoId, arquivo.type, arquivo.size);
+      if (!preparo.success) {
+        setErro(preparo.message);
+        return;
+      }
+
+      const { error: uploadError } = await supabaseBrowser.storage
+        .from(EMPREENDIMENTOS_BUCKET)
+        .uploadToSignedUrl(preparo.path, preparo.token, arquivo, { contentType: arquivo.type });
+
+      if (uploadError) {
+        setErro(`Falha ao enviar a imagem: ${uploadError.message}`);
+        return;
+      }
+
+      const confirmacao = await confirmarUploadCapaTabela(empreendimentoId, preparo.path);
+      if (!confirmacao.success) {
+        setErro(confirmacao.message);
+        return;
+      }
+
+      setCapa(confirmacao.url);
+      if (inputRef.current) inputRef.current.value = "";
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <div className="space-y-4 rounded-xl border border-line bg-white p-8">
@@ -28,33 +73,33 @@ export function CapaTabelaUpload({
         </p>
       </div>
 
-      {capaExibida && (
+      {capa && (
         // eslint-disable-next-line @next/next/no-img-element -- Supabase Storage URL, not a local asset
         <img
-          src={capaExibida}
+          src={capa}
           alt="Capa da tabela atual"
           className="h-48 w-full rounded-lg border border-line object-cover"
         />
       )}
 
-      <form action={formAction} className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <input
+          ref={inputRef}
           type="file"
-          name="capaTabela"
-          accept="image/png,image/jpeg,image/webp"
-          required
+          accept={TIPOS_ACEITOS}
           className="text-sm text-ink/70 file:mr-4 file:rounded-md file:border-0 file:bg-mist file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-line"
         />
         <button
-          type="submit"
+          type="button"
+          onClick={handleUpload}
           disabled={pending}
           className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-light disabled:opacity-60"
         >
           {pending ? "Enviando..." : "Enviar imagem"}
         </button>
-      </form>
+      </div>
 
-      {state?.success === false && <p className="text-sm text-red-600">{state.message}</p>}
+      {erro && <p className="text-sm text-red-600">{erro}</p>}
     </div>
   );
 }

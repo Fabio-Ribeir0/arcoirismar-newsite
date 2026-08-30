@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { enviarImagemTabela } from "./tabela-actions";
+import { supabaseBrowser } from "@/lib/supabase-browser";
+import { EMPREENDIMENTOS_BUCKET } from "@/lib/supabase-shared";
+import { prepararUploadImagemTabela, confirmarUploadImagemTabela } from "./tabela-actions";
 
 export function RichTextEditor({
   empreendimentoId,
@@ -70,19 +72,34 @@ export function RichTextEditor({
   const inserirImagem = async (file: File) => {
     setErro(null);
     setEnviandoImagem(true);
-    const formData = new FormData();
-    formData.set("arquivo", file);
-    const resultado = await enviarImagemTabela(empreendimentoId, formData);
-    setEnviandoImagem(false);
+    try {
+      const preparo = await prepararUploadImagemTabela(empreendimentoId, file.type, file.size);
+      if (!preparo.success) {
+        setErro(preparo.message);
+        return;
+      }
 
-    if (!resultado.success) {
-      setErro(resultado.message);
-      return;
+      const { error: uploadError } = await supabaseBrowser.storage
+        .from(EMPREENDIMENTOS_BUCKET)
+        .uploadToSignedUrl(preparo.path, preparo.token, file, { contentType: file.type });
+
+      if (uploadError) {
+        setErro(`Falha ao enviar a imagem: ${uploadError.message}`);
+        return;
+      }
+
+      const confirmacao = await confirmarUploadImagemTabela(empreendimentoId, preparo.path);
+      if (!confirmacao.success) {
+        setErro(confirmacao.message);
+        return;
+      }
+
+      editableRef.current?.focus();
+      document.execCommand("insertHTML", false, `<img src="${confirmacao.url}" style="max-width:100%" />`);
+      sync();
+    } finally {
+      setEnviandoImagem(false);
     }
-
-    editableRef.current?.focus();
-    document.execCommand("insertHTML", false, `<img src="${resultado.url}" style="max-width:100%" />`);
-    sync();
   };
 
   return (

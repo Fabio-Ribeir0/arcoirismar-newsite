@@ -18,7 +18,14 @@ export function LightboxGallery({ images }: { images: LightboxImage[] }) {
   useEffect(() => {
     if (indice === null) return;
 
+    // Compensa a largura da barra de rolagem que desaparece ao travar o
+    // scroll — sem isso a página por trás "respira" alguns pixels e aparece
+    // por baixo da borda do overlay (fundo escuro com texto de outra seção,
+    // ilegível por cima da imagem).
+    const larguraScrollbar = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
+    document.body.style.paddingRight = `${larguraScrollbar}px`;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") fechar();
       if (e.key === "ArrowLeft") anterior();
@@ -27,6 +34,7 @@ export function LightboxGallery({ images }: { images: LightboxImage[] }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
       window.removeEventListener("keydown", handleKeyDown);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fechar/anterior/proxima são estáveis o bastante aqui

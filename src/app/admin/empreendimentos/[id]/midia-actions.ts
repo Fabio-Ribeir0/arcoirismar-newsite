@@ -6,11 +6,6 @@ import { requireAdmin } from "@/lib/dal";
 import { supabaseAdmin, EMPREENDIMENTOS_BUCKET } from "@/lib/supabase-admin";
 import type { MidiaTipo } from "@/generated/prisma/client";
 
-export type MidiaImagemUploadState =
-  | { success: true }
-  | { success: false; message: string }
-  | undefined;
-
 const TIPOS_IMAGEM_PERMITIDOS: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
@@ -24,25 +19,28 @@ const PREFIXO_ARQUIVO: Record<"FOTO" | "PLANTA", string> = {
   PLANTA: "planta",
 };
 
-export async function enviarMidiaImagem(
+export type PrepararUploadMidiaImagemResult =
+  | { success: true; path: string; token: string }
+  | { success: false; message: string };
+
+/**
+ * Só gera a URL assinada — o upload em si vai direto do navegador para o
+ * Supabase Storage (o arquivo nunca passa pela função serverless da Vercel,
+ * que rejeita corpos de requisição grandes antes mesmo de chegar no código).
+ */
+export async function prepararUploadMidiaImagem(
   empreendimentoId: string,
   tipo: "FOTO" | "PLANTA",
-  _prevState: MidiaImagemUploadState,
-  formData: FormData
-): Promise<MidiaImagemUploadState> {
+  contentType: string,
+  size: number
+): Promise<PrepararUploadMidiaImagemResult> {
   await requireAdmin();
 
-  const arquivo = formData.get("arquivo");
-  if (!(arquivo instanceof File) || arquivo.size === 0) {
-    return { success: false, message: "Selecione uma imagem." };
-  }
-
-  const extensao = TIPOS_IMAGEM_PERMITIDOS[arquivo.type];
+  const extensao = TIPOS_IMAGEM_PERMITIDOS[contentType];
   if (!extensao) {
     return { success: false, message: "Formato inválido. Use PNG, JPEG ou WebP." };
   }
-
-  if (arquivo.size > TAMANHO_MAXIMO_IMAGEM) {
+  if (size <= 0 || size > TAMANHO_MAXIMO_IMAGEM) {
     return { success: false, message: "Imagem muito grande (máximo 5MB)." };
   }
 
@@ -55,17 +53,42 @@ export async function enviarMidiaImagem(
 
   const caminho = `${empreendimentoId}/${PREFIXO_ARQUIVO[tipo]}-${Date.now()}.${extensao}`;
 
-  const { error: uploadError } = await supabaseAdmin.storage
+  const { data, error } = await supabaseAdmin.storage
     .from(EMPREENDIMENTOS_BUCKET)
-    .upload(caminho, arquivo, { contentType: arquivo.type, upsert: false });
+    .createSignedUploadUrl(caminho);
 
-  if (uploadError) {
-    return { success: false, message: `Falha ao enviar a imagem: ${uploadError.message}` };
+  if (error || !data) {
+    return { success: false, message: `Falha ao preparar o upload: ${error?.message}` };
+  }
+
+  return { success: true, path: data.path, token: data.token };
+}
+
+export type ConfirmarUploadMidiaImagemResult =
+  | { success: true }
+  | { success: false; message: string };
+
+/** Chamada pelo navegador depois que o PUT direto pro Storage terminou. */
+export async function confirmarUploadMidiaImagem(
+  empreendimentoId: string,
+  tipo: "FOTO" | "PLANTA",
+  path: string,
+  titulo: string,
+  publico: boolean
+): Promise<ConfirmarUploadMidiaImagemResult> {
+  await requireAdmin();
+
+  if (!path.startsWith(`${empreendimentoId}/${PREFIXO_ARQUIVO[tipo]}-`)) {
+    return { success: false, message: "Caminho de upload inválido." };
   }
 
   const {
     data: { publicUrl },
-  } = supabaseAdmin.storage.from(EMPREENDIMENTOS_BUCKET).getPublicUrl(caminho);
+  } = supabaseAdmin.storage.from(EMPREENDIMENTOS_BUCKET).getPublicUrl(path);
+
+  const formData = new FormData();
+  formData.set("titulo", titulo);
+  if (publico) formData.set("publico", "on");
 
   await criarMidia(empreendimentoId, tipo, publicUrl, formData);
 

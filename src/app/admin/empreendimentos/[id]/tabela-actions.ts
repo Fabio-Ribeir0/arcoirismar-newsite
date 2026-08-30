@@ -46,97 +46,132 @@ const TIPOS_IMAGEM_PERMITIDOS: Record<string, string> = {
 
 const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024; // 5MB
 
-export type EnviarImagemTabelaResult =
-  | { success: true; url: string }
+export type PrepararUploadImagemTabelaResult =
+  | { success: true; path: string; token: string }
   | { success: false; message: string };
 
 /**
  * Upload de imagem inserida dentro do editor de texto rico (Cabeçalho/Descrição/
- * Rodapé). Chamada diretamente pelo componente cliente, fora de um <form> — o
- * resultado só volta a URL pública, que o editor insere no HTML localmente.
+ * Rodapé). Só gera a URL assinada — o upload em si vai direto do navegador pro
+ * Supabase Storage, o arquivo nunca passa pela função serverless da Vercel.
  */
-export async function enviarImagemTabela(
+export async function prepararUploadImagemTabela(
   empreendimentoId: string,
-  formData: FormData
-): Promise<EnviarImagemTabelaResult> {
+  contentType: string,
+  size: number
+): Promise<PrepararUploadImagemTabelaResult> {
   await requireAdmin();
 
-  const arquivo = formData.get("arquivo");
-  if (!(arquivo instanceof File) || arquivo.size === 0) {
-    return { success: false, message: "Selecione uma imagem." };
-  }
-
-  const extensao = TIPOS_IMAGEM_PERMITIDOS[arquivo.type];
+  const extensao = TIPOS_IMAGEM_PERMITIDOS[contentType];
   if (!extensao) {
     return { success: false, message: "Formato inválido. Use PNG, JPEG ou WebP." };
   }
-
-  if (arquivo.size > TAMANHO_MAXIMO_IMAGEM) {
+  if (size <= 0 || size > TAMANHO_MAXIMO_IMAGEM) {
     return { success: false, message: "Imagem muito grande (máximo 5MB)." };
   }
 
   const caminho = `${empreendimentoId}/tabela-conteudo-${Date.now()}.${extensao}`;
 
-  const { error: uploadError } = await supabaseAdmin.storage
+  const { data, error } = await supabaseAdmin.storage
     .from(EMPREENDIMENTOS_BUCKET)
-    .upload(caminho, arquivo, { contentType: arquivo.type, upsert: false });
+    .createSignedUploadUrl(caminho);
 
-  if (uploadError) {
-    return { success: false, message: `Falha ao enviar a imagem: ${uploadError.message}` };
+  if (error || !data) {
+    return { success: false, message: `Falha ao preparar o upload: ${error?.message}` };
+  }
+
+  return { success: true, path: data.path, token: data.token };
+}
+
+export type ConfirmarUploadImagemTabelaResult =
+  | { success: true; url: string }
+  | { success: false; message: string };
+
+/**
+ * Chamada pelo navegador depois que o PUT direto pro Storage terminou — o
+ * resultado só volta a URL pública, que o editor insere no HTML localmente.
+ */
+export async function confirmarUploadImagemTabela(
+  empreendimentoId: string,
+  path: string
+): Promise<ConfirmarUploadImagemTabelaResult> {
+  await requireAdmin();
+
+  if (!path.startsWith(`${empreendimentoId}/tabela-conteudo-`)) {
+    return { success: false, message: "Caminho de upload inválido." };
   }
 
   const {
     data: { publicUrl },
-  } = supabaseAdmin.storage.from(EMPREENDIMENTOS_BUCKET).getPublicUrl(caminho);
+  } = supabaseAdmin.storage.from(EMPREENDIMENTOS_BUCKET).getPublicUrl(path);
 
   return { success: true, url: publicUrl };
 }
 
-export type EnviarDocumentoAdicionalState =
-  | { success: true }
-  | { success: false; message: string }
-  | undefined;
-
 const TAMANHO_MAXIMO_PDF = 15 * 1024 * 1024; // 15MB
 
-export async function enviarDocumentoAdicional(
+export type PrepararUploadDocumentoResult =
+  | { success: true; path: string; token: string }
+  | { success: false; message: string };
+
+/** Só gera a URL assinada — o upload em si vai direto do navegador pro Storage. */
+export async function prepararUploadDocumento(
   empreendimentoId: string,
-  _prevState: EnviarDocumentoAdicionalState,
-  formData: FormData
-): Promise<EnviarDocumentoAdicionalState> {
+  contentType: string,
+  size: number
+): Promise<PrepararUploadDocumentoResult> {
   await requireAdmin();
 
-  const arquivo = formData.get("arquivo");
-  if (!(arquivo instanceof File) || arquivo.size === 0) {
-    return { success: false, message: "Selecione um arquivo PDF." };
-  }
-
-  if (arquivo.type !== "application/pdf") {
+  if (contentType !== "application/pdf") {
     return { success: false, message: "Formato inválido. Envie um arquivo PDF." };
   }
-
-  if (arquivo.size > TAMANHO_MAXIMO_PDF) {
+  if (size <= 0 || size > TAMANHO_MAXIMO_PDF) {
     return { success: false, message: "Arquivo muito grande (máximo 15MB)." };
   }
 
-  const titulo = String(formData.get("titulo") ?? "").trim();
-  if (!titulo) {
-    return { success: false, message: "Informe um título para o documento." };
+  const empreendimento = await prisma.empreendimento.findUnique({
+    where: { id: empreendimentoId },
+  });
+  if (!empreendimento) {
+    return { success: false, message: "Empreendimento não encontrado." };
   }
 
   const caminho = `${empreendimentoId}/documento-${Date.now()}.pdf`;
 
-  const { error: uploadError } = await supabaseAdmin.storage
+  const { data, error } = await supabaseAdmin.storage
     .from(EMPREENDIMENTOS_BUCKET)
-    .upload(caminho, arquivo, { contentType: "application/pdf", upsert: false });
+    .createSignedUploadUrl(caminho);
 
-  if (uploadError) {
-    return { success: false, message: `Falha ao enviar o arquivo: ${uploadError.message}` };
+  if (error || !data) {
+    return { success: false, message: `Falha ao preparar o upload: ${error?.message}` };
+  }
+
+  return { success: true, path: data.path, token: data.token };
+}
+
+export type ConfirmarUploadDocumentoResult =
+  | { success: true }
+  | { success: false; message: string };
+
+export async function confirmarUploadDocumento(
+  empreendimentoId: string,
+  path: string,
+  titulo: string
+): Promise<ConfirmarUploadDocumentoResult> {
+  await requireAdmin();
+
+  const tituloLimpo = titulo.trim();
+  if (!tituloLimpo) {
+    return { success: false, message: "Informe um título para o documento." };
+  }
+
+  if (!path.startsWith(`${empreendimentoId}/documento-`)) {
+    return { success: false, message: "Caminho de upload inválido." };
   }
 
   const {
     data: { publicUrl },
-  } = supabaseAdmin.storage.from(EMPREENDIMENTOS_BUCKET).getPublicUrl(caminho);
+  } = supabaseAdmin.storage.from(EMPREENDIMENTOS_BUCKET).getPublicUrl(path);
 
   const ultimo = await prisma.documentoAdicional.findFirst({
     where: { empreendimentoId },
@@ -146,7 +181,7 @@ export async function enviarDocumentoAdicional(
   await prisma.documentoAdicional.create({
     data: {
       empreendimentoId,
-      titulo,
+      titulo: tituloLimpo,
       url: publicUrl,
       ordem: (ultimo?.ordem ?? -1) + 1,
     },
