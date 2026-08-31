@@ -1,20 +1,22 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { supabaseBrowser } from "@/lib/supabase-browser";
-import { EMPREENDIMENTOS_BUCKET } from "@/lib/supabase-shared";
-import { prepararUploadImagemTabela, confirmarUploadImagemTabela } from "./tabela-actions";
+
+export type ResultadoUploadImagem =
+  | { ok: true; url: string }
+  | { ok: false; message: string };
 
 export function RichTextEditor({
-  empreendimentoId,
   name,
   label,
   defaultValueHtml,
+  onUploadImagem,
 }: {
-  empreendimentoId: string;
   name: string;
   label: string;
   defaultValueHtml: string;
+  /** Sobe a imagem e devolve a URL pública — cada domínio grava num caminho diferente. */
+  onUploadImagem: (file: File) => Promise<ResultadoUploadImagem>;
 }) {
   const editableRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,29 +75,14 @@ export function RichTextEditor({
     setErro(null);
     setEnviandoImagem(true);
     try {
-      const preparo = await prepararUploadImagemTabela(empreendimentoId, file.type, file.size);
-      if (!preparo.success) {
-        setErro(preparo.message);
-        return;
-      }
-
-      const { error: uploadError } = await supabaseBrowser.storage
-        .from(EMPREENDIMENTOS_BUCKET)
-        .uploadToSignedUrl(preparo.path, preparo.token, file, { contentType: file.type });
-
-      if (uploadError) {
-        setErro(`Falha ao enviar a imagem: ${uploadError.message}`);
-        return;
-      }
-
-      const confirmacao = await confirmarUploadImagemTabela(empreendimentoId, preparo.path);
-      if (!confirmacao.success) {
-        setErro(confirmacao.message);
+      const resultado = await onUploadImagem(file);
+      if (!resultado.ok) {
+        setErro(resultado.message);
         return;
       }
 
       editableRef.current?.focus();
-      document.execCommand("insertHTML", false, `<img src="${confirmacao.url}" style="max-width:100%" />`);
+      document.execCommand("insertHTML", false, `<img src="${resultado.url}" style="max-width:100%" />`);
       sync();
     } finally {
       setEnviandoImagem(false);

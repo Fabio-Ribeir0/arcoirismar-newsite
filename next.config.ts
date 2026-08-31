@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
   // com "input directory .../chromium/bin does not exist".
   outputFileTracingIncludes: {
     "/admin/empreendimentos/\\[id\\]": ["node_modules/@sparticuz/chromium/bin/**/*"],
+    "/admin/revendas": ["node_modules/@sparticuz/chromium/bin/**/*"],
   },
 };
 

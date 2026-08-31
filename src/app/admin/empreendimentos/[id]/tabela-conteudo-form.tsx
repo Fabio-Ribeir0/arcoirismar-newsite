@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { atualizarTabelaConteudo, type SalvarTabelaConteudoState } from "./tabela-actions";
-import { RichTextEditor } from "./rich-text-editor";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { criarUploadImagemTabela } from "./upload-imagem-tabela";
 
 export function TabelaConteudoForm({
   empreendimentoId,
@@ -16,6 +17,8 @@ export function TabelaConteudoForm({
     undefined
   );
 
+  const uploadImagem = criarUploadImagemTabela(empreendimentoId);
+
   return (
     <form action={formAction} className="space-y-6 rounded-xl border border-line bg-white p-8">
       <div>
@@ -27,19 +30,19 @@ export function TabelaConteudoForm({
       </div>
 
       <RichTextEditor
-        empreendimentoId={empreendimentoId}
+        onUploadImagem={uploadImagem}
         name="cabecalhoHtml"
         label="Cabeçalho"
         defaultValueHtml={defaultValues.cabecalhoHtml}
       />
       <RichTextEditor
-        empreendimentoId={empreendimentoId}
+        onUploadImagem={uploadImagem}
         name="descricaoHtml"
         label="Descrição"
         defaultValueHtml={defaultValues.descricaoHtml}
       />
       <RichTextEditor
-        empreendimentoId={empreendimentoId}
+        onUploadImagem={uploadImagem}
         name="rodapeHtml"
         label="Rodapé"
         defaultValueHtml={defaultValues.rodapeHtml}

@@ -4,7 +4,8 @@ import { useActionState, useState } from "react";
 import dynamic from "next/dynamic";
 import { DESTAQUE_OPCOES, EMPREENDIMENTO_STATUS } from "./schema";
 import type { EmpreendimentoFormState } from "./actions";
-import { RichTextEditor } from "./[id]/rich-text-editor";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { criarUploadImagemTabela } from "./[id]/upload-imagem-tabela";
 
 const MapaLocalizacao = dynamic(
   () => import("./mapa-localizacao").then((mod) => mod.MapaLocalizacao),
@@ -159,7 +160,7 @@ export function EmpreendimentoForm({
 
       {empreendimentoId ? (
         <RichTextEditor
-          empreendimentoId={empreendimentoId}
+          onUploadImagem={criarUploadImagemTabela(empreendimentoId)}
           name="descricao"
           label="Descrição"
           defaultValueHtml={defaultValues?.descricao ?? ""}

@@ -26,6 +26,11 @@ export default async function AdminLayout({
                 Empreendimentos
               </Link>
             )}
+            {user.paginasPermitidas.includes("revendas") && (
+              <Link href="/admin/revendas" className="hover:text-accent">
+                Revendas
+              </Link>
+            )}
             {user.paginasPermitidas.includes("corretores") && (
               <Link href="/admin/corretores" className="flex items-center gap-1.5 hover:text-accent">
                 Corretores

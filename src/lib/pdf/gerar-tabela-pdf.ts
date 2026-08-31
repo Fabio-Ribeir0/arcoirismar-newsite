@@ -1,6 +1,11 @@
 import "server-only";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import { abrirNavegador } from "./browser";
+import {
+  escapeHtml,
+  esperarImagens,
+  carimbarRodapePaginas,
+} from "./comum";
 import { UNIDADE_STATUS_CORES, UNIDADE_STATUS_LABEL, type LinhaTabelaUnidade } from "../tabela-unidades";
 
 // A4 (210x297mm) menos 1cm de margem no topo/rodapé e 0,5cm nas laterais.
@@ -10,14 +15,6 @@ const LARGURA_MM = 210 - MARGEM_LATERAL_MM * 2;
 const ALTURA_MM = 297 - MARGEM_VERTICAL_MM * 2;
 const MM_POR_PX = 25.4 / 96;
 const MARGEM_SEGURANCA_MM = 2;
-
-function escapeHtml(valor: string): string {
-  return valor
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -123,28 +120,6 @@ export type DadosPdfTabela = {
   prestacoesLabel: string;
   linhas: LinhaTabelaUnidade[];
 };
-
-/**
- * page.setContent() não aceita "networkidle" (só setContent — goto aceita) —
- * as imagens do cabeçalho/descrição/rodapé/capa (URLs do Storage) carregam
- * de forma assíncrona, então espera explicitamente cada <img> terminar antes
- * de medir alturas ou gerar o PDF.
- */
-async function esperarImagens(page: import("puppeteer-core").Page): Promise<void> {
-  await page.evaluate(async () => {
-    const imagens = Array.from(document.images);
-    await Promise.all(
-      imagens.map((img) =>
-        img.complete
-          ? Promise.resolve()
-          : new Promise<void>((resolve) => {
-              img.onload = () => resolve();
-              img.onerror = () => resolve();
-            })
-      )
-    );
-  });
-}
 
 async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
   const browser = await abrirNavegador();
@@ -291,57 +266,6 @@ async function baixarBytes(url: string): Promise<Uint8Array | null> {
   } catch {
     return null;
   }
-}
-
-/** "dd/mm/aaaa | hhmm", sempre no horário de Brasília independente do fuso do servidor. */
-function formatarDataHoraBR(data: Date): string {
-  const partes = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(data);
-  const obter = (tipo: string) => partes.find((p) => p.type === tipo)?.value ?? "";
-  return `${obter("day")}/${obter("month")}/${obter("year")} | ${obter("hour")}:${obter("minute")}`;
-}
-
-/**
- * "Pág. n/t" (canto esquerdo) e a data/hora de geração (canto direito) em toda
- * página do documento final — inclusive capa e documentos adicionais mesclados,
- * já que "t" só fica correto depois que tudo foi mesclado.
- */
-async function carimbarRodapePaginas(documento: PDFDocument, geradoEm: Date): Promise<void> {
-  const fonte = await documento.embedFont(StandardFonts.Helvetica);
-  const paginas = documento.getPages();
-  const total = paginas.length;
-  const dataHoraTexto = `Data de atualização: ${formatarDataHoraBR(geradoEm)}`;
-  const tamanhoFonte = 7;
-  const cor = rgb(0.5, 0.5, 0.5);
-  const y = 10;
-
-  paginas.forEach((pagina, indice) => {
-    const { width } = pagina.getSize();
-
-    pagina.drawText(`Pág. ${indice + 1}/${total}`, {
-      x: 12,
-      y,
-      size: tamanhoFonte,
-      font: fonte,
-      color: cor,
-    });
-
-    const larguraData = fonte.widthOfTextAtSize(dataHoraTexto, tamanhoFonte);
-    pagina.drawText(dataHoraTexto, {
-      x: width - 12 - larguraData,
-      y,
-      size: tamanhoFonte,
-      font: fonte,
-      color: cor,
-    });
-  });
 }
 
 export async function gerarTabelaPdfCompleta(

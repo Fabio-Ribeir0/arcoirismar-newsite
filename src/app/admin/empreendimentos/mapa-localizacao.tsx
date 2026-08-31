@@ -21,11 +21,19 @@ export function MapaLocalizacao({
   longitudeInicial,
   errosLatitude,
   errosLongitude,
+  prefixoIds = "",
 }: {
   latitudeInicial?: string | null;
   longitudeInicial?: string | null;
   errosLatitude?: string[];
   errosLongitude?: string[];
+  /**
+   * Prefixo dos `id` dos campos de endereço que o botão "Buscar coordenadas" lê
+   * do DOM. Necessário porque dois formulários com esse mapa não podem
+   * disputar os mesmos ids globais — os `name` continuam sem prefixo, já que é
+   * por eles que o FormData é montado.
+   */
+  prefixoIds?: string;
 }) {
   const mapaDivRef = useRef<HTMLDivElement>(null);
   const mapaRef = useRef<L.Map | null>(null);
@@ -86,11 +94,11 @@ export function MapaLocalizacao({
     const valorDe = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value;
 
     const resultado = await buscarCoordenadas({
-      endereco: valorDe("endereco"),
-      bairro: valorDe("bairro"),
-      cidade: valorDe("cidade"),
-      estado: valorDe("estado"),
-      cep: valorDe("cep"),
+      endereco: valorDe(`${prefixoIds}endereco`),
+      bairro: valorDe(`${prefixoIds}bairro`),
+      cidade: valorDe(`${prefixoIds}cidade`),
+      estado: valorDe(`${prefixoIds}estado`),
+      cep: valorDe(`${prefixoIds}cep`),
     });
 
     setBuscando(false);
@@ -140,11 +148,11 @@ export function MapaLocalizacao({
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <label htmlFor="latitude" className="text-sm font-medium text-ink">
+          <label htmlFor={`${prefixoIds}latitude`} className="text-sm font-medium text-ink">
             Latitude
           </label>
           <input
-            id="latitude"
+            id={`${prefixoIds}latitude`}
             name="latitude"
             value={latitude}
             onChange={(e) => handleCoordenadaManual("lat", e.target.value)}
@@ -157,11 +165,11 @@ export function MapaLocalizacao({
           ))}
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="longitude" className="text-sm font-medium text-ink">
+          <label htmlFor={`${prefixoIds}longitude`} className="text-sm font-medium text-ink">
             Longitude
           </label>
           <input
-            id="longitude"
+            id={`${prefixoIds}longitude`}
             name="longitude"
             value={longitude}
             onChange={(e) => handleCoordenadaManual("lng", e.target.value)}

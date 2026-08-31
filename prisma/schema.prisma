@@ -519,3 +519,77 @@ model ConteudoSite {
 
   @@map("conteudo_site")
 }
+
+// ---------------------------------------------------------------------------
+// Revendas — unidades de terceiros recebidas como parte do pagamento
+// ---------------------------------------------------------------------------
+
+enum RevendaStatus {
+  DISPONIVEL
+  RESERVADA
+  VENDIDA
+}
+
+/// Unidade de terceiro recebida como pagamento e colocada à revenda. Não pertence
+/// a nenhum Empreendimento (pode ser um apartamento de outro prédio, um sobrado,
+/// uma casa), por isso é um modelo próprio e não uma Unidade.
+model UnidadeRevenda {
+  id String @id @default(cuid())
+
+  /// Empreendimento ou tipo de construção (ex.: "Ed. Personalité", "Sobrado")
+  nome          String
+  /// Número da unidade — opcional, já que pode ser uma casa
+  numeroUnidade String?
+  valor         Decimal       @db.Decimal(12, 2)
+  status        RevendaStatus @default(DISPONIVEL)
+
+  /// Logradouro. `numeroEndereco` é o número da rua — não confundir com `numeroUnidade`.
+  endereco       String?
+  numeroEndereco String?
+  cep            String?
+  bairro         String?
+  cidade         String?
+  estado         String?
+  latitude       Float?
+  longitude      Float?
+
+  // --- Conteúdo da página desta unidade no PDF (rich text, ver template) ---
+  cabecalhoHtml      String? @db.Text
+  sobreHtml          String? @db.Text
+  financeiroHtml     String? @db.Text
+  infoAdicionaisHtml String? @db.Text
+  rodapeHtml         String? @db.Text
+
+  /// 5 slots fixos: a posição de cada foto no template é significativa
+  foto1Url String?
+  foto2Url String?
+  foto3Url String?
+  foto4Url String?
+  foto5Url String?
+
+  /// Ordem da página dentro do PDF — sem UI de reordenação por enquanto
+  ordem Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("unidades_revenda")
+}
+
+/// Linha única (singleton, id fixo — mesmo padrão de ConteudoSite): o que vale para
+/// a tabela de Revendas inteira, e não por unidade.
+model ConfiguracaoRevenda {
+  id String @id @default("configuracao-revenda")
+
+  /// Imagem usada como página de capa do PDF
+  capaTabelaUrl     String?
+  /// Repositório público de mídia (Drive/OneDrive) exibido ao corretor
+  linkMidiaPublica  String?
+  tabelaPdfUrl      String?
+  tabelaPdfGeradoEm DateTime?
+
+  updatedAt DateTime @updatedAt
+
+  @@map("configuracao_revenda")
+}
