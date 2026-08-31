@@ -128,7 +128,10 @@ export default async function EmpreendimentoPublicoPage({
               <h2 className="font-display mb-4 text-2xl font-medium text-primary">
                 Sobre o empreendimento
               </h2>
-              <p className="leading-relaxed text-ink/70">{empreendimento.descricao}</p>
+              <div
+                className="leading-relaxed text-ink/70 [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-3 [&_blockquote]:italic [&_hr]:my-4 [&_hr]:border-line [&_img]:my-3 [&_img]:max-w-full [&_img]:rounded-lg [&_a]:text-accent [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_p+p]:mt-3"
+                dangerouslySetInnerHTML={{ __html: empreendimento.descricao }}
+              />
             </div>
           )}
 
@@ -140,6 +143,7 @@ export default async function EmpreendimentoPublicoPage({
                   id: foto.id,
                   url: foto.url,
                   alt: foto.titulo ?? empreendimento.nome,
+                  legenda: foto.titulo,
                 }))}
               />
             </div>
@@ -153,6 +157,7 @@ export default async function EmpreendimentoPublicoPage({
                   id: planta.id,
                   url: planta.url,
                   alt: planta.titulo ?? "Planta",
+                  legenda: planta.titulo,
                 }))}
               />
             </div>

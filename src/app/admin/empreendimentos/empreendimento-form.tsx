@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import dynamic from "next/dynamic";
 import { DESTAQUE_OPCOES, EMPREENDIMENTO_STATUS } from "./schema";
 import type { EmpreendimentoFormState } from "./actions";
+import { RichTextEditor } from "./[id]/rich-text-editor";
 
 const MapaLocalizacao = dynamic(
   () => import("./mapa-localizacao").then((mod) => mod.MapaLocalizacao),
@@ -58,11 +59,14 @@ export function EmpreendimentoForm({
   defaultValues,
   submitLabel,
   showMotivo,
+  empreendimentoId,
 }: {
   action: (state: EmpreendimentoFormState, formData: FormData) => Promise<EmpreendimentoFormState>;
   defaultValues?: DefaultValues;
   submitLabel: string;
   showMotivo?: boolean;
+  /** Só disponível ao editar (não existe ainda ao criar) — habilita a edição em rich text da descrição, que precisa de um id pra permitir inserir imagens. */
+  empreendimentoId?: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const errors = state?.success === false ? state.errors : undefined;
@@ -153,18 +157,31 @@ export function EmpreendimentoForm({
         hint='Usado no banner/hero. Ex.: "Um novo conceito de morar frente ao mar"'
       />
 
-      <div className="space-y-1.5">
-        <label htmlFor="descricao" className="text-sm font-medium text-ink">
-          Descrição
-        </label>
-        <textarea
-          id="descricao"
+      {empreendimentoId ? (
+        <RichTextEditor
+          empreendimentoId={empreendimentoId}
           name="descricao"
-          rows={4}
-          defaultValue={defaultValues?.descricao ?? ""}
-          className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
+          label="Descrição"
+          defaultValueHtml={defaultValues?.descricao ?? ""}
         />
-      </div>
+      ) : (
+        <div className="space-y-1.5">
+          <label htmlFor="descricao" className="text-sm font-medium text-ink">
+            Descrição
+          </label>
+          <textarea
+            id="descricao"
+            name="descricao"
+            rows={4}
+            defaultValue={defaultValues?.descricao ?? ""}
+            className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
+          />
+          <p className="text-xs text-ink/50">
+            A formatação (negrito, listas, imagens etc.) fica disponível depois de criar o
+            empreendimento.
+          </p>
+        </div>
+      )}
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Endereço" name="endereco" defaultValue={defaultValues?.endereco} errors={errors?.endereco} />

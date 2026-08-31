@@ -106,6 +106,7 @@ export function RichTextEditor({
     <div className="space-y-1.5">
       <label className="text-sm font-medium text-ink">{label}</label>
 
+      <div>
       <div className="flex flex-wrap items-center gap-1 rounded-t-md border border-b-0 border-line bg-mist px-2 py-1.5">
         <button
           type="button"
@@ -231,6 +232,7 @@ export function RichTextEditor({
           className="min-h-32 rounded-b-md border border-line px-3 py-2 text-sm outline-none focus:border-primary [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-ink/70 [&_hr]:my-3 [&_hr]:border-line [&_img]:my-2 [&_img]:max-w-full [&_a]:text-accent [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
         />
       )}
+      </div>
 
       <input type="hidden" name={name} value={htmlAtual} readOnly />
 

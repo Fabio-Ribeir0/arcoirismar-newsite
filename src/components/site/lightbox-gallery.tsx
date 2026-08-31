@@ -6,6 +6,8 @@ export type LightboxImage = {
   id: string;
   url: string;
   alt: string;
+  /** Legenda visível (título cadastrado pelo admin) — quando ausente, nenhuma legenda é exibida. */
+  legenda?: string | null;
 };
 
 export function LightboxGallery({ images }: { images: LightboxImage[] }) {
@@ -48,14 +50,21 @@ export function LightboxGallery({ images }: { images: LightboxImage[] }) {
             key={imagem.id}
             type="button"
             onClick={() => setIndice(i)}
-            className="block cursor-zoom-in overflow-hidden rounded-lg border border-line"
+            className="block cursor-zoom-in overflow-hidden rounded-lg border border-line text-left"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- external/admin-managed URLs, not local assets */}
-            <img
-              src={imagem.url}
-              alt={imagem.alt}
-              className="h-40 w-full object-cover transition duration-300 hover:scale-105"
-            />
+            <div className="overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element -- external/admin-managed URLs, not local assets */}
+              <img
+                src={imagem.url}
+                alt={imagem.alt}
+                className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+              />
+            </div>
+            {imagem.legenda && (
+              <p className="truncate border-t border-line px-2 py-1.5 text-xs text-ink/60">
+                {imagem.legenda}
+              </p>
+            )}
           </button>
         ))}
       </div>
@@ -109,10 +118,17 @@ export function LightboxGallery({ images }: { images: LightboxImage[] }) {
             className="max-h-[85vh] max-w-full rounded-lg object-contain"
           />
 
-          {images.length > 1 && (
-            <p className="absolute bottom-4 text-sm text-white/70">
-              {indice + 1} / {images.length}
-            </p>
+          {(images[indice].legenda || images.length > 1) && (
+            <div className="absolute inset-x-0 bottom-4 flex flex-col items-center gap-1 px-4 text-center">
+              {images[indice].legenda && (
+                <p className="text-sm font-medium text-white">{images[indice].legenda}</p>
+              )}
+              {images.length > 1 && (
+                <p className="text-sm text-white/70">
+                  {indice + 1} / {images.length}
+                </p>
+              )}
+            </div>
           )}
         </div>
       )}

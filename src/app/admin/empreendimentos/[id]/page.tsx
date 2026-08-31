@@ -125,6 +125,7 @@ export default async function EditarEmpreendimentoPage({
                   action={atualizarEmpreendimento.bind(null, empreendimento.id)}
                   submitLabel="Salvar alterações"
                   showMotivo
+                  empreendimentoId={empreendimento.id}
                   defaultValues={{
                     nome: empreendimento.nome,
                     slug: empreendimento.slug,
