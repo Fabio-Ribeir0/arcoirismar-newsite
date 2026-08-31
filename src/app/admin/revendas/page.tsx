@@ -31,7 +31,6 @@ export default async function RevendasPage() {
     financeiroHtml: u.financeiroHtml ?? "",
     infoAdicionaisHtml: u.infoAdicionaisHtml ?? "",
     rodapeHtml: u.rodapeHtml ?? "",
-    fotos: [u.foto1Url, u.foto2Url, u.foto3Url, u.foto4Url, u.foto5Url],
   }));
 
   const configRow: ConfiguracaoRevendaRow = {

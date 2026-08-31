@@ -20,9 +20,6 @@ export type UnidadeRevendaRow = {
   financeiroHtml: string;
   infoAdicionaisHtml: string;
   rodapeHtml: string;
-
-  /** Exatamente 5 posições, na ordem do template. */
-  fotos: (string | null)[];
 };
 
 export type ConfiguracaoRevendaRow = {

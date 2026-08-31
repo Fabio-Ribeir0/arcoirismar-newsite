@@ -16,9 +16,7 @@ const ALTURA_MM = 297 - MARGEM_MM * 2 - 0.5; // 276.5
 // absorve toda a sobra, então a soma das tracks fecha a altura da página
 // qualquer que seja a combinação de faixas presentes. É essa invariante que
 // garante "uma unidade = exatamente uma página".
-const H_FAIXA_FOTOS = 64;
-const H_FAIXA_SO_CABECALHO = 22;
-const H_TRIO = 50;
+const H_CABECALHO = 117;
 const H_DUO = 58;
 const H_RODAPE = 18;
 const GAP_MM = 3;
@@ -42,47 +40,30 @@ const ESTILOS = `
   body > *:last-child { break-after: auto; }
 
   /* A regra mais importante do arquivo: itens de grid têm min-height:auto por
-     padrão, então um bloco com texto demais empurraria a própria track e
+     padrão, então um bloco com conteúdo demais empurraria a própria track e
      estouraria a página. */
   .pagina > * { min-height: 0; min-width: 0; overflow: hidden; }
 
-  .faixa { position: relative; display: grid; gap: ${GAP_MM}mm; }
-  .faixa-dupla { grid-template-columns: 6fr 4fr; }
-  .faixa-unica { grid-template-columns: 1fr; }
-
-  /* O cabeçalho fica fora do fluxo, sobreposto às fotos 1 e 2 — por construção
-     ele é incapaz de alterar a altura da página. O véu quase opaco é o que
-     mantém o texto legível sobre uma foto qualquer (céu claro, interior escuro). */
-  .cabecalho-sobreposto {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    max-height: 62%;
-    overflow: hidden;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.90) 70%, rgba(255,255,255,0.74) 100%);
-    border-radius: 1.5mm 1.5mm 0 0;
-  }
-  .cabecalho-simples { background: #f4f2ee; border-radius: 1.5mm; overflow: hidden; }
-
-  .trio { display: grid; gap: ${GAP_MM}mm; }
-
   .duo { display: grid; grid-template-columns: 6fr 4fr; gap: ${GAP_MM}mm; }
   .painel { position: relative; overflow: hidden; border: 0.3mm solid #e4e0d8; border-radius: 1.5mm; }
-
-  /* object-fit:cover numa caixa de tamanho fixo: as dimensões da imagem de
-     origem nunca influenciam o layout. */
-  .foto { overflow: hidden; border-radius: 1.5mm; background: #ece9e3; }
-  .foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
   .caixa { overflow: hidden; }
   .bloco-rico { padding: 3mm; font-size: 11px; line-height: 1.45; }
   .bloco-rico > :first-child { margin-top: 0; }
   .bloco-rico > :last-child { margin-bottom: 0; }
-  .bloco-rico img { max-width: 100%; max-height: 25mm; height: auto; object-fit: contain; }
+  /* Sem teto de altura: no Cabeçalho as imagens são o conteúdo principal e
+     precisam poder ocupar a faixa toda. O overflow:hidden da caixa é quem
+     impede qualquer estouro de página. */
+  .bloco-rico img { max-width: 100%; height: auto; }
   .bloco-rico ul { margin: 0; padding-left: 18px; }
   .bloco-rico ol { margin: 0; padding-left: 18px; }
   .bloco-rico a { color: #c2a558; text-decoration: underline; }
   .bloco-rico blockquote { margin: 0; padding-left: 8px; border-left: 2px solid #c2a558; font-style: italic; color: rgba(60, 63, 64, 0.7); }
   .bloco-rico hr { border: none; border-top: 1px solid #e4e0d8; margin: 2mm 0; }
+
+  /* O cabeçalho não tem moldura: as imagens coladas pelo admin é que definem o
+     visual da faixa superior. */
+  .cabecalho .bloco-rico { padding: 0; }
 
   .carimbo { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
   .carimbo > span {
@@ -102,13 +83,12 @@ const ESTILOS = `
 export type UnidadeRevendaPdf = {
   nome: string;
   reservada: boolean;
+  /** Ocupa toda a faixa superior: imagens, nome e demais informações em HTML. */
   cabecalhoHtml: string;
   sobreHtml: string;
   financeiroHtml: string;
   infoAdicionaisHtml: string;
   rodapeHtml: string;
-  /** Exatamente 5 posições — a ordem importa, `null` para slot vazio. */
-  fotos: (string | null)[];
 };
 
 export type DadosPdfRevendas = {
@@ -129,49 +109,19 @@ function temConteudo(html: string | null | undefined): boolean {
   return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim().length > 0;
 }
 
-function fotoHtml(url: string | null): string {
-  return url
-    ? `<div class="foto"><img src="${escapeAttr(url)}" alt="" /></div>`
-    : `<div class="foto"></div>`;
-}
-
 function caixaHtml(unidade: string, bloco: string, html: string, classe = ""): string {
   return `<div class="caixa ${classe}" data-unidade="${escapeAttr(unidade)}" data-bloco="${escapeAttr(bloco)}"><div class="bloco-rico">${html}</div></div>`;
 }
 
 function paginaHtml(u: UnidadeRevendaPdf): string {
-  const [f1, f2, f3, f4, f5] = u.fotos;
-  const fotosTopo = [f1, f2].filter(Boolean) as string[];
-  const fotosTrio = [f3, f4, f5].filter(Boolean) as string[];
-  const temCabecalho = temConteudo(u.cabecalhoHtml);
-
   // Constrói tracks e blocos em lockstep: só entra na grade a faixa que existe,
   // e o `gap` só se aplica entre faixas presentes.
   const tracks: string[] = [];
   const blocos: string[] = [];
 
-  if (fotosTopo.length > 0) {
-    tracks.push(`${H_FAIXA_FOTOS}mm`);
-    const colunas = fotosTopo.length === 2 ? "faixa-dupla" : "faixa-unica";
-    const celulas = fotosTopo.map((url) => fotoHtml(url)).join("");
-    blocos.push(
-      `<div class="faixa ${colunas}">${celulas}${
-        temCabecalho ? caixaHtml(u.nome, "Cabeçalho", u.cabecalhoHtml, "cabecalho-sobreposto") : ""
-      }</div>`
-    );
-  } else if (temCabecalho) {
-    // Sem fotos no topo o cabeçalho não pode sumir — vira faixa normal, menor.
-    tracks.push(`${H_FAIXA_SO_CABECALHO}mm`);
-    blocos.push(caixaHtml(u.nome, "Cabeçalho", u.cabecalhoHtml, "cabecalho-simples"));
-  }
-
-  if (fotosTrio.length > 0) {
-    tracks.push(`${H_TRIO}mm`);
-    blocos.push(
-      `<div class="trio" style="grid-template-columns:repeat(${fotosTrio.length},1fr)">${fotosTrio
-        .map((url) => fotoHtml(url))
-        .join("")}</div>`
-    );
+  if (temConteudo(u.cabecalhoHtml)) {
+    tracks.push(`${H_CABECALHO}mm`);
+    blocos.push(caixaHtml(u.nome, "Cabeçalho", u.cabecalhoHtml, "cabecalho"));
   }
 
   // "Sobre" é sempre emitido e é a única track 1fr — é ele que absorve a sobra.
@@ -196,8 +146,8 @@ function paginaHtml(u: UnidadeRevendaPdf): string {
 }
 
 /**
- * Fotos com URL válida mas download quebrado ficariam com o ícone de imagem
- * quebrada impresso no PDF — remove o <img> e deixa só o fundo neutro da célula.
+ * Imagens com URL válida mas download quebrado ficariam com o ícone de imagem
+ * quebrada impresso no PDF — remove o <img> em vez de imprimir o ícone.
  */
 async function ocultarImagensQuebradas(page: import("puppeteer-core").Page): Promise<void> {
   await page.evaluate(() => {

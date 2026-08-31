@@ -553,19 +553,14 @@ model UnidadeRevenda {
   latitude       Float?
   longitude      Float?
 
-  // --- Conteúdo da página desta unidade no PDF (rich text, ver template) ---
+  // --- Conteúdo da página desta unidade no PDF (rich text) ---
+  /// Ocupa toda a faixa superior da página: imagens, nome e demais informações
+  /// entram como HTML, sem slots fixos de foto.
   cabecalhoHtml      String? @db.Text
   sobreHtml          String? @db.Text
   financeiroHtml     String? @db.Text
   infoAdicionaisHtml String? @db.Text
   rodapeHtml         String? @db.Text
-
-  /// 5 slots fixos: a posição de cada foto no template é significativa
-  foto1Url String?
-  foto2Url String?
-  foto3Url String?
-  foto4Url String?
-  foto5Url String?
 
   /// Ordem da página dentro do PDF — sem UI de reordenação por enquanto
   ordem Int @default(0)

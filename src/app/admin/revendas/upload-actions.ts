@@ -21,6 +21,10 @@ export type PrepararUploadResult =
   | { success: true; path: string; token: string }
   | { success: false; message: string };
 
+export type ConfirmarUploadResult =
+  | { success: true; url: string }
+  | { success: false; message: string };
+
 async function urlAssinada(caminho: string): Promise<PrepararUploadResult> {
   const { data, error } = await supabaseAdmin.storage
     .from(EMPREENDIMENTOS_BUCKET)
@@ -53,92 +57,6 @@ function validarImagem(contentType: string, size: number): string | null {
   return TIPOS_IMAGEM[contentType];
 }
 
-const SLOTS = [1, 2, 3, 4, 5] as const;
-export type SlotFoto = (typeof SLOTS)[number];
-
-function campoFoto(slot: SlotFoto) {
-  return `foto${slot}Url` as const;
-}
-
-// ---------------------------------------------------------------------------
-// Fotos da unidade (5 slots fixos do template)
-// ---------------------------------------------------------------------------
-
-export async function prepararUploadFotoRevenda(
-  unidadeId: string,
-  slot: SlotFoto,
-  contentType: string,
-  size: number
-): Promise<PrepararUploadResult> {
-  await requireAdmin();
-
-  if (!SLOTS.includes(slot)) {
-    return { success: false, message: "Posição de foto inválida." };
-  }
-
-  const extensao = validarImagem(contentType, size);
-  if (!extensao) {
-    return { success: false, message: "Use PNG, JPEG ou WebP de até 5MB." };
-  }
-
-  const unidade = await prisma.unidadeRevenda.findUnique({ where: { id: unidadeId } });
-  if (!unidade) return { success: false, message: "Unidade não encontrada." };
-
-  return urlAssinada(`${PREFIXO}/${unidadeId}/foto${slot}-${Date.now()}.${extensao}`);
-}
-
-export type ConfirmarFotoResult =
-  | { success: true; url: string }
-  | { success: false; message: string };
-
-export async function confirmarUploadFotoRevenda(
-  unidadeId: string,
-  slot: SlotFoto,
-  path: string
-): Promise<ConfirmarFotoResult> {
-  await requireAdmin();
-
-  if (!SLOTS.includes(slot) || !path.startsWith(`${PREFIXO}/${unidadeId}/foto${slot}-`)) {
-    return { success: false, message: "Caminho de upload inválido." };
-  }
-
-  const unidade = await prisma.unidadeRevenda.findUnique({ where: { id: unidadeId } });
-  if (!unidade) return { success: false, message: "Unidade não encontrada." };
-
-  const url = urlPublica(path);
-  await removerPorUrl(unidade[campoFoto(slot)]);
-  await prisma.unidadeRevenda.update({
-    where: { id: unidadeId },
-    data: { [campoFoto(slot)]: url },
-  });
-
-  revalidatePath("/admin/revendas");
-  return { success: true, url };
-}
-
-export async function removerFotoRevenda(
-  unidadeId: string,
-  slot: SlotFoto
-): Promise<ConfirmarFotoResult> {
-  await requireAdmin();
-
-  if (!SLOTS.includes(slot)) {
-    return { success: false, message: "Posição de foto inválida." };
-  }
-
-  const unidade = await prisma.unidadeRevenda.findUnique({ where: { id: unidadeId } });
-  if (!unidade) return { success: false, message: "Unidade não encontrada." };
-
-  await removerPorUrl(unidade[campoFoto(slot)]);
-  await prisma.unidadeRevenda.update({
-    where: { id: unidadeId },
-    data: { [campoFoto(slot)]: null },
-  });
-
-  revalidatePath("/admin/revendas");
-  return { success: true, url: "" };
-}
-
 // ---------------------------------------------------------------------------
 // Imagem inserida dentro dos blocos rich text
 // ---------------------------------------------------------------------------
@@ -161,7 +79,7 @@ export async function prepararUploadImagemRevenda(
 export async function confirmarUploadImagemRevenda(
   unidadeId: string,
   path: string
-): Promise<ConfirmarFotoResult> {
+): Promise<ConfirmarUploadResult> {
   await requireAdmin();
 
   if (!path.startsWith(`${PREFIXO}/${unidadeId}/conteudo-`)) {
@@ -189,7 +107,7 @@ export async function prepararUploadCapaRevenda(
   return urlAssinada(`${PREFIXO}/tabela/capa-${Date.now()}.${extensao}`);
 }
 
-export async function confirmarUploadCapaRevenda(path: string): Promise<ConfirmarFotoResult> {
+export async function confirmarUploadCapaRevenda(path: string): Promise<ConfirmarUploadResult> {
   await requireAdmin();
 
   if (!path.startsWith(`${PREFIXO}/tabela/capa-`)) {

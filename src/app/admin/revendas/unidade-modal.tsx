@@ -14,8 +14,6 @@ import {
   type ConteudoTabelaState,
 } from "./actions";
 import { criarUploadImagemRevenda } from "./upload-imagem-revenda";
-import { FotoUpload } from "./foto-upload";
-import type { SlotFoto } from "./upload-actions";
 import type { UnidadeRevendaRow } from "./tipos";
 
 const MapaLocalizacao = dynamic(
@@ -27,20 +25,17 @@ const MapaLocalizacao = dynamic(
 const PREFIXO_IDS = "rev-";
 
 const BLOCOS_TABELA = [
-  { name: "cabecalhoHtml", label: "Cabeçalho", campo: "cabecalhoHtml" },
-  { name: "sobreHtml", label: "Sobre", campo: "sobreHtml" },
-  { name: "financeiroHtml", label: "Financeiro", campo: "financeiroHtml" },
-  { name: "infoAdicionaisHtml", label: "Informações adicionais", campo: "infoAdicionaisHtml" },
-  { name: "rodapeHtml", label: "Rodapé", campo: "rodapeHtml" },
+  {
+    name: "cabecalhoHtml",
+    label: "Cabeçalho",
+    campo: "cabecalhoHtml",
+    hint: "Ocupa toda a faixa superior da página. Insira aqui as imagens, o nome e as demais informações do empreendimento.",
+  },
+  { name: "sobreHtml", label: "Sobre", campo: "sobreHtml", hint: null },
+  { name: "financeiroHtml", label: "Financeiro", campo: "financeiroHtml", hint: null },
+  { name: "infoAdicionaisHtml", label: "Informações adicionais", campo: "infoAdicionaisHtml", hint: null },
+  { name: "rodapeHtml", label: "Rodapé", campo: "rodapeHtml", hint: null },
 ] as const;
-
-const FOTOS: { slot: SlotFoto; rotulo: string }[] = [
-  { slot: 1, rotulo: "Foto 1 (topo, maior)" },
-  { slot: 2, rotulo: "Foto 2 (topo, menor)" },
-  { slot: 3, rotulo: "Foto 3" },
-  { slot: 4, rotulo: "Foto 4" },
-  { slot: 5, rotulo: "Foto 5" },
-];
 
 export function UnidadeModal({
   unidade,
@@ -184,7 +179,7 @@ export function UnidadeModal({
       {state?.success && (
         <p className="text-sm text-green-700">
           Dados salvos.{" "}
-          {!unidade && "A aba Tabela já está liberada para o conteúdo do PDF e as fotos."}
+          {!unidade && "A aba Tabela já está liberada para o conteúdo do PDF."}
         </p>
       )}
 
@@ -218,8 +213,8 @@ export function UnidadeModal({
             </h2>
             {!id && (
               <p className="mt-1 text-sm text-ink/60">
-                Salve os detalhes para liberar a aba Tabela — o conteúdo do PDF e as fotos
-                precisam da unidade já criada.
+                Salve os detalhes para liberar a aba Tabela — o conteúdo do PDF precisa da
+                unidade já criada para receber imagens.
               </p>
             )}
           </div>
@@ -272,42 +267,25 @@ function AbaTabela({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h3 className="font-display text-lg font-medium text-primary">Fotos</h3>
-        <p className="text-sm text-ink/60">
-          As fotos 1 e 2 ocupam a faixa do topo (o Cabeçalho aparece sobre elas); as fotos 3, 4 e 5
-          formam a faixa seguinte. Slots vazios são simplesmente omitidos do PDF.
-        </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          {FOTOS.map(({ slot, rotulo }) => (
-            <FotoUpload
-              key={slot}
-              unidadeId={unidadeId}
-              slot={slot}
-              rotulo={rotulo}
-              urlAtual={unidade?.fotos[slot - 1] ?? null}
-            />
-          ))}
-        </div>
-      </div>
-
-      <form action={formAction} className="space-y-6 border-t border-line pt-6">
+      <form action={formAction} className="space-y-6">
         <div>
           <h3 className="font-display text-lg font-medium text-primary">Conteúdo da página</h3>
           <p className="text-sm text-ink/60">
-            Cada unidade ocupa uma página A4. Texto que não couber no espaço do bloco é cortado no
-            PDF — a geração avisa quais blocos foram cortados.
+            Cada unidade ocupa uma página A4. Conteúdo que não couber no espaço do bloco é cortado
+            no PDF — a geração avisa quais blocos foram cortados.
           </p>
         </div>
 
         {BLOCOS_TABELA.map((bloco) => (
-          <RichTextEditor
-            key={bloco.name}
-            name={bloco.name}
-            label={bloco.label}
-            defaultValueHtml={unidade?.[bloco.campo] ?? ""}
-            onUploadImagem={uploadImagem}
-          />
+          <div key={bloco.name} className="space-y-1.5">
+            <RichTextEditor
+              name={bloco.name}
+              label={bloco.label}
+              defaultValueHtml={unidade?.[bloco.campo] ?? ""}
+              onUploadImagem={uploadImagem}
+            />
+            {bloco.hint && <p className="text-xs text-ink/50">{bloco.hint}</p>}
+          </div>
         ))}
 
         {state?.success === false && <p className="text-sm text-red-600">{state.message}</p>}

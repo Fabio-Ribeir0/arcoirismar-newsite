@@ -65,7 +65,6 @@ export async function gerarTabelaRevendas(
         financeiroHtml: u.financeiroHtml ?? "",
         infoAdicionaisHtml: u.infoAdicionaisHtml ?? "",
         rodapeHtml: u.rodapeHtml ?? "",
-        fotos: [u.foto1Url, u.foto2Url, u.foto3Url, u.foto4Url, u.foto5Url],
       })),
     });
     pdf = resultado.bytes;
