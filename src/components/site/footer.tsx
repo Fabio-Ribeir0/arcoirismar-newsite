@@ -4,22 +4,22 @@ import { WhatsAppIcon } from "./whatsapp-icon";
 
 const CONTATOS = [
   {
-    titulo: "Comercial",
-    telefoneExibido: "+55 13 97418-5096",
-    whatsapp: "5513974185096",
-  },
-  {
     titulo: "Central de Atendimento",
     telefoneExibido: "+55 13 3495-7537",
     whatsapp: "551334957537",
+  },
+  {
+    titulo: "Comercial",
+    telefoneExibido: "+55 13 97418-5096",
+    whatsapp: "5513974185096",
   },
 ];
 
 export function SiteFooter() {
   return (
-    <footer id="contato" className="bg-[#20201e] py-12 text-white/70">
+    <footer id="contato" className="bg-[#20201e] pt-8 pb-4 text-white/70">
       <div className="mx-auto max-w-7xl px-6">
-        <div className="flex flex-col items-center gap-8 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col items-center gap-6 md:flex-row md:items-center md:justify-between">
           <Link href="/" className="shrink-0">
             <Image
               src="/images/logo_horizontal.png"
@@ -51,7 +51,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-white/10 pt-6 text-center text-sm md:text-left">
+        <div className="mt-6 border-t border-white/10 pt-4 text-center text-sm">
           <p>© {new Date().getFullYear()} Arco-íris-mar. Todos os direitos reservados.</p>
         </div>
       </div>
