@@ -224,8 +224,9 @@ export async function gerarTabelaPdfAdmin(
     rotulo: c.rotulo,
     periodicidade: c.periodicidade,
     quantidade: c.quantidade,
-    valor: Number(c.valor),
+    valor: c.valor === null ? null : Number(c.valor),
     tipoValor: c.tipoValor,
+    restante: c.restante,
   }));
   const linhas = montarLinhasTabelaUnidades(condicoesPagamento, empreendimento.unidades);
   const condicoesColunas = condicoesPagamento.map((c) => ({

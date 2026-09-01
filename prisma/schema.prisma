@@ -296,9 +296,15 @@ model CondicaoPagamentoEmpreendimento {
   periodicidade PeriodicidadeCondicao
   /// Sempre 1 para os dois tipos ATO_*; livre para os recorrentes
   quantidade    Int            @default(1)
-  /// Valor de CADA parcela desta condição — percentual do preço da unidade ou R$ fixo
-  valor         Decimal        @db.Decimal(12, 2)
+  /// Valor de CADA parcela desta condição — percentual do preço da unidade ou R$ fixo.
+  /// Nulo quando `restante` é true, já que nesse caso o valor é sempre calculado.
+  valor         Decimal?       @db.Decimal(12, 2)
   tipoValor     TipoValorPlano @default(PERCENTUAL)
+  /// Quando true, ignora `valor`/`tipoValor` e calcula o valor de cada parcela como
+  /// (preço da unidade − soma das outras condições) / quantidade — pra planos onde
+  /// entrada/chaves são valores fixos iguais para todas as unidades e o saldo (que
+  /// varia por unidade) é diluído nas parcelas restantes.
+  restante      Boolean        @default(false)
 
   empreendimento Empreendimento @relation(fields: [empreendimentoId], references: [id], onDelete: Cascade)
 

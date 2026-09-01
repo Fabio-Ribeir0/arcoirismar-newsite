@@ -9,20 +9,21 @@ export function diferente(a: Numerico, b: Numerico) {
   return numA !== numB;
 }
 
+function serializarCondicao(c: CondicaoPagamentoEmpreendimento) {
+  return {
+    id: c.id,
+    rotulo: c.rotulo,
+    periodicidade: c.periodicidade,
+    quantidade: c.quantidade,
+    valor: c.valor === null ? null : c.valor.toString(),
+    tipoValor: c.tipoValor,
+    restante: c.restante,
+  };
+}
+
 /** Serializa uma lista de condições de forma estável (ordenada por id), pra comparar sem falso positivo por ordem de array. */
 function normalizarCondicoes(condicoes: CondicaoPagamentoEmpreendimento[]) {
-  return JSON.stringify(
-    [...condicoes]
-      .sort((a, b) => a.id.localeCompare(b.id))
-      .map((c) => ({
-        id: c.id,
-        rotulo: c.rotulo,
-        periodicidade: c.periodicidade,
-        quantidade: c.quantidade,
-        valor: c.valor.toString(),
-        tipoValor: c.tipoValor,
-      }))
-  );
+  return JSON.stringify([...condicoes].sort((a, b) => a.id.localeCompare(b.id)).map(serializarCondicao));
 }
 
 /**
@@ -57,22 +58,8 @@ export async function registrarHistoricoPlanoPagamento(
       empreendimentoId,
       valorBaseAnterior,
       valorBaseNovo,
-      condicoesAnteriores: condicoesAnteriores.map((c) => ({
-        id: c.id,
-        rotulo: c.rotulo,
-        periodicidade: c.periodicidade,
-        quantidade: c.quantidade,
-        valor: c.valor.toString(),
-        tipoValor: c.tipoValor,
-      })),
-      condicoesNovas: condicoesNovas.map((c) => ({
-        id: c.id,
-        rotulo: c.rotulo,
-        periodicidade: c.periodicidade,
-        quantidade: c.quantidade,
-        valor: c.valor.toString(),
-        tipoValor: c.tipoValor,
-      })),
+      condicoesAnteriores: condicoesAnteriores.map(serializarCondicao),
+      condicoesNovas: condicoesNovas.map(serializarCondicao),
       autorId,
       motivo,
     },

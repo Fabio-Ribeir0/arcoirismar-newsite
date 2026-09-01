@@ -70,16 +70,18 @@ export default async function EditarEmpreendimentoPage({
     rotulo: c.rotulo,
     periodicidade: c.periodicidade,
     quantidade: c.quantidade,
-    valor: Number(c.valor),
+    valor: c.valor === null ? null : Number(c.valor),
     tipoValor: c.tipoValor,
+    restante: c.restante,
   }));
   const condicaoRows: CondicaoPagamentoRow[] = empreendimento.condicoesPagamento.map((c) => ({
     id: c.id,
     rotulo: c.rotulo,
     periodicidade: c.periodicidade,
     quantidade: c.quantidade,
-    valor: c.valor.toString(),
+    valor: c.valor === null ? null : c.valor.toString(),
     tipoValor: c.tipoValor,
+    restante: c.restante,
     ordem: c.ordem,
   }));
 
@@ -323,11 +325,13 @@ type CondicaoSnapshot = {
   rotulo: string | null;
   periodicidade: keyof typeof PERIODICIDADE_LABEL;
   quantidade: number;
-  valor: string;
+  valor: string | null;
   tipoValor: "PERCENTUAL" | "FIXO";
+  restante: boolean;
 };
 
-function formatCondicaoValor(c: Pick<CondicaoSnapshot, "quantidade" | "valor" | "tipoValor">) {
+function formatCondicaoValor(c: Pick<CondicaoSnapshot, "quantidade" | "valor" | "tipoValor" | "restante">) {
+  if (c.restante) return `${c.quantidade}x saldo restante`;
   const valor =
     c.tipoValor === "FIXO"
       ? Number(c.valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
@@ -359,7 +363,8 @@ function descricaoCondicoes(anteriores: unknown, novas: unknown): string[] {
       anterior.periodicidade !== c.periodicidade ||
       anterior.quantidade !== c.quantidade ||
       Number(anterior.valor) !== Number(c.valor) ||
-      anterior.tipoValor !== c.tipoValor
+      anterior.tipoValor !== c.tipoValor ||
+      anterior.restante !== c.restante
     ) {
       partes.push(`${rotulo}: ${formatCondicaoValor(anterior)} → ${formatCondicaoValor(c)}`);
     }

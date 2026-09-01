@@ -27,8 +27,12 @@ export type CondicaoPagamento = {
   rotulo: string | null;
   periodicidade: PeriodicidadeCondicao;
   quantidade: number;
-  valor: number;
+  /** Nulo quando `restante` é true — nesse caso o valor é sempre calculado. */
+  valor: number | null;
   tipoValor: TipoValorPlano;
+  /** Quando true, ignora `valor`/`tipoValor`: o valor de cada parcela vira o que sobrar
+   *  do preço depois de todas as outras condições, dividido pela quantidade. */
+  restante: boolean;
 };
 
 /** Percentual do preço, ou o próprio valor quando já é um valor fixo em R$. */
@@ -44,13 +48,30 @@ export type CondicaoPagamentoCalculada = CondicaoPagamento & {
   valorTotal: number;
 };
 
-/** Aplica a lista de condições de pagamento do empreendimento ao preço de uma unidade. */
+/**
+ * Aplica a lista de condições de pagamento do empreendimento ao preço de uma unidade.
+ * Duas passadas: primeiro soma o comprometido pelas condições com valor explícito, depois
+ * divide o que sobrar do preço entre as condições marcadas como `restante` (se houver mais
+ * de uma, cada uma recebe uma fração do saldo proporcional à sua própria quantidade — o caso
+ * comum é ter só uma).
+ */
 export function calcularCondicoesPagamentoUnidade(
   preco: number,
   condicoes: CondicaoPagamento[]
 ): CondicaoPagamentoCalculada[] {
+  const explicitas = condicoes.filter((c) => !c.restante);
+  const comprometido = explicitas.reduce(
+    (soma, c) => soma + valorAbsoluto(preco, c.valor ?? 0, c.tipoValor) * c.quantidade,
+    0
+  );
+  const quantidadeTotalRestante = condicoes
+    .filter((c) => c.restante)
+    .reduce((soma, c) => soma + c.quantidade, 0);
+  const saldo = Math.max(0, preco - comprometido);
+  const valorParcelaRestante = quantidadeTotalRestante > 0 ? saldo / quantidadeTotalRestante : 0;
+
   return condicoes.map((c) => {
-    const valorParcela = valorAbsoluto(preco, c.valor, c.tipoValor);
+    const valorParcela = c.restante ? valorParcelaRestante : valorAbsoluto(preco, c.valor ?? 0, c.tipoValor);
     return {
       ...c,
       rotuloExibicao: c.rotulo ?? PERIODICIDADE_LABEL[c.periodicidade],

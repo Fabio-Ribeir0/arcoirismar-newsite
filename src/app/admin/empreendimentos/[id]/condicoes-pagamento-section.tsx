@@ -18,8 +18,9 @@ export type CondicaoPagamentoRow = {
   rotulo: string | null;
   periodicidade: (typeof PERIODICIDADE_OPCOES)[number];
   quantidade: number;
-  valor: string;
+  valor: string | null;
   tipoValor: "PERCENTUAL" | "FIXO";
+  restante: boolean;
   ordem: number;
 };
 
@@ -28,12 +29,17 @@ const formatCurrency = (value: number) => value.toLocaleString("pt-BR", { style:
 function resumoSoma(condicoes: CondicaoPagamentoRow[]) {
   let somaPercentual = 0;
   let somaFixa = 0;
+  let temRestante = false;
   for (const c of condicoes) {
+    if (c.restante) {
+      temRestante = true;
+      continue;
+    }
     const total = Number(c.valor) * c.quantidade;
     if (c.tipoValor === "PERCENTUAL") somaPercentual += total;
     else somaFixa += total;
   }
-  return { somaPercentual, somaFixa };
+  return { somaPercentual, somaFixa, temRestante };
 }
 
 export function CondicoesPagamentoSection({
@@ -43,8 +49,10 @@ export function CondicoesPagamentoSection({
   empreendimentoId: string;
   condicoes: CondicaoPagamentoRow[];
 }) {
-  const { somaPercentual, somaFixa } = resumoSoma(condicoes);
-  const somaDestoante = condicoes.length > 0 && Math.abs(somaPercentual - 100) > 0.5;
+  const { somaPercentual, somaFixa, temRestante } = resumoSoma(condicoes);
+  // Com uma condição de saldo restante, a soma das explícitas ficar abaixo de 100% é
+  // esperado — o resto é justamente o que a condição de saldo absorve.
+  const somaDestoante = condicoes.length > 0 && !temRestante && Math.abs(somaPercentual - 100) > 0.5;
 
   return (
     <div className="space-y-4 rounded-xl border border-line bg-white p-8">
@@ -83,6 +91,7 @@ export function CondicoesPagamentoSection({
         <p className={`text-sm ${somaDestoante ? "text-accent" : "text-ink/50"}`}>
           Soma dos percentuais: {somaPercentual.toFixed(2)}%
           {somaFixa > 0 && ` · valores fixos: ${formatCurrency(somaFixa)}`}
+          {temRestante && " · + saldo restante (calculado por unidade)"}
           {somaDestoante && " — parece incompleta ou passar do preço, confira."}
         </p>
       )}
@@ -131,7 +140,11 @@ function CondicaoItemRow({
       <td className="px-4 py-2 text-ink/70">{PERIODICIDADE_LABEL[condicao.periodicidade]}</td>
       <td className="px-4 py-2 text-ink/70">{ehAto ? "—" : condicao.quantidade}</td>
       <td className="px-4 py-2 text-ink/70">
-        {condicao.tipoValor === "PERCENTUAL" ? `${Number(condicao.valor).toFixed(2)}%` : formatCurrency(Number(condicao.valor))}
+        {condicao.restante
+          ? "Saldo restante"
+          : condicao.tipoValor === "PERCENTUAL"
+            ? `${Number(condicao.valor).toFixed(2)}%`
+            : formatCurrency(Number(condicao.valor))}
       </td>
       <td className="px-4 py-2 text-ink/70">{condicao.ordem}</td>
       <td className="px-4 py-2 text-right">
@@ -169,6 +182,7 @@ function CondicaoForm({
   const router = useRouter();
   const [state, action, pending] = useActionState<CondicaoPagamentoFormState, FormData>(formAction, undefined);
   const [periodicidade, setPeriodicidade] = useState(defaultValues?.periodicidade ?? "ATO_ASSINATURA");
+  const [restante, setRestante] = useState(defaultValues?.restante ?? false);
   const ehAto = PERIODICIDADES_ATO.includes(periodicidade);
 
   useEffect(() => {
@@ -225,17 +239,39 @@ function CondicaoForm({
             </p>
           ))}
         </div>
-        <CampoValorTipo
-          label="Valor"
-          nomeValor="valor"
-          nomeTipo="tipoValor"
-          defaultValue={defaultValues?.valor}
-          defaultTipo={defaultValues?.tipoValor}
-          errosValor={errors?.valor}
-          hintPercentual="% do preço da unidade, por parcela."
-          hintFixo="Valor fixo em R$, por parcela."
-        />
+        <div className="space-y-1.5">
+          {restante ? (
+            <>
+              <label className="text-sm font-medium text-ink">Valor</label>
+              <p className="rounded-md border border-dashed border-line bg-mist px-3 py-2 text-sm text-ink/60">
+                Calculado: preço da unidade menos as outras condições
+              </p>
+            </>
+          ) : (
+            <CampoValorTipo
+              label="Valor"
+              nomeValor="valor"
+              nomeTipo="tipoValor"
+              defaultValue={defaultValues?.valor}
+              defaultTipo={defaultValues?.tipoValor}
+              errosValor={errors?.valor}
+              hintPercentual="% do preço da unidade, por parcela."
+              hintFixo="Valor fixo em R$, por parcela."
+            />
+          )}
+        </div>
       </div>
+
+      <label className="flex items-center gap-2 text-sm text-ink">
+        <input
+          type="checkbox"
+          name="restante"
+          checked={restante}
+          onChange={(e) => setRestante(e.target.checked)}
+          className="size-4 rounded border-line"
+        />
+        Saldo restante — divide o que sobrar do preço da unidade pela quantidade, em vez de um valor fixo
+      </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">

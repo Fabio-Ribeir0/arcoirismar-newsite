@@ -110,25 +110,34 @@ export const PERIODICIDADE_OPCOES = [
   "ANUAL",
 ] as const;
 
-export const CondicaoPagamentoSchema = z.object({
-  rotulo: z.string().trim().optional().or(z.literal("")),
-  periodicidade: z.enum(PERIODICIDADE_OPCOES, { error: "Selecione quando esta condição é cobrada." }),
-  quantidade: z
-    .string()
-    .trim()
-    .regex(/^\d+$/, { error: "Informe um número inteiro." }),
-  valor: z
-    .string()
-    .trim()
-    .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um valor válido (ex.: 20.00)." }),
-  tipoValor: z.enum(["PERCENTUAL", "FIXO"]),
-  ordem: z
-    .string()
-    .trim()
-    .regex(/^\d+$/, { error: "Informe um número inteiro." })
-    .optional()
-    .or(z.literal("")),
-  motivo: z.string().trim().optional().or(z.literal("")),
-});
+export const CondicaoPagamentoSchema = z
+  .object({
+    rotulo: z.string().trim().optional().or(z.literal("")),
+    periodicidade: z.enum(PERIODICIDADE_OPCOES, { error: "Selecione quando esta condição é cobrada." }),
+    quantidade: z
+      .string()
+      .trim()
+      .regex(/^\d+$/, { error: "Informe um número inteiro." }),
+    // Vazio quando "restante" está marcado — o valor é calculado, não digitado.
+    valor: z
+      .string()
+      .trim()
+      .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um valor válido (ex.: 20.00)." })
+      .optional()
+      .or(z.literal("")),
+    tipoValor: z.enum(["PERCENTUAL", "FIXO"]),
+    restante: z.string().optional().or(z.literal("")),
+    ordem: z
+      .string()
+      .trim()
+      .regex(/^\d+$/, { error: "Informe um número inteiro." })
+      .optional()
+      .or(z.literal("")),
+    motivo: z.string().trim().optional().or(z.literal("")),
+  })
+  .refine((data) => data.restante === "on" || !!data.valor, {
+    error: "Informe o valor, ou marque \"Saldo restante\".",
+    path: ["valor"],
+  });
 
 export type CondicaoPagamentoInput = z.infer<typeof CondicaoPagamentoSchema>;
