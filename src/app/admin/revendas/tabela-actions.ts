@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/dal";
 import { supabaseAdmin, EMPREENDIMENTOS_BUCKET } from "@/lib/supabase-admin";
 import { gerarRevendasPdf } from "@/lib/pdf/gerar-revendas-pdf";
+import { linhas } from "@/lib/pdf/templates-revenda/helpers";
 
 const ID_CONFIG = "configuracao-revenda";
 
@@ -48,6 +49,7 @@ export async function gerarTabelaRevendas(
   const unidades = await prisma.unidadeRevenda.findMany({
     where: { status: { in: ["DISPONIVEL", "RESERVADA"] } },
     orderBy: [{ ordem: "asc" }, { createdAt: "asc" }],
+    include: { fotos: { orderBy: { ordem: "asc" } } },
   });
 
   const config = await prisma.configuracaoRevenda.findUnique({ where: { id: ID_CONFIG } });
@@ -58,13 +60,34 @@ export async function gerarTabelaRevendas(
     const resultado = await gerarRevendasPdf({
       capaUrl: config?.capaTabelaUrl ?? null,
       unidades: unidades.map((u) => ({
-        nome: [u.nome, u.numeroUnidade].filter(Boolean).join(" — "),
+        nome: u.nome,
+        numeroUnidade: u.numeroUnidade,
+        torre: u.torre,
+        tagline: u.tagline,
+        bairro: u.bairro,
+        cidade: u.cidade,
+        estado: u.estado,
+        endereco: u.endereco,
+        numeroEndereco: u.numeroEndereco,
+        localizacaoNota: u.localizacaoNota,
+        valor: Number(u.valor),
+        areaPrivativa: u.areaPrivativa === null ? null : Number(u.areaPrivativa),
+        dormitorios: u.dormitorios,
+        suites: u.suites,
+        vagas: u.vagas,
+        andar: u.andar,
+        elevadores: u.elevadores,
+        entregaPrevista: u.entregaPrevista,
+        diferencial: u.diferencial,
+        descricao: u.descricao,
+        amenidades: linhas(u.amenidades),
+        condicoesPagamento: linhas(u.condicoesPagamento),
+        corretorNome: u.corretorNome,
+        corretorTelefone: u.corretorTelefone,
+        corretorEmail: u.corretorEmail,
+        fotos: u.fotos.map((f) => ({ url: f.url, legenda: f.legenda })),
+        template: u.template,
         reservada: u.status === "RESERVADA",
-        cabecalhoHtml: u.cabecalhoHtml ?? "",
-        sobreHtml: u.sobreHtml ?? "",
-        financeiroHtml: u.financeiroHtml ?? "",
-        infoAdicionaisHtml: u.infoAdicionaisHtml ?? "",
-        rodapeHtml: u.rodapeHtml ?? "",
       })),
     });
     pdf = resultado.bytes;

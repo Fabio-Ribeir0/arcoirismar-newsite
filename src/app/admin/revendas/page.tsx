@@ -8,7 +8,10 @@ export const maxDuration = 60;
 
 export default async function RevendasPage() {
   const [unidades, config] = await Promise.all([
-    prisma.unidadeRevenda.findMany({ orderBy: [{ ordem: "asc" }, { createdAt: "asc" }] }),
+    prisma.unidadeRevenda.findMany({
+      orderBy: [{ ordem: "asc" }, { createdAt: "asc" }],
+      include: { fotos: { orderBy: { ordem: "asc" } } },
+    }),
     prisma.configuracaoRevenda.findUnique({ where: { id: "configuracao-revenda" } }),
   ]);
 
@@ -18,6 +21,7 @@ export default async function RevendasPage() {
     numeroUnidade: u.numeroUnidade,
     valor: u.valor.toString(),
     status: u.status,
+    template: u.template,
     endereco: u.endereco,
     numeroEndereco: u.numeroEndereco,
     cep: u.cep,
@@ -26,11 +30,24 @@ export default async function RevendasPage() {
     estado: u.estado,
     latitude: u.latitude?.toString() ?? null,
     longitude: u.longitude?.toString() ?? null,
-    cabecalhoHtml: u.cabecalhoHtml ?? "",
-    sobreHtml: u.sobreHtml ?? "",
-    financeiroHtml: u.financeiroHtml ?? "",
-    infoAdicionaisHtml: u.infoAdicionaisHtml ?? "",
-    rodapeHtml: u.rodapeHtml ?? "",
+    torre: u.torre,
+    tagline: u.tagline,
+    areaPrivativa: u.areaPrivativa === null ? null : u.areaPrivativa.toString(),
+    dormitorios: u.dormitorios,
+    suites: u.suites,
+    vagas: u.vagas,
+    andar: u.andar,
+    elevadores: u.elevadores,
+    entregaPrevista: u.entregaPrevista,
+    diferencial: u.diferencial,
+    descricao: u.descricao,
+    amenidades: u.amenidades,
+    condicoesPagamento: u.condicoesPagamento,
+    localizacaoNota: u.localizacaoNota,
+    corretorNome: u.corretorNome,
+    corretorTelefone: u.corretorTelefone,
+    corretorEmail: u.corretorEmail,
+    fotos: u.fotos.map((f) => ({ id: f.id, url: f.url, legenda: f.legenda, ordem: f.ordem })),
   }));
 
   const configRow: ConfiguracaoRevendaRow = {

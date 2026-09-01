@@ -560,6 +560,17 @@ enum RevendaStatus {
   VENDIDA
 }
 
+/// Um dos 6 layouts visuais desenhados para a página de unidade de revenda no PDF —
+/// ver src/lib/pdf/templates-revenda/. Nome do arquivo de origem entre parênteses.
+enum TemplateRevenda {
+  EDITORIAL   // mockup-editorial.html
+  INFOGRAFICO // mockup-infographic.html
+  BROCHURA    // mockup-brochure.html
+  CARTAZ      // mockup-poster.html
+  MOSAICO     // mockup-mosaic.html
+  DUPLA       // mockup-duo.html
+}
+
 /// Unidade de terceiro recebida como pagamento e colocada à revenda. Não pertence
 /// a nenhum Empreendimento (pode ser um apartamento de outro prédio, um sobrado,
 /// uma casa), por isso é um modelo próprio e não uma Unidade.
@@ -583,14 +594,38 @@ model UnidadeRevenda {
   latitude       Float?
   longitude      Float?
 
-  // --- Conteúdo da página desta unidade no PDF (rich text) ---
-  /// Ocupa toda a faixa superior da página: imagens, nome e demais informações
-  /// entram como HTML, sem slots fixos de foto.
-  cabecalhoHtml      String? @db.Text
-  sobreHtml          String? @db.Text
-  financeiroHtml     String? @db.Text
-  infoAdicionaisHtml String? @db.Text
-  rodapeHtml         String? @db.Text
+  /// Layout usado para gerar a página desta unidade no PDF
+  template TemplateRevenda @default(EDITORIAL)
+
+  /// Bloco/torre — opcional, ex.: "Torre A". Casas e a maioria das revendas ficam em branco.
+  torre String?
+  /// Frase curta de efeito, opcional — nem todo template exibe.
+  tagline String? @db.Text
+
+  // --- Ficha técnica: todos opcionais, cada um vira uma linha só se preenchido ---
+  areaPrivativa   Decimal? @db.Decimal(8, 2)
+  dormitorios     Int?
+  suites          Int?
+  vagas           Int?
+  andar           String?
+  elevadores      Int?
+  /// Texto livre: ano futuro, "Pronto para morar" etc.
+  entregaPrevista String?
+  /// Ex.: "Sacada gourmet c/ churrasqueira"
+  diferencial     String?
+
+  descricao String? @db.Text
+
+  /// Um item por linha — sem tabela de relação: é só uma lista curta editada em bloco.
+  amenidades         String? @db.Text
+  condicoesPagamento String? @db.Text
+  localizacaoNota    String? @db.Text
+
+  corretorNome     String?
+  corretorTelefone String?
+  corretorEmail    String?
+
+  fotos FotoRevenda[]
 
   /// Ordem da página dentro do PDF — sem UI de reordenação por enquanto
   ordem Int @default(0)
@@ -600,6 +635,23 @@ model UnidadeRevenda {
 
   @@index([status])
   @@map("unidades_revenda")
+}
+
+/// Galeria ordenada de fotos de uma unidade de revenda — cada template consome quantas
+/// fotos precisar, na ordem; posições sem foto caem no placeholder decorativo do template.
+model FotoRevenda {
+  id        String  @id @default(cuid())
+  unidadeId String
+  url       String
+  legenda   String?
+  ordem     Int     @default(0)
+
+  unidade UnidadeRevenda @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([unidadeId, ordem])
+  @@map("fotos_revenda")
 }
 
 /// Linha única (singleton, id fixo — mesmo padrão de ConteudoSite): o que vale para

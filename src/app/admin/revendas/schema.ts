@@ -15,7 +15,32 @@ export const REVENDA_STATUS_STYLE: Record<string, string> = {
   VENDIDA: "bg-ink/10 text-ink/60",
 };
 
+export const TEMPLATE_REVENDA_OPCOES = [
+  "EDITORIAL",
+  "INFOGRAFICO",
+  "BROCHURA",
+  "CARTAZ",
+  "MOSAICO",
+  "DUPLA",
+] as const;
+
+export const TEMPLATE_REVENDA_LABEL: Record<(typeof TEMPLATE_REVENDA_OPCOES)[number], string> = {
+  EDITORIAL: "Editorial",
+  INFOGRAFICO: "Infográfico",
+  BROCHURA: "Brochura",
+  CARTAZ: "Cartaz",
+  MOSAICO: "Mosaico",
+  DUPLA: "Dupla (split)",
+};
+
 const opcional = z.string().trim().optional().or(z.literal(""));
+
+const inteiroOpcional = z
+  .string()
+  .trim()
+  .regex(/^\d+$/, { error: "Informe um número inteiro." })
+  .optional()
+  .or(z.literal(""));
 
 const coordenada = z
   .string()
@@ -32,6 +57,7 @@ export const RevendaSchema = z.object({
     .trim()
     .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um valor válido (ex.: 350000.00)." }),
   status: z.enum(REVENDA_STATUS, { error: "Selecione um status válido." }),
+  template: z.enum(TEMPLATE_REVENDA_OPCOES, { error: "Selecione um template." }),
 
   endereco: opcional,
   numeroEndereco: opcional,
@@ -41,6 +67,32 @@ export const RevendaSchema = z.object({
   estado: opcional,
   latitude: coordenada,
   longitude: coordenada,
+
+  torre: opcional,
+  tagline: opcional,
+
+  areaPrivativa: z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe uma área válida (ex.: 73.5)." })
+    .optional()
+    .or(z.literal("")),
+  dormitorios: inteiroOpcional,
+  suites: inteiroOpcional,
+  vagas: inteiroOpcional,
+  andar: opcional,
+  elevadores: inteiroOpcional,
+  entregaPrevista: opcional,
+  diferencial: opcional,
+
+  descricao: opcional,
+  amenidades: opcional,
+  condicoesPagamento: opcional,
+  localizacaoNota: opcional,
+
+  corretorNome: opcional,
+  corretorTelefone: opcional,
+  corretorEmail: opcional,
 });
 
 export type RevendaInput = z.infer<typeof RevendaSchema>;

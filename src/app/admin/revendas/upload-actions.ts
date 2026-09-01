@@ -58,38 +58,6 @@ function validarImagem(contentType: string, size: number): string | null {
 }
 
 // ---------------------------------------------------------------------------
-// Imagem inserida dentro dos blocos rich text
-// ---------------------------------------------------------------------------
-
-export async function prepararUploadImagemRevenda(
-  unidadeId: string,
-  contentType: string,
-  size: number
-): Promise<PrepararUploadResult> {
-  await requireAdmin();
-
-  const extensao = validarImagem(contentType, size);
-  if (!extensao) {
-    return { success: false, message: "Use PNG, JPEG ou WebP de até 5MB." };
-  }
-
-  return urlAssinada(`${PREFIXO}/${unidadeId}/conteudo-${Date.now()}.${extensao}`);
-}
-
-export async function confirmarUploadImagemRevenda(
-  unidadeId: string,
-  path: string
-): Promise<ConfirmarUploadResult> {
-  await requireAdmin();
-
-  if (!path.startsWith(`${PREFIXO}/${unidadeId}/conteudo-`)) {
-    return { success: false, message: "Caminho de upload inválido." };
-  }
-
-  return { success: true, url: urlPublica(path) };
-}
-
-// ---------------------------------------------------------------------------
 // Capa da tabela (vale para a tabela inteira, não por unidade)
 // ---------------------------------------------------------------------------
 

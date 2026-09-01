@@ -1,20 +1,19 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Tabs } from "@/components/admin/tabs";
-import { RichTextEditor } from "@/components/admin/rich-text-editor";
-import { REVENDA_STATUS, REVENDA_STATUS_LABEL } from "./schema";
+import { REVENDA_STATUS, REVENDA_STATUS_LABEL, TEMPLATE_REVENDA_OPCOES, TEMPLATE_REVENDA_LABEL } from "./schema";
+import { criarUnidadeRevenda, atualizarUnidadeRevenda, type RevendaFormState } from "./actions";
 import {
-  criarUnidadeRevenda,
-  atualizarUnidadeRevenda,
-  salvarConteudoTabelaRevenda,
-  type RevendaFormState,
-  type ConteudoTabelaState,
-} from "./actions";
-import { criarUploadImagemRevenda } from "./upload-imagem-revenda";
-import type { UnidadeRevendaRow } from "./tipos";
+  atualizarFotoRevenda,
+  confirmarUploadFotoRevenda,
+  excluirFotoRevenda,
+  prepararUploadFotoRevenda,
+} from "./fotos-actions";
+import { enviarArquivoDireto } from "@/lib/upload-direto";
+import type { FotoRevendaRow, UnidadeRevendaRow } from "./tipos";
 
 const MapaLocalizacao = dynamic(
   () => import("../empreendimentos/mapa-localizacao").then((mod) => mod.MapaLocalizacao),
@@ -23,19 +22,6 @@ const MapaLocalizacao = dynamic(
 
 // Prefixo dos ids dos campos de endereço lidos pelo botão "Buscar coordenadas".
 const PREFIXO_IDS = "rev-";
-
-const BLOCOS_TABELA = [
-  {
-    name: "cabecalhoHtml",
-    label: "Cabeçalho",
-    campo: "cabecalhoHtml",
-    hint: "Ocupa toda a faixa superior da página. Insira aqui as imagens, o nome e as demais informações do empreendimento.",
-  },
-  { name: "sobreHtml", label: "Sobre", campo: "sobreHtml", hint: null },
-  { name: "financeiroHtml", label: "Financeiro", campo: "financeiroHtml", hint: null },
-  { name: "infoAdicionaisHtml", label: "Informações adicionais", campo: "infoAdicionaisHtml", hint: null },
-  { name: "rodapeHtml", label: "Rodapé", campo: "rodapeHtml", hint: null },
-] as const;
 
 export function UnidadeModal({
   unidade,
@@ -69,7 +55,7 @@ export function UnidadeModal({
   const mensagem = state?.success === false ? state.message : undefined;
 
   const detalhes = (
-    <form action={formAction} className="space-y-5">
+    <form action={formAction} className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
         <Campo
           id={`${PREFIXO_IDS}nome`}
@@ -97,89 +83,254 @@ export function UnidadeModal({
         />
       </div>
 
-      <div className="space-y-1.5">
-        <label htmlFor={`${PREFIXO_IDS}status`} className="text-sm font-medium text-ink">
-          Status
-        </label>
-        <select
-          id={`${PREFIXO_IDS}status`}
-          name="status"
-          defaultValue={unidade?.status ?? "DISPONIVEL"}
-          className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
-        >
-          {REVENDA_STATUS.map((valor) => (
-            <option key={valor} value={valor}>
-              {REVENDA_STATUS_LABEL[valor]}
-            </option>
-          ))}
-        </select>
-        <p className="text-xs text-ink/50">
-          Só unidades Disponíveis e Reservadas entram na tabela em PDF.
-        </p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label htmlFor={`${PREFIXO_IDS}status`} className="text-sm font-medium text-ink">
+            Status
+          </label>
+          <select
+            id={`${PREFIXO_IDS}status`}
+            name="status"
+            defaultValue={unidade?.status ?? "DISPONIVEL"}
+            className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
+          >
+            {REVENDA_STATUS.map((valor) => (
+              <option key={valor} value={valor}>
+                {REVENDA_STATUS_LABEL[valor]}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-ink/50">Só unidades Disponíveis e Reservadas entram na tabela em PDF.</p>
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor={`${PREFIXO_IDS}template`} className="text-sm font-medium text-ink">
+            Template da página no PDF
+          </label>
+          <select
+            id={`${PREFIXO_IDS}template`}
+            name="template"
+            defaultValue={unidade?.template ?? "EDITORIAL"}
+            className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
+          >
+            {TEMPLATE_REVENDA_OPCOES.map((valor) => (
+              <option key={valor} value={valor}>
+                {TEMPLATE_REVENDA_LABEL[valor]}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Campo
-          id={`${PREFIXO_IDS}endereco`}
-          name="endereco"
-          label="Rua"
-          defaultValue={unidade?.endereco}
-          errors={errors?.endereco}
+          id={`${PREFIXO_IDS}torre`}
+          name="torre"
+          label="Torre / bloco (opcional)"
+          defaultValue={unidade?.torre}
+          errors={errors?.torre}
         />
-        <div className="grid grid-cols-2 gap-4">
-          <Campo
-            id={`${PREFIXO_IDS}numeroEndereco`}
-            name="numeroEndereco"
-            label="Número"
-            defaultValue={unidade?.numeroEndereco}
-            errors={errors?.numeroEndereco}
-          />
-          <Campo
-            id={`${PREFIXO_IDS}cep`}
-            name="cep"
-            label="CEP"
-            defaultValue={unidade?.cep}
-            errors={errors?.cep}
-          />
-        </div>
         <Campo
-          id={`${PREFIXO_IDS}bairro`}
-          name="bairro"
-          label="Bairro"
-          defaultValue={unidade?.bairro}
-          errors={errors?.bairro}
+          id={`${PREFIXO_IDS}tagline`}
+          name="tagline"
+          label="Frase de efeito (opcional)"
+          defaultValue={unidade?.tagline}
+          errors={errors?.tagline}
+          hint="Nem todo template exibe."
         />
-        <div className="grid grid-cols-2 gap-4">
-          <Campo
-            id={`${PREFIXO_IDS}cidade`}
-            name="cidade"
-            label="Cidade"
-            defaultValue={unidade?.cidade}
-            errors={errors?.cidade}
-          />
-          <Campo
-            id={`${PREFIXO_IDS}estado`}
-            name="estado"
-            label="Estado"
-            defaultValue={unidade?.estado}
-            errors={errors?.estado}
-          />
-        </div>
       </div>
 
-      <MapaLocalizacao
-        prefixoIds={PREFIXO_IDS}
-        latitudeInicial={unidade?.latitude}
-        longitudeInicial={unidade?.longitude}
-        errosLatitude={errors?.latitude}
-        errosLongitude={errors?.longitude}
+      <fieldset className="space-y-4 rounded-lg border border-line p-4">
+        <legend className="px-1 text-sm font-medium text-ink">Ficha técnica</legend>
+        <div className="grid gap-4 sm:grid-cols-4">
+          <Campo
+            id={`${PREFIXO_IDS}areaPrivativa`}
+            name="areaPrivativa"
+            label="Área privativa (m²)"
+            defaultValue={unidade?.areaPrivativa}
+            errors={errors?.areaPrivativa}
+          />
+          <Campo
+            id={`${PREFIXO_IDS}dormitorios`}
+            name="dormitorios"
+            label="Dormitórios"
+            defaultValue={unidade?.dormitorios?.toString()}
+            errors={errors?.dormitorios}
+          />
+          <Campo
+            id={`${PREFIXO_IDS}suites`}
+            name="suites"
+            label="Suítes"
+            defaultValue={unidade?.suites?.toString()}
+            errors={errors?.suites}
+          />
+          <Campo
+            id={`${PREFIXO_IDS}vagas`}
+            name="vagas"
+            label="Vagas de garagem"
+            defaultValue={unidade?.vagas?.toString()}
+            errors={errors?.vagas}
+          />
+          <Campo
+            id={`${PREFIXO_IDS}andar`}
+            name="andar"
+            label="Andar"
+            defaultValue={unidade?.andar}
+            errors={errors?.andar}
+          />
+          <Campo
+            id={`${PREFIXO_IDS}elevadores`}
+            name="elevadores"
+            label="Elevadores"
+            defaultValue={unidade?.elevadores?.toString()}
+            errors={errors?.elevadores}
+          />
+          <Campo
+            id={`${PREFIXO_IDS}entregaPrevista`}
+            name="entregaPrevista"
+            label="Entrega prevista"
+            defaultValue={unidade?.entregaPrevista}
+            errors={errors?.entregaPrevista}
+            hint='Ex.: "2028" ou "Pronto para morar"'
+          />
+          <Campo
+            id={`${PREFIXO_IDS}diferencial`}
+            name="diferencial"
+            label="Diferencial"
+            defaultValue={unidade?.diferencial}
+            errors={errors?.diferencial}
+            hint='Ex.: "Sacada gourmet"'
+          />
+        </div>
+      </fieldset>
+
+      <TextArea
+        id={`${PREFIXO_IDS}descricao`}
+        name="descricao"
+        label="Descrição (opcional)"
+        defaultValue={unidade?.descricao}
+        errors={errors?.descricao}
+        rows={4}
       />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextArea
+          id={`${PREFIXO_IDS}amenidades`}
+          name="amenidades"
+          label="Área de lazer (opcional)"
+          defaultValue={unidade?.amenidades}
+          errors={errors?.amenidades}
+          hint="Um item por linha."
+        />
+        <TextArea
+          id={`${PREFIXO_IDS}condicoesPagamento`}
+          name="condicoesPagamento"
+          label="Condições de pagamento (opcional)"
+          defaultValue={unidade?.condicoesPagamento}
+          errors={errors?.condicoesPagamento}
+          hint="Um item por linha."
+        />
+      </div>
+
+      <fieldset className="space-y-4 rounded-lg border border-line p-4">
+        <legend className="px-1 text-sm font-medium text-ink">Localização</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Campo
+            id={`${PREFIXO_IDS}endereco`}
+            name="endereco"
+            label="Rua"
+            defaultValue={unidade?.endereco}
+            errors={errors?.endereco}
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <Campo
+              id={`${PREFIXO_IDS}numeroEndereco`}
+              name="numeroEndereco"
+              label="Número"
+              defaultValue={unidade?.numeroEndereco}
+              errors={errors?.numeroEndereco}
+            />
+            <Campo
+              id={`${PREFIXO_IDS}cep`}
+              name="cep"
+              label="CEP"
+              defaultValue={unidade?.cep}
+              errors={errors?.cep}
+            />
+          </div>
+          <Campo
+            id={`${PREFIXO_IDS}bairro`}
+            name="bairro"
+            label="Bairro"
+            defaultValue={unidade?.bairro}
+            errors={errors?.bairro}
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <Campo
+              id={`${PREFIXO_IDS}cidade`}
+              name="cidade"
+              label="Cidade"
+              defaultValue={unidade?.cidade}
+              errors={errors?.cidade}
+            />
+            <Campo
+              id={`${PREFIXO_IDS}estado`}
+              name="estado"
+              label="Estado"
+              defaultValue={unidade?.estado}
+              errors={errors?.estado}
+            />
+          </div>
+        </div>
+
+        <TextArea
+          id={`${PREFIXO_IDS}localizacaoNota`}
+          name="localizacaoNota"
+          label="Nota sobre a região (opcional)"
+          defaultValue={unidade?.localizacaoNota}
+          errors={errors?.localizacaoNota}
+          rows={2}
+        />
+
+        <MapaLocalizacao
+          prefixoIds={PREFIXO_IDS}
+          latitudeInicial={unidade?.latitude}
+          longitudeInicial={unidade?.longitude}
+          errosLatitude={errors?.latitude}
+          errosLongitude={errors?.longitude}
+        />
+      </fieldset>
+
+      <fieldset className="space-y-4 rounded-lg border border-line p-4">
+        <legend className="px-1 text-sm font-medium text-ink">Corretor (opcional)</legend>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Campo
+            id={`${PREFIXO_IDS}corretorNome`}
+            name="corretorNome"
+            label="Nome"
+            defaultValue={unidade?.corretorNome}
+            errors={errors?.corretorNome}
+          />
+          <Campo
+            id={`${PREFIXO_IDS}corretorTelefone`}
+            name="corretorTelefone"
+            label="Telefone"
+            defaultValue={unidade?.corretorTelefone}
+            errors={errors?.corretorTelefone}
+          />
+          <Campo
+            id={`${PREFIXO_IDS}corretorEmail`}
+            name="corretorEmail"
+            label="E-mail"
+            defaultValue={unidade?.corretorEmail}
+            errors={errors?.corretorEmail}
+          />
+        </div>
+      </fieldset>
 
       {mensagem && <p className="text-sm text-red-600">{mensagem}</p>}
       {state?.success && (
         <p className="text-sm text-green-700">
-          Dados salvos.{" "}
-          {!unidade && "A aba Tabela já está liberada para o conteúdo do PDF."}
+          Dados salvos. {!unidade && "A aba Fotos já está liberada."}
         </p>
       )}
 
@@ -196,11 +347,7 @@ export function UnidadeModal({
   const abas = [{ id: "detalhes", label: "Detalhes", content: detalhes }];
 
   if (id) {
-    abas.push({
-      id: "tabela",
-      label: "Tabela",
-      content: <AbaTabela unidadeId={id} unidade={unidade} />,
-    });
+    abas.push({ id: "fotos", label: "Fotos", content: <AbaFotos unidadeId={id} fotosIniciais={unidade?.fotos ?? []} /> });
   }
 
   return (
@@ -213,8 +360,8 @@ export function UnidadeModal({
             </h2>
             {!id && (
               <p className="mt-1 text-sm text-ink/60">
-                Salve os detalhes para liberar a aba Tabela — o conteúdo do PDF precisa da
-                unidade já criada para receber imagens.
+                Salve os detalhes para liberar a aba Fotos — o envio de imagens precisa da
+                unidade já criada.
               </p>
             )}
           </div>
@@ -246,59 +393,145 @@ export function UnidadeModal({
   );
 }
 
-function AbaTabela({
-  unidadeId,
-  unidade,
-}: {
-  unidadeId: string;
-  unidade: UnidadeRevendaRow | null;
-}) {
-  const router = useRouter();
-  const [state, formAction, pending] = useActionState<ConteudoTabelaState, FormData>(
-    (prev, formData) => salvarConteudoTabelaRevenda(unidadeId, prev, formData),
-    undefined
+function AbaFotos({ unidadeId, fotosIniciais }: { unidadeId: string; fotosIniciais: FotoRevendaRow[] }) {
+  const [fotos, setFotos] = useState<FotoRevendaRow[]>(
+    [...fotosIniciais].sort((a, b) => a.ordem - b.ordem)
   );
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (state?.success) router.refresh();
-  }, [state, router]);
-
-  const uploadImagem = criarUploadImagemRevenda(unidadeId);
+  async function adicionarFoto(arquivo: File) {
+    setErro(null);
+    setEnviando(true);
+    const envio = await enviarArquivoDireto(arquivo, () =>
+      prepararUploadFotoRevenda(unidadeId, arquivo.type, arquivo.size)
+    );
+    if (!envio.ok) {
+      setErro(envio.message);
+      setEnviando(false);
+      return;
+    }
+    const confirmacao = await confirmarUploadFotoRevenda(unidadeId, envio.path);
+    setEnviando(false);
+    if (!confirmacao.success) {
+      setErro(confirmacao.message);
+      return;
+    }
+    setFotos((prev) => [...prev, confirmacao.foto]);
+  }
 
   return (
-    <div className="space-y-8">
-      <form action={formAction} className="space-y-6">
-        <div>
-          <h3 className="font-display text-lg font-medium text-primary">Conteúdo da página</h3>
-          <p className="text-sm text-ink/60">
-            Cada unidade ocupa uma página A4. Conteúdo que não couber no espaço do bloco é cortado
-            no PDF — a geração avisa quais blocos foram cortados.
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h3 className="font-display text-lg font-medium text-primary">Galeria de fotos</h3>
+        <p className="text-sm text-ink/60">
+          Cada template usa uma quantidade de fotos diferente, sempre nesta ordem — posições
+          sem foto ficam com um preenchimento decorativo no PDF.
+        </p>
+      </div>
 
-        {BLOCOS_TABELA.map((bloco) => (
-          <div key={bloco.name} className="space-y-1.5">
-            <RichTextEditor
-              name={bloco.name}
-              label={bloco.label}
-              defaultValueHtml={unidade?.[bloco.campo] ?? ""}
-              onUploadImagem={uploadImagem}
-            />
-            {bloco.hint && <p className="text-xs text-ink/50">{bloco.hint}</p>}
-          </div>
+      <div className="space-y-3">
+        {fotos.map((foto) => (
+          <FotoRow
+            key={foto.id}
+            foto={foto}
+            onAtualizar={(atualizada) =>
+              setFotos((prev) => prev.map((f) => (f.id === atualizada.id ? atualizada : f)))
+            }
+            onExcluir={(fotoId) => setFotos((prev) => prev.filter((f) => f.id !== fotoId))}
+          />
         ))}
+        {fotos.length === 0 && <p className="text-sm text-ink/50">Nenhuma foto enviada ainda.</p>}
+      </div>
 
-        {state?.success === false && <p className="text-sm text-red-600">{state.message}</p>}
-        {state?.success && <p className="text-sm text-green-700">Conteúdo salvo.</p>}
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium text-ink">Adicionar foto</label>
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          disabled={enviando}
+          onChange={(e) => {
+            const arquivo = e.target.files?.[0];
+            e.target.value = "";
+            if (arquivo) void adicionarFoto(arquivo);
+          }}
+          className="block w-full text-sm text-ink/70 file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-light"
+        />
+        {enviando && <p className="text-xs text-ink/50">Enviando...</p>}
+        {erro && <p className="text-sm text-red-600">{erro}</p>}
+      </div>
+    </div>
+  );
+}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-light disabled:opacity-60"
-        >
-          {pending ? "Salvando..." : "Salvar conteúdo"}
-        </button>
-      </form>
+function FotoRow({
+  foto,
+  onAtualizar,
+  onExcluir,
+}: {
+  foto: FotoRevendaRow;
+  onAtualizar: (foto: FotoRevendaRow) => void;
+  onExcluir: (fotoId: string) => void;
+}) {
+  const [legenda, setLegenda] = useState(foto.legenda ?? "");
+  const [ordem, setOrdem] = useState(String(foto.ordem));
+  const [salvando, setSalvando] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+
+  const alterado = legenda !== (foto.legenda ?? "") || ordem !== String(foto.ordem);
+
+  async function salvar() {
+    setSalvando(true);
+    const formData = new FormData();
+    formData.set("legenda", legenda);
+    formData.set("ordem", ordem);
+    const resultado = await atualizarFotoRevenda(foto.id, undefined, formData);
+    setSalvando(false);
+    if (resultado?.success) {
+      onAtualizar({ ...foto, legenda: legenda.trim() || null, ordem: Number(ordem) || foto.ordem });
+    }
+  }
+
+  async function excluir() {
+    if (!confirm("Excluir esta foto?")) return;
+    setExcluindo(true);
+    await excluirFotoRevenda(foto.id);
+    onExcluir(foto.id);
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-md border border-line p-3">
+      {/* eslint-disable-next-line @next/next/no-img-element -- miniatura de arquivo já hospedado no Storage */}
+      <img src={foto.url} alt="" className="h-16 w-16 flex-none rounded object-cover" />
+      <input
+        value={legenda}
+        onChange={(e) => setLegenda(e.target.value)}
+        placeholder="Legenda (opcional)"
+        className="flex-1 rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
+      />
+      <input
+        type="number"
+        min={0}
+        value={ordem}
+        onChange={(e) => setOrdem(e.target.value)}
+        className="w-16 rounded-md border border-line px-2 py-2 text-sm outline-none focus:border-primary"
+      />
+      <button
+        type="button"
+        onClick={salvar}
+        disabled={!alterado || salvando}
+        className="shrink-0 rounded-md border border-line px-3 py-2 text-sm font-medium text-ink transition hover:bg-mist disabled:opacity-40"
+      >
+        {salvando ? "Salvando..." : "Salvar"}
+      </button>
+      <button
+        type="button"
+        onClick={excluir}
+        disabled={excluindo}
+        className="shrink-0 text-sm font-medium text-red-600 hover:underline disabled:opacity-40"
+      >
+        Excluir
+      </button>
     </div>
   );
 }
@@ -327,6 +560,45 @@ function Campo({
         id={id}
         name={name}
         type="text"
+        defaultValue={defaultValue ?? ""}
+        className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
+      />
+      {hint && <p className="text-xs text-ink/50">{hint}</p>}
+      {errors?.map((erro) => (
+        <p key={erro} className="text-sm text-red-600">
+          {erro}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function TextArea({
+  id,
+  name,
+  label,
+  defaultValue,
+  errors,
+  hint,
+  rows = 3,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  defaultValue?: string | null;
+  errors?: string[];
+  hint?: string;
+  rows?: number;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="text-sm font-medium text-ink">
+        {label}
+      </label>
+      <textarea
+        id={id}
+        name={name}
+        rows={rows}
         defaultValue={defaultValue ?? ""}
         className="w-full rounded-md border border-line px-3 py-2 text-sm outline-none focus:border-primary"
       />

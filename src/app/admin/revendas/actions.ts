@@ -16,6 +16,7 @@ function parseForm(formData: FormData) {
     numeroUnidade: formData.get("numeroUnidade"),
     valor: formData.get("valor"),
     status: formData.get("status"),
+    template: formData.get("template"),
     endereco: formData.get("endereco"),
     numeroEndereco: formData.get("numeroEndereco"),
     cep: formData.get("cep"),
@@ -24,6 +25,23 @@ function parseForm(formData: FormData) {
     estado: formData.get("estado"),
     latitude: formData.get("latitude"),
     longitude: formData.get("longitude"),
+    torre: formData.get("torre"),
+    tagline: formData.get("tagline"),
+    areaPrivativa: formData.get("areaPrivativa"),
+    dormitorios: formData.get("dormitorios"),
+    suites: formData.get("suites"),
+    vagas: formData.get("vagas"),
+    andar: formData.get("andar"),
+    elevadores: formData.get("elevadores"),
+    entregaPrevista: formData.get("entregaPrevista"),
+    diferencial: formData.get("diferencial"),
+    descricao: formData.get("descricao"),
+    amenidades: formData.get("amenidades"),
+    condicoesPagamento: formData.get("condicoesPagamento"),
+    localizacaoNota: formData.get("localizacaoNota"),
+    corretorNome: formData.get("corretorNome"),
+    corretorTelefone: formData.get("corretorTelefone"),
+    corretorEmail: formData.get("corretorEmail"),
   });
 }
 
@@ -33,6 +51,7 @@ function montarDados(data: ReturnType<typeof RevendaSchema.parse>) {
     numeroUnidade: data.numeroUnidade || null,
     valor: data.valor,
     status: data.status,
+    template: data.template,
     endereco: data.endereco || null,
     numeroEndereco: data.numeroEndereco || null,
     cep: data.cep || null,
@@ -41,6 +60,23 @@ function montarDados(data: ReturnType<typeof RevendaSchema.parse>) {
     estado: data.estado || null,
     latitude: data.latitude ? Number(data.latitude) : null,
     longitude: data.longitude ? Number(data.longitude) : null,
+    torre: data.torre || null,
+    tagline: data.tagline || null,
+    areaPrivativa: data.areaPrivativa || null,
+    dormitorios: data.dormitorios ? Number(data.dormitorios) : null,
+    suites: data.suites ? Number(data.suites) : null,
+    vagas: data.vagas ? Number(data.vagas) : null,
+    andar: data.andar || null,
+    elevadores: data.elevadores ? Number(data.elevadores) : null,
+    entregaPrevista: data.entregaPrevista || null,
+    diferencial: data.diferencial || null,
+    descricao: data.descricao || null,
+    amenidades: data.amenidades || null,
+    condicoesPagamento: data.condicoesPagamento || null,
+    localizacaoNota: data.localizacaoNota || null,
+    corretorNome: data.corretorNome || null,
+    corretorTelefone: data.corretorTelefone || null,
+    corretorEmail: data.corretorEmail || null,
   };
 }
 
@@ -91,41 +127,6 @@ export async function atualizarUnidadeRevenda(
   revalidatePath("/corretores/empreendimentos");
 
   return { success: true, id };
-}
-
-export type ConteudoTabelaState =
-  | { success: true }
-  | { success: false; message: string }
-  | undefined;
-
-/** Os 5 blocos rich text que compõem a página desta unidade no PDF. */
-export async function salvarConteudoTabelaRevenda(
-  id: string,
-  _prevState: ConteudoTabelaState,
-  formData: FormData
-): Promise<ConteudoTabelaState> {
-  await requireAdmin();
-
-  const atual = await prisma.unidadeRevenda.findUnique({ where: { id } });
-  if (!atual) {
-    return { success: false, message: "Unidade não encontrada." };
-  }
-
-  const texto = (campo: string) => String(formData.get(campo) ?? "") || null;
-
-  await prisma.unidadeRevenda.update({
-    where: { id },
-    data: {
-      cabecalhoHtml: texto("cabecalhoHtml"),
-      sobreHtml: texto("sobreHtml"),
-      financeiroHtml: texto("financeiroHtml"),
-      infoAdicionaisHtml: texto("infoAdicionaisHtml"),
-      rodapeHtml: texto("rodapeHtml"),
-    },
-  });
-
-  revalidatePath("/admin/revendas");
-  return { success: true };
 }
 
 export async function excluirUnidadeRevenda(id: string) {
