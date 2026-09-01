@@ -15,7 +15,9 @@ function parseForm(formData: FormData) {
   return CondicaoPagamentoSchema.safeParse({
     rotulo: formData.get("rotulo"),
     periodicidade: formData.get("periodicidade"),
-    quantidade: formData.get("quantidade"),
+    // Campo fica desabilitado (travado em 1) pras periodicidades ATO_* — um input
+    // disabled não entra no FormData, então cai aqui como null em vez de "1".
+    quantidade: formData.get("quantidade") ?? "1",
     valor: formData.get("valor"),
     tipoValor: formData.get("tipoValor"),
     ordem: formData.get("ordem"),
