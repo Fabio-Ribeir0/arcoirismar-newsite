@@ -53,7 +53,7 @@ const ESTILOS = `
   .vazio { padding: 12mm; text-align: center; color: rgba(60, 63, 64, 0.5); }
 `;
 
-function theadHtml(rotulosCondicoes: string[], idExtra = "") {
+function theadHtml(colunasCondicoes: CondicaoColunaPdf[], idExtra = "") {
   return `
     <thead${idExtra}>
       <tr>
@@ -62,7 +62,12 @@ function theadHtml(rotulosCondicoes: string[], idExtra = "") {
         <th class="bl" colspan="2" style="text-align:center;">Garagem</th>
         <th class="bl" rowspan="2">Área Total</th>
         <th class="bl" rowspan="2">Preço</th>
-        ${rotulosCondicoes.map((rotulo) => `<th class="bl" rowspan="2">${escapeHtml(rotulo)}</th>`).join("")}
+        ${colunasCondicoes
+          .map(
+            (c) =>
+              `<th class="bl" rowspan="2">${escapeHtml(c.titulo)}${c.quantidade ? `<br>(${escapeHtml(c.quantidade)})` : ""}</th>`
+          )
+          .join("")}
       </tr>
       <tr>
         <th class="bl sub">Vagas</th>
@@ -94,13 +99,16 @@ function linhaHtml(linha: LinhaTabelaUnidade, numColunasCondicoes: number): stri
     </tr>`;
 }
 
+/** Cabeçalho de uma coluna de condição — `quantidade` é o texto "Nx" exibido numa segunda linha, null para condições de pagamento único (entrada, entrega das chaves). */
+export type CondicaoColunaPdf = { titulo: string; quantidade: string | null };
+
 export type DadosPdfTabela = {
   cabecalhoHtml: string;
   descricaoHtml: string;
   rodapeHtml: string;
   capaUrl: string | null;
-  /** Rótulos de coluna das condições de pagamento, na ordem cadastrada no empreendimento. */
-  condicoesRotulos: string[];
+  /** Colunas das condições de pagamento, na ordem cadastrada no empreendimento. */
+  condicoesColunas: CondicaoColunaPdf[];
   linhas: LinhaTabelaUnidade[];
 };
 
@@ -110,7 +118,7 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
   try {
     const page = await browser.newPage();
 
-    const numColunasCondicoes = dados.condicoesRotulos.length;
+    const numColunasCondicoes = dados.condicoesColunas.length;
 
     // 1) Passo de medição: renderiza cabeçalho/descrição/rodapé/cabeçalho-da-
     // tabela reais (mesmo HTML que vai se repetir em cada página) pra saber
@@ -130,7 +138,7 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
             preco: 1000000,
             status: "DISPONIVEL",
             oculto: false,
-            condicoes: dados.condicoesRotulos.map((rotulo) => ({ rotulo, valorParcela: 100000 })),
+            condicoes: dados.condicoesColunas.map((c) => ({ rotulo: c.titulo, valorParcela: 100000 })),
           },
           numColunasCondicoes
         );
@@ -143,7 +151,7 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
     <div id="m-descricao" class="bloco-rico">${dados.descricaoHtml}</div>
     <div id="m-rodape" class="bloco-rico">${dados.rodapeHtml}</div>
     <table>
-      ${theadHtml(dados.condicoesRotulos, ' id="m-thead"')}
+      ${theadHtml(dados.condicoesColunas, ' id="m-thead"')}
       <tbody>${amostraHtml}</tbody>
     </table>
   </div>
@@ -199,7 +207,7 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
             <div class="bloco-rico">${dados.descricaoHtml}</div>
             <div class="tabela-area">
               <table>
-                ${theadHtml(dados.condicoesRotulos)}
+                ${theadHtml(dados.condicoesColunas)}
                 <tbody>${chunk.map((linha) => linhaHtml(linha, numColunasCondicoes)).join("")}</tbody>
               </table>
             </div>

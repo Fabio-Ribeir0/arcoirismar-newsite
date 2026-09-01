@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/dal";
 import { supabaseAdmin, EMPREENDIMENTOS_BUCKET } from "@/lib/supabase-admin";
 import { montarLinhasTabelaUnidades } from "@/lib/tabela-unidades";
 import { gerarTabelaPdfCompleta } from "@/lib/pdf/gerar-tabela-pdf";
-import { PERIODICIDADE_LABEL } from "@/lib/plano-pagamento";
+import { PERIODICIDADE_LABEL, PERIODICIDADES_ATO } from "@/lib/plano-pagamento";
 
 export type SalvarTabelaConteudoState =
   | { success: true }
@@ -228,7 +228,10 @@ export async function gerarTabelaPdfAdmin(
     tipoValor: c.tipoValor,
   }));
   const linhas = montarLinhasTabelaUnidades(condicoesPagamento, empreendimento.unidades);
-  const condicoesRotulos = condicoesPagamento.map((c) => c.rotulo ?? PERIODICIDADE_LABEL[c.periodicidade]);
+  const condicoesColunas = condicoesPagamento.map((c) => ({
+    titulo: c.rotulo ?? PERIODICIDADE_LABEL[c.periodicidade],
+    quantidade: PERIODICIDADES_ATO.includes(c.periodicidade) ? null : `${c.quantidade}x`,
+  }));
 
   let pdf: Uint8Array;
   try {
@@ -238,7 +241,7 @@ export async function gerarTabelaPdfAdmin(
         descricaoHtml: empreendimento.tabelaDescricaoHtml ?? "",
         rodapeHtml: empreendimento.tabelaRodapeHtml ?? "",
         capaUrl: empreendimento.capaTabelaUrl,
-        condicoesRotulos,
+        condicoesColunas,
         linhas,
       },
       empreendimento.documentosAdicionais.map((d) => ({ titulo: d.titulo, url: d.url }))
