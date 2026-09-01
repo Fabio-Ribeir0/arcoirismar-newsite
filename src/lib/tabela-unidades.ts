@@ -1,5 +1,5 @@
-import type { Empreendimento, Unidade, UnidadeStatus } from "@/generated/prisma/client";
-import { calcularPlanoPagamentoUnidade } from "./plano-pagamento";
+import type { Unidade, UnidadeStatus } from "@/generated/prisma/client";
+import { calcularCondicoesPagamentoUnidade, type CondicaoPagamento } from "./plano-pagamento";
 
 export const UNIDADE_STATUS_LABEL: Record<string, string> = {
   DISPONIVEL: "Disponível",
@@ -69,6 +69,8 @@ export function formatTipoUnidade(dormitorios: number, suites: number): string {
 // oferecendo ao cliente. Decorado aparece (sem valores, como Reservado).
 const STATUS_VISIVEIS_NA_LISTA: UnidadeStatus[] = ["DISPONIVEL", "RESERVADO", "DECORADO"];
 
+export type CondicaoLinhaTabela = { rotulo: string; valorParcela: number };
+
 export type LinhaTabelaUnidade = {
   id: string;
   identificador: string;
@@ -80,40 +82,26 @@ export type LinhaTabelaUnidade = {
   status: string;
   /** Reservado/Decorado: valores de plano ficam ocultos, mostra o status no lugar. */
   oculto: boolean;
-  valorEntrada: number | null;
-  valorChaves: number | null;
-  valorParcela: number | null;
+  /** Uma entrada por condição de pagamento cadastrada no empreendimento, na mesma ordem. */
+  condicoes: CondicaoLinhaTabela[];
 };
 
 /** Mesma seleção/cálculo usados na visualização em tela e na exportação em PDF, pra nunca divergir. */
 export function montarLinhasTabelaUnidades(
-  empreendimento: Pick<
-    Empreendimento,
-    "parcelas" | "entradaValor" | "entradaTipo" | "entregaChavesValor" | "entregaChavesTipo"
-  >,
+  condicoesPagamento: CondicaoPagamento[],
   unidades: Unidade[]
 ): LinhaTabelaUnidade[] {
-  const podeCalcularPlano =
-    empreendimento.parcelas !== null &&
-    empreendimento.entradaValor !== null &&
-    empreendimento.entregaChavesValor !== null;
-
   return unidades
     .filter((u) => STATUS_VISIVEIS_NA_LISTA.includes(u.status))
     .map((unidade) => {
       const preco = Number(unidade.preco);
       const oculto = unidade.status === "RESERVADO" || unidade.status === "DECORADO";
-      const plano =
-        podeCalcularPlano && !oculto
-          ? calcularPlanoPagamentoUnidade({
-              preco,
-              entradaValor: Number(empreendimento.entradaValor),
-              entradaTipo: empreendimento.entradaTipo,
-              entregaChavesValor: Number(empreendimento.entregaChavesValor),
-              entregaChavesTipo: empreendimento.entregaChavesTipo,
-              parcelas: empreendimento.parcelas!,
-            })
-          : null;
+      const condicoes = oculto
+        ? []
+        : calcularCondicoesPagamentoUnidade(preco, condicoesPagamento).map((c) => ({
+            rotulo: c.rotuloExibicao,
+            valorParcela: c.valorParcela,
+          }));
 
       return {
         id: unidade.id,
@@ -125,9 +113,7 @@ export function montarLinhasTabelaUnidades(
         preco,
         status: unidade.status,
         oculto,
-        valorEntrada: plano?.valorEntrada ?? null,
-        valorChaves: plano?.valorChaves ?? null,
-        valorParcela: plano?.valorParcela ?? null,
+        condicoes,
       };
     });
 }

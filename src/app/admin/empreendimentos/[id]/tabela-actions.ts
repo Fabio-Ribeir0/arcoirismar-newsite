@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/dal";
 import { supabaseAdmin, EMPREENDIMENTOS_BUCKET } from "@/lib/supabase-admin";
 import { montarLinhasTabelaUnidades } from "@/lib/tabela-unidades";
 import { gerarTabelaPdfCompleta } from "@/lib/pdf/gerar-tabela-pdf";
+import { PERIODICIDADE_LABEL } from "@/lib/plano-pagamento";
 
 export type SalvarTabelaConteudoState =
   | { success: true }
@@ -210,6 +211,7 @@ export async function gerarTabelaPdfAdmin(
     include: {
       unidades: { orderBy: [{ andar: "asc" }, { identificador: "asc" }] },
       documentosAdicionais: { orderBy: { ordem: "asc" } },
+      condicoesPagamento: { orderBy: { ordem: "asc" } },
     },
   });
 
@@ -217,12 +219,16 @@ export async function gerarTabelaPdfAdmin(
     return { success: false, message: "Empreendimento não encontrado." };
   }
 
-  const linhas = montarLinhasTabelaUnidades(empreendimento, empreendimento.unidades);
-  const podeCalcularPlano =
-    empreendimento.parcelas !== null &&
-    empreendimento.entradaValor !== null &&
-    empreendimento.entregaChavesValor !== null;
-  const prestacoesLabel = podeCalcularPlano ? `${empreendimento.parcelas}x` : "Prestações";
+  const condicoesPagamento = empreendimento.condicoesPagamento.map((c) => ({
+    id: c.id,
+    rotulo: c.rotulo,
+    periodicidade: c.periodicidade,
+    quantidade: c.quantidade,
+    valor: Number(c.valor),
+    tipoValor: c.tipoValor,
+  }));
+  const linhas = montarLinhasTabelaUnidades(condicoesPagamento, empreendimento.unidades);
+  const condicoesRotulos = condicoesPagamento.map((c) => c.rotulo ?? PERIODICIDADE_LABEL[c.periodicidade]);
 
   let pdf: Uint8Array;
   try {
@@ -232,7 +238,7 @@ export async function gerarTabelaPdfAdmin(
         descricaoHtml: empreendimento.tabelaDescricaoHtml ?? "",
         rodapeHtml: empreendimento.tabelaRodapeHtml ?? "",
         capaUrl: empreendimento.capaTabelaUrl,
-        prestacoesLabel,
+        condicoesRotulos,
         linhas,
       },
       empreendimento.documentosAdicionais.map((d) => ({ titulo: d.titulo, url: d.url }))

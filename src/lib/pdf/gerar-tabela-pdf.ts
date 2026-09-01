@@ -53,22 +53,7 @@ const ESTILOS = `
   .vazio { padding: 12mm; text-align: center; color: rgba(60, 63, 64, 0.5); }
 `;
 
-type ColunasVisiveis = { ocultarEntrada: boolean; ocultarChaves: boolean };
-
-/** Verdadeiro só quando existe pelo menos um valor real (não nulo) e todos eles são 0 — plano configurado, mas zerado. */
-function todasZeradas(valores: (number | null)[]): boolean {
-  const reais = valores.filter((v): v is number => v !== null);
-  return reais.length > 0 && reais.every((v) => v === 0);
-}
-
-function colunasVisiveis(linhas: LinhaTabelaUnidade[]): ColunasVisiveis {
-  return {
-    ocultarEntrada: todasZeradas(linhas.map((l) => l.valorEntrada)),
-    ocultarChaves: todasZeradas(linhas.map((l) => l.valorChaves)),
-  };
-}
-
-function theadHtml(prestacoesLabel: string, colunas: ColunasVisiveis, idExtra = "") {
+function theadHtml(rotulosCondicoes: string[], idExtra = "") {
   return `
     <thead${idExtra}>
       <tr>
@@ -77,9 +62,7 @@ function theadHtml(prestacoesLabel: string, colunas: ColunasVisiveis, idExtra = 
         <th class="bl" colspan="2" style="text-align:center;">Garagem</th>
         <th class="bl" rowspan="2">Área Total</th>
         <th class="bl" rowspan="2">Preço</th>
-        ${colunas.ocultarEntrada ? "" : '<th class="bl" rowspan="2">Entrada</th>'}
-        ${colunas.ocultarChaves ? "" : '<th class="bl" rowspan="2">Entrega</th>'}
-        <th class="bl" rowspan="2">${escapeHtml(prestacoesLabel)}</th>
+        ${rotulosCondicoes.map((rotulo) => `<th class="bl" rowspan="2">${escapeHtml(rotulo)}</th>`).join("")}
       </tr>
       <tr>
         <th class="bl sub">Vagas</th>
@@ -88,16 +71,17 @@ function theadHtml(prestacoesLabel: string, colunas: ColunasVisiveis, idExtra = 
     </thead>`;
 }
 
-function valorOuBadge(linha: LinhaTabelaUnidade, valor: number | null): string {
-  if (linha.oculto) {
-    const cores = UNIDADE_STATUS_CORES[linha.status] ?? { fundo: "#eee", texto: "#333" };
-    const label = UNIDADE_STATUS_LABEL[linha.status] ?? linha.status;
-    return `<span class="badge" style="background:${cores.fundo};color:${cores.texto};">${escapeHtml(label)}</span>`;
-  }
-  return valor === null ? "—" : escapeHtml(formatCurrency(valor));
+function badgeStatus(linha: LinhaTabelaUnidade): string {
+  const cores = UNIDADE_STATUS_CORES[linha.status] ?? { fundo: "#eee", texto: "#333" };
+  const label = UNIDADE_STATUS_LABEL[linha.status] ?? linha.status;
+  return `<span class="badge" style="background:${cores.fundo};color:${cores.texto};">${escapeHtml(label)}</span>`;
 }
 
-function linhaHtml(linha: LinhaTabelaUnidade, colunas: ColunasVisiveis): string {
+function linhaHtml(linha: LinhaTabelaUnidade, numColunasCondicoes: number): string {
+  const celulasCondicoes = linha.oculto
+    ? Array.from({ length: numColunasCondicoes }, () => `<td class="bl">${badgeStatus(linha)}</td>`).join("")
+    : linha.condicoes.map((c) => `<td class="bl">${escapeHtml(formatCurrency(c.valorParcela))}</td>`).join("");
+
   return `
     <tr>
       <td class="apto">${escapeHtml(linha.identificador)}</td>
@@ -106,9 +90,7 @@ function linhaHtml(linha: LinhaTabelaUnidade, colunas: ColunasVisiveis): string 
       <td class="bl">${formatArea(linha.areaGaragem)} m²</td>
       <td class="bl">${formatArea(linha.areaTotal)} m²</td>
       <td class="bl">${escapeHtml(formatCurrency(linha.preco))}</td>
-      ${colunas.ocultarEntrada ? "" : `<td class="bl">${valorOuBadge(linha, linha.valorEntrada)}</td>`}
-      ${colunas.ocultarChaves ? "" : `<td class="bl">${valorOuBadge(linha, linha.valorChaves)}</td>`}
-      <td class="bl">${valorOuBadge(linha, linha.valorParcela)}</td>
+      ${celulasCondicoes}
     </tr>`;
 }
 
@@ -117,7 +99,8 @@ export type DadosPdfTabela = {
   descricaoHtml: string;
   rodapeHtml: string;
   capaUrl: string | null;
-  prestacoesLabel: string;
+  /** Rótulos de coluna das condições de pagamento, na ordem cadastrada no empreendimento. */
+  condicoesRotulos: string[];
   linhas: LinhaTabelaUnidade[];
 };
 
@@ -127,10 +110,7 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
   try {
     const page = await browser.newPage();
 
-    // Colunas "Entrada"/"Entrega" só aparecem quando o plano configurado
-    // realmente produz um valor — se está tudo zerado, some a coluna inteira
-    // (cabeçalho + todas as linhas) em vez de mostrar uma coluna de zeros.
-    const colunas = colunasVisiveis(dados.linhas);
+    const numColunasCondicoes = dados.condicoesRotulos.length;
 
     // 1) Passo de medição: renderiza cabeçalho/descrição/rodapé/cabeçalho-da-
     // tabela reais (mesmo HTML que vai se repetir em cada página) pra saber
@@ -138,7 +118,7 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
     // porque dependem do conteúdo real cadastrado pelo admin.
     const linhaAmostra = dados.linhas[0];
     const amostraHtml = linhaAmostra
-      ? linhaHtml(linhaAmostra, colunas)
+      ? linhaHtml(linhaAmostra, numColunasCondicoes)
       : linhaHtml(
           {
             id: "amostra",
@@ -150,11 +130,9 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
             preco: 1000000,
             status: "DISPONIVEL",
             oculto: false,
-            valorEntrada: 100000,
-            valorChaves: 100000,
-            valorParcela: 10000,
+            condicoes: dados.condicoesRotulos.map((rotulo) => ({ rotulo, valorParcela: 100000 })),
           },
-          colunas
+          numColunasCondicoes
         );
 
     const htmlMedicao = `<!doctype html>
@@ -165,7 +143,7 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
     <div id="m-descricao" class="bloco-rico">${dados.descricaoHtml}</div>
     <div id="m-rodape" class="bloco-rico">${dados.rodapeHtml}</div>
     <table>
-      ${theadHtml(dados.prestacoesLabel, colunas, ' id="m-thead"')}
+      ${theadHtml(dados.condicoesRotulos, ' id="m-thead"')}
       <tbody>${amostraHtml}</tbody>
     </table>
   </div>
@@ -221,8 +199,8 @@ async function gerarPdfCapaETabela(dados: DadosPdfTabela): Promise<Uint8Array> {
             <div class="bloco-rico">${dados.descricaoHtml}</div>
             <div class="tabela-area">
               <table>
-                ${theadHtml(dados.prestacoesLabel, colunas)}
-                <tbody>${chunk.map((linha) => linhaHtml(linha, colunas)).join("")}</tbody>
+                ${theadHtml(dados.condicoesRotulos)}
+                <tbody>${chunk.map((linha) => linhaHtml(linha, numColunasCondicoes)).join("")}</tbody>
               </table>
             </div>
             <div class="bloco-rico">${dados.rodapeHtml}</div>

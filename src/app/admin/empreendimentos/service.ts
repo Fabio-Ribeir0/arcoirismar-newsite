@@ -1,15 +1,6 @@
-import { Prisma, type TipoValorPlano } from "@/generated/prisma/client";
+import { Prisma, type CondicaoPagamentoEmpreendimento } from "@/generated/prisma/client";
 
 type Numerico = Prisma.Decimal | string | number | null;
-
-type PlanoPagamentoValores = {
-  valorBase: Numerico;
-  entradaValor: Numerico;
-  entradaTipo: TipoValorPlano;
-  entregaChavesValor: Numerico;
-  entregaChavesTipo: TipoValorPlano;
-  parcelas: Numerico;
-};
 
 /** Compara numericamente (não como string), tratando null como "sem valor". */
 export function diferente(a: Numerico, b: Numerico) {
@@ -18,50 +9,70 @@ export function diferente(a: Numerico, b: Numerico) {
   return numA !== numB;
 }
 
+/** Serializa uma lista de condições de forma estável (ordenada por id), pra comparar sem falso positivo por ordem de array. */
+function normalizarCondicoes(condicoes: CondicaoPagamentoEmpreendimento[]) {
+  return JSON.stringify(
+    [...condicoes]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map((c) => ({
+        id: c.id,
+        rotulo: c.rotulo,
+        periodicidade: c.periodicidade,
+        quantidade: c.quantidade,
+        valor: c.valor.toString(),
+        tipoValor: c.tipoValor,
+      }))
+  );
+}
+
 /**
- * Grava um snapshot completo do plano de pagamento (valor base, entrada,
- * entrega das chaves, parcelas) quando pelo menos um desses campos muda —
- * uma linha por salvamento, não uma por campo, porque os 4 juntos formam o
- * plano usado por calcularParcelaPlanoDireto. Trocar entre % e R$ fixo conta
- * como mudança mesmo que o número digitado seja o mesmo.
+ * Grava um snapshot completo do plano de pagamento (valor base + lista de condições de
+ * pagamento) quando pelo menos um dos dois muda — uma linha por salvamento, não uma por
+ * campo. Cada chamador (form principal do empreendimento ou as actions de condições)
+ * passa inalterado o lado que ele não mexeu, buscado fresco do banco.
  */
 export async function registrarHistoricoPlanoPagamento(
   tx: Prisma.TransactionClient,
   params: {
     empreendimentoId: string;
-    anterior: PlanoPagamentoValores;
-    novo: PlanoPagamentoValores;
+    valorBaseAnterior: Numerico;
+    valorBaseNovo: Numerico;
+    condicoesAnteriores: CondicaoPagamentoEmpreendimento[];
+    condicoesNovas: CondicaoPagamentoEmpreendimento[];
     autorId: string;
     motivo: string | null;
   }
 ) {
-  const { empreendimentoId, anterior, novo, autorId, motivo } = params;
+  const { empreendimentoId, valorBaseAnterior, valorBaseNovo, condicoesAnteriores, condicoesNovas, autorId, motivo } =
+    params;
 
   const mudou =
-    diferente(anterior.valorBase, novo.valorBase) ||
-    diferente(anterior.entradaValor, novo.entradaValor) ||
-    anterior.entradaTipo !== novo.entradaTipo ||
-    diferente(anterior.entregaChavesValor, novo.entregaChavesValor) ||
-    anterior.entregaChavesTipo !== novo.entregaChavesTipo ||
-    diferente(anterior.parcelas, novo.parcelas);
+    diferente(valorBaseAnterior, valorBaseNovo) ||
+    normalizarCondicoes(condicoesAnteriores) !== normalizarCondicoes(condicoesNovas);
 
   if (!mudou) return;
 
   await tx.historicoPlanoPagamentoEmpreendimento.create({
     data: {
       empreendimentoId,
-      valorBaseAnterior: anterior.valorBase,
-      valorBaseNovo: novo.valorBase,
-      entradaValorAnterior: anterior.entradaValor,
-      entradaValorNovo: novo.entradaValor,
-      entradaTipoAnterior: anterior.entradaTipo,
-      entradaTipoNovo: novo.entradaTipo,
-      entregaChavesValorAnterior: anterior.entregaChavesValor,
-      entregaChavesValorNovo: novo.entregaChavesValor,
-      entregaChavesTipoAnterior: anterior.entregaChavesTipo,
-      entregaChavesTipoNovo: novo.entregaChavesTipo,
-      parcelasAnterior: anterior.parcelas === null ? null : Number(anterior.parcelas),
-      parcelasNovo: novo.parcelas === null ? null : Number(novo.parcelas),
+      valorBaseAnterior,
+      valorBaseNovo,
+      condicoesAnteriores: condicoesAnteriores.map((c) => ({
+        id: c.id,
+        rotulo: c.rotulo,
+        periodicidade: c.periodicidade,
+        quantidade: c.quantidade,
+        valor: c.valor.toString(),
+        tipoValor: c.tipoValor,
+      })),
+      condicoesNovas: condicoesNovas.map((c) => ({
+        id: c.id,
+        rotulo: c.rotulo,
+        periodicidade: c.periodicidade,
+        quantidade: c.quantidade,
+        valor: c.valor.toString(),
+        tipoValor: c.tipoValor,
+      })),
       autorId,
       motivo,
     },

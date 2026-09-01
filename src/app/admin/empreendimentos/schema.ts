@@ -62,26 +62,6 @@ export const EmpreendimentoSchema = z.object({
     .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um valor válido (ex.: 350000.00)." })
     .optional()
     .or(z.literal("")),
-  entradaValor: z
-    .string()
-    .trim()
-    .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um valor válido (ex.: 20.00)." })
-    .optional()
-    .or(z.literal("")),
-  entradaTipo: z.enum(["PERCENTUAL", "FIXO"]).optional().or(z.literal("")),
-  entregaChavesValor: z
-    .string()
-    .trim()
-    .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um valor válido (ex.: 10.00)." })
-    .optional()
-    .or(z.literal("")),
-  entregaChavesTipo: z.enum(["PERCENTUAL", "FIXO"]).optional().or(z.literal("")),
-  parcelas: z
-    .string()
-    .trim()
-    .regex(/^\d+$/, { error: "Informe um número inteiro." })
-    .optional()
-    .or(z.literal("")),
   dormitoriosPadrao: z
     .string()
     .trim()
@@ -119,3 +99,36 @@ export const EmpreendimentoSchema = z.object({
   );
 
 export type EmpreendimentoInput = z.infer<typeof EmpreendimentoSchema>;
+
+export const PERIODICIDADE_OPCOES = [
+  "ATO_ASSINATURA",
+  "ATO_ENTREGA_CHAVES",
+  "MENSAL",
+  "BIMESTRAL",
+  "TRIMESTRAL",
+  "SEMESTRAL",
+  "ANUAL",
+] as const;
+
+export const CondicaoPagamentoSchema = z.object({
+  rotulo: z.string().trim().optional().or(z.literal("")),
+  periodicidade: z.enum(PERIODICIDADE_OPCOES, { error: "Selecione quando esta condição é cobrada." }),
+  quantidade: z
+    .string()
+    .trim()
+    .regex(/^\d+$/, { error: "Informe um número inteiro." }),
+  valor: z
+    .string()
+    .trim()
+    .regex(/^\d+(\.\d{1,2})?$/, { error: "Informe um valor válido (ex.: 20.00)." }),
+  tipoValor: z.enum(["PERCENTUAL", "FIXO"]),
+  ordem: z
+    .string()
+    .trim()
+    .regex(/^\d+$/, { error: "Informe um número inteiro." })
+    .optional()
+    .or(z.literal("")),
+  motivo: z.string().trim().optional().or(z.literal("")),
+});
+
+export type CondicaoPagamentoInput = z.infer<typeof CondicaoPagamentoSchema>;

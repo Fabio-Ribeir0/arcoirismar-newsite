@@ -35,11 +35,6 @@ function parseForm(formData: FormData) {
     andares: formData.get("andares"),
     unidadesPorAndar: formData.get("unidadesPorAndar"),
     valorBase: formData.get("valorBase"),
-    entradaValor: formData.get("entradaValor"),
-    entradaTipo: formData.get("entradaTipo"),
-    entregaChavesValor: formData.get("entregaChavesValor"),
-    entregaChavesTipo: formData.get("entregaChavesTipo"),
-    parcelas: formData.get("parcelas"),
     dormitoriosPadrao: formData.get("dormitoriosPadrao"),
     suitesPadrao: formData.get("suitesPadrao"),
     areaPrivativaPadrao: formData.get("areaPrivativaPadrao"),
@@ -70,11 +65,6 @@ function buildEmpreendimentoData(data: ReturnType<typeof EmpreendimentoSchema.pa
     andares: data.andares ? Number(data.andares) : null,
     unidadesPorAndar: data.unidadesPorAndar ? Number(data.unidadesPorAndar) : null,
     valorBase: data.valorBase || null,
-    entradaValor: data.entradaValor || null,
-    entradaTipo: data.entradaTipo || "PERCENTUAL",
-    entregaChavesValor: data.entregaChavesValor || null,
-    entregaChavesTipo: data.entregaChavesTipo || "PERCENTUAL",
-    parcelas: data.parcelas ? Number(data.parcelas) : null,
     dormitoriosPadrao: data.dormitoriosPadrao ? Number(data.dormitoriosPadrao) : null,
     suitesPadrao: data.suitesPadrao ? Number(data.suitesPadrao) : null,
     areaPrivativaPadrao: data.areaPrivativaPadrao ? Number(data.areaPrivativaPadrao) : null,
@@ -145,24 +135,19 @@ export async function atualizarEmpreendimento(
       data: novaData,
     });
 
+    // Só valorBase muda por aqui — as condições de pagamento têm suas próprias
+    // actions (condicoes-pagamento-actions.ts), então entram inalteradas.
+    const condicoesAtuais = await tx.condicaoPagamentoEmpreendimento.findMany({
+      where: { empreendimentoId: id },
+      orderBy: { ordem: "asc" },
+    });
+
     await registrarHistoricoPlanoPagamento(tx, {
       empreendimentoId: id,
-      anterior: {
-        valorBase: atual.valorBase,
-        entradaValor: atual.entradaValor,
-        entradaTipo: atual.entradaTipo,
-        entregaChavesValor: atual.entregaChavesValor,
-        entregaChavesTipo: atual.entregaChavesTipo,
-        parcelas: atual.parcelas,
-      },
-      novo: {
-        valorBase: novaData.valorBase,
-        entradaValor: novaData.entradaValor,
-        entradaTipo: novaData.entradaTipo,
-        entregaChavesValor: novaData.entregaChavesValor,
-        entregaChavesTipo: novaData.entregaChavesTipo,
-        parcelas: novaData.parcelas,
-      },
+      valorBaseAnterior: atual.valorBase,
+      valorBaseNovo: novaData.valorBase,
+      condicoesAnteriores: condicoesAtuais,
+      condicoesNovas: condicoesAtuais,
       autorId: admin.id,
       motivo,
     });

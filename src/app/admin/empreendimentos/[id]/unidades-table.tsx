@@ -27,18 +27,19 @@ export type UnidadeRow = {
   areaGaragem: number;
   areaComum: number;
   preco: number;
-  parcela: number | null;
+  /** Resumo textual das condições de pagamento recorrentes (ex.: "R$ 3.500/mês · R$ 8.000/sem."). */
+  condicoesResumo: string | null;
   status: string;
 };
 
 export function UnidadesTable({
   empreendimentoId,
   unidades,
-  parcelasLabel,
+  mostrarColunaCondicoes,
 }: {
   empreendimentoId: string;
   unidades: UnidadeRow[];
-  parcelasLabel: string | null;
+  mostrarColunaCondicoes: boolean;
 }) {
   const router = useRouter();
   const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set());
@@ -193,7 +194,7 @@ export function UnidadesTable({
               <th className="px-4 py-3 font-medium">Tipo</th>
               <th className="px-4 py-3 font-medium">Área Total</th>
               <th className="px-4 py-3 font-medium">Preço</th>
-              {parcelasLabel && <th className="px-4 py-3 font-medium">{parcelasLabel}</th>}
+              {mostrarColunaCondicoes && <th className="px-4 py-3 font-medium">Condições</th>}
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium" />
             </tr>
@@ -224,10 +225,8 @@ export function UnidadesTable({
                   {(unidade.areaPrivativa + unidade.areaGaragem + unidade.areaComum).toLocaleString("pt-BR")} m²
                 </td>
                 <td className="px-4 py-3 text-ink/70">{formatCurrency(unidade.preco)}</td>
-                {parcelasLabel && (
-                  <td className="px-4 py-3 text-ink/70">
-                    {unidade.parcela !== null ? formatCurrency(unidade.parcela) : "—"}
-                  </td>
+                {mostrarColunaCondicoes && (
+                  <td className="px-4 py-3 text-ink/70">{unidade.condicoesResumo ?? "—"}</td>
                 )}
                 <td className="px-4 py-3">
                   <span

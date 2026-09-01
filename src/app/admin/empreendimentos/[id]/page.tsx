@@ -1,12 +1,18 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import type { Prisma, TipoValorPlano } from "@/generated/prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { EmpreendimentoForm } from "../empreendimento-form";
 import { atualizarEmpreendimento } from "../actions";
 import { GerarUnidadesButton } from "./unidades/gerar-unidades-button";
 import { UnidadesTable, type UnidadeRow } from "./unidades-table";
-import { calcularParcelaPlanoDireto } from "@/lib/plano-pagamento";
+import {
+  calcularCondicoesPagamentoUnidade,
+  PERIODICIDADE_ABREVIACAO,
+  PERIODICIDADE_LABEL,
+  PERIODICIDADES_ATO,
+} from "@/lib/plano-pagamento";
+import { CondicoesPagamentoSection, type CondicaoPagamentoRow } from "./condicoes-pagamento-section";
 import { LogoUpload } from "./logo-upload";
 import { BannerUpload } from "./banner-upload";
 import { VideoUpload } from "./video-upload";
@@ -47,6 +53,7 @@ export default async function EditarEmpreendimentoPage({
         },
       },
       historicoPlanoPagamento: { orderBy: { criadoEm: "desc" }, include: { autor: true } },
+      condicoesPagamento: { orderBy: { ordem: "asc" } },
       midias: { orderBy: { ordem: "asc" } },
       documentosAdicionais: { orderBy: { ordem: "asc" } },
     },
@@ -58,10 +65,33 @@ export default async function EditarEmpreendimentoPage({
   const plantas = empreendimento.midias.filter((m) => m.tipo === "PLANTA");
   const videos = empreendimento.midias.filter((m) => m.tipo === "VIDEO");
 
-  const podeCalcularParcela =
-    empreendimento.parcelas !== null &&
-    empreendimento.entradaValor !== null &&
-    empreendimento.entregaChavesValor !== null;
+  const condicoesPagamento = empreendimento.condicoesPagamento.map((c) => ({
+    id: c.id,
+    rotulo: c.rotulo,
+    periodicidade: c.periodicidade,
+    quantidade: c.quantidade,
+    valor: Number(c.valor),
+    tipoValor: c.tipoValor,
+  }));
+  const condicaoRows: CondicaoPagamentoRow[] = empreendimento.condicoesPagamento.map((c) => ({
+    id: c.id,
+    rotulo: c.rotulo,
+    periodicidade: c.periodicidade,
+    quantidade: c.quantidade,
+    valor: c.valor.toString(),
+    tipoValor: c.tipoValor,
+    ordem: c.ordem,
+  }));
+
+  const formatCurrency = (value: number) =>
+    value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  function resumoCondicoesRecorrentes(preco: number): string | null {
+    const partes = calcularCondicoesPagamentoUnidade(preco, condicoesPagamento)
+      .filter((c) => !PERIODICIDADES_ATO.includes(c.periodicidade))
+      .map((c) => `${formatCurrency(c.valorParcela)}/${PERIODICIDADE_ABREVIACAO[c.periodicidade]}`);
+    return partes.length > 0 ? partes.join(" · ") : null;
+  }
 
   const unidadeRows: UnidadeRow[] = empreendimento.unidades.map((unidade) => ({
     id: unidade.id,
@@ -73,16 +103,7 @@ export default async function EditarEmpreendimentoPage({
     areaGaragem: unidade.areaGaragem,
     areaComum: unidade.areaComum,
     preco: Number(unidade.preco),
-    parcela: podeCalcularParcela
-      ? calcularParcelaPlanoDireto({
-          preco: Number(unidade.preco),
-          entradaValor: Number(empreendimento.entradaValor),
-          entradaTipo: empreendimento.entradaTipo,
-          entregaChavesValor: Number(empreendimento.entregaChavesValor),
-          entregaChavesTipo: empreendimento.entregaChavesTipo,
-          parcelas: empreendimento.parcelas!,
-        })
-      : null,
+    condicoesResumo: resumoCondicoesRecorrentes(Number(unidade.preco)),
     status: unidade.status,
   }));
 
@@ -121,43 +142,41 @@ export default async function EditarEmpreendimentoPage({
               id: "detalhes",
               label: "Detalhes",
               content: (
-                <EmpreendimentoForm
-                  action={atualizarEmpreendimento.bind(null, empreendimento.id)}
-                  submitLabel="Salvar alterações"
-                  showMotivo
-                  empreendimentoId={empreendimento.id}
-                  defaultValues={{
-                    nome: empreendimento.nome,
-                    slug: empreendimento.slug,
-                    status: empreendimento.status,
-                    destaque: empreendimento.destaque,
-                    espelhoVenda: empreendimento.espelhoVenda,
-                    slogan: empreendimento.slogan,
-                    descricao: empreendimento.descricao,
-                    endereco: empreendimento.endereco,
-                    bairro: empreendimento.bairro,
-                    cidade: empreendimento.cidade,
-                    estado: empreendimento.estado,
-                    cep: empreendimento.cep,
-                    latitude: empreendimento.latitude?.toString() ?? "",
-                    longitude: empreendimento.longitude?.toString() ?? "",
-                    entregaPrevista: empreendimento.entregaPrevista
-                      ? empreendimento.entregaPrevista.toISOString().slice(0, 10)
-                      : "",
-                    andares: empreendimento.andares?.toString() ?? "",
-                    unidadesPorAndar: empreendimento.unidadesPorAndar?.toString() ?? "",
-                    valorBase: empreendimento.valorBase?.toString() ?? "",
-                    entradaValor: empreendimento.entradaValor?.toString() ?? "",
-                    entradaTipo: empreendimento.entradaTipo,
-                    entregaChavesValor: empreendimento.entregaChavesValor?.toString() ?? "",
-                    entregaChavesTipo: empreendimento.entregaChavesTipo,
-                    parcelas: empreendimento.parcelas?.toString() ?? "",
-                    dormitoriosPadrao: empreendimento.dormitoriosPadrao?.toString() ?? "",
-                    suitesPadrao: empreendimento.suitesPadrao?.toString() ?? "",
-                    areaPrivativaPadrao: empreendimento.areaPrivativaPadrao?.toString() ?? "",
-                    vagasPadrao: empreendimento.vagasPadrao?.toString() ?? "",
-                  }}
-                />
+                <div className="space-y-8">
+                  <EmpreendimentoForm
+                    action={atualizarEmpreendimento.bind(null, empreendimento.id)}
+                    submitLabel="Salvar alterações"
+                    showMotivo
+                    empreendimentoId={empreendimento.id}
+                    defaultValues={{
+                      nome: empreendimento.nome,
+                      slug: empreendimento.slug,
+                      status: empreendimento.status,
+                      destaque: empreendimento.destaque,
+                      espelhoVenda: empreendimento.espelhoVenda,
+                      slogan: empreendimento.slogan,
+                      descricao: empreendimento.descricao,
+                      endereco: empreendimento.endereco,
+                      bairro: empreendimento.bairro,
+                      cidade: empreendimento.cidade,
+                      estado: empreendimento.estado,
+                      cep: empreendimento.cep,
+                      latitude: empreendimento.latitude?.toString() ?? "",
+                      longitude: empreendimento.longitude?.toString() ?? "",
+                      entregaPrevista: empreendimento.entregaPrevista
+                        ? empreendimento.entregaPrevista.toISOString().slice(0, 10)
+                        : "",
+                      andares: empreendimento.andares?.toString() ?? "",
+                      unidadesPorAndar: empreendimento.unidadesPorAndar?.toString() ?? "",
+                      valorBase: empreendimento.valorBase?.toString() ?? "",
+                      dormitoriosPadrao: empreendimento.dormitoriosPadrao?.toString() ?? "",
+                      suitesPadrao: empreendimento.suitesPadrao?.toString() ?? "",
+                      areaPrivativaPadrao: empreendimento.areaPrivativaPadrao?.toString() ?? "",
+                      vagasPadrao: empreendimento.vagasPadrao?.toString() ?? "",
+                    }}
+                  />
+                  <CondicoesPagamentoSection empreendimentoId={empreendimento.id} condicoes={condicaoRows} />
+                </div>
               ),
             },
             {
@@ -188,11 +207,7 @@ export default async function EditarEmpreendimentoPage({
                   <UnidadesTable
                     empreendimentoId={empreendimento.id}
                     unidades={unidadeRows}
-                    parcelasLabel={
-                      podeCalcularParcela && empreendimento.parcelas
-                        ? `${empreendimento.parcelas}x`
-                        : null
-                    }
+                    mostrarColunaCondicoes={condicoesPagamento.length > 0}
                   />
                 </div>
               ),
@@ -303,32 +318,62 @@ function formatCurrencyOrNull(value: unknown) {
   return value === null ? "—" : Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-/** Formata conforme o tipo salvo junto do valor: "R$ 20.000,00" (fixo) ou "20.00%" (percentual). */
-function formatValorPlano(value: unknown, tipo: TipoValorPlano) {
-  if (value === null) return "—";
-  return tipo === "FIXO"
-    ? Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-    : `${Number(value).toFixed(2)}%`;
+type CondicaoSnapshot = {
+  id: string;
+  rotulo: string | null;
+  periodicidade: keyof typeof PERIODICIDADE_LABEL;
+  quantidade: number;
+  valor: string;
+  tipoValor: "PERCENTUAL" | "FIXO";
+};
+
+function formatCondicaoValor(c: Pick<CondicaoSnapshot, "quantidade" | "valor" | "tipoValor">) {
+  const valor =
+    c.tipoValor === "FIXO"
+      ? Number(c.valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      : `${Number(c.valor).toFixed(2)}%`;
+  return `${c.quantidade}x ${valor}`;
 }
 
-function formatIntOrNull(value: unknown) {
-  return value === null ? "—" : `${value}x`;
+/** Compara duas listas-snapshot de condições casando por id: o que sumiu, o que apareceu, o que mudou. */
+function descricaoCondicoes(anteriores: unknown, novas: unknown): string[] {
+  const lista = (v: unknown): CondicaoSnapshot[] => (Array.isArray(v) ? (v as CondicaoSnapshot[]) : []);
+  const de = lista(anteriores);
+  const para = lista(novas);
+  const mapaDe = new Map(de.map((c) => [c.id, c]));
+  const mapaPara = new Map(para.map((c) => [c.id, c]));
+  const partes: string[] = [];
+
+  for (const c of de) {
+    if (!mapaPara.has(c.id)) {
+      partes.push(`− ${c.rotulo ?? PERIODICIDADE_LABEL[c.periodicidade]}`);
+    }
+  }
+  for (const c of para) {
+    const anterior = mapaDe.get(c.id);
+    const rotulo = c.rotulo ?? PERIODICIDADE_LABEL[c.periodicidade];
+    if (!anterior) {
+      partes.push(`+ ${rotulo}: ${formatCondicaoValor(c)}`);
+    } else if (
+      anterior.rotulo !== c.rotulo ||
+      anterior.periodicidade !== c.periodicidade ||
+      anterior.quantidade !== c.quantidade ||
+      Number(anterior.valor) !== Number(c.valor) ||
+      anterior.tipoValor !== c.tipoValor
+    ) {
+      partes.push(`${rotulo}: ${formatCondicaoValor(anterior)} → ${formatCondicaoValor(c)}`);
+    }
+  }
+
+  return partes;
 }
 
-/** Só lista, na descrição, os campos que de fato mudaram nessa linha do histórico. */
+/** Só lista, na descrição, o que de fato mudou nessa linha do histórico. */
 function descricaoPlanoPagamento(h: {
   valorBaseAnterior: Prisma.Decimal | null;
   valorBaseNovo: Prisma.Decimal | null;
-  entradaValorAnterior: Prisma.Decimal | null;
-  entradaValorNovo: Prisma.Decimal | null;
-  entradaTipoAnterior: TipoValorPlano;
-  entradaTipoNovo: TipoValorPlano;
-  entregaChavesValorAnterior: Prisma.Decimal | null;
-  entregaChavesValorNovo: Prisma.Decimal | null;
-  entregaChavesTipoAnterior: TipoValorPlano;
-  entregaChavesTipoNovo: TipoValorPlano;
-  parcelasAnterior: number | null;
-  parcelasNovo: number | null;
+  condicoesAnteriores: unknown;
+  condicoesNovas: unknown;
 }) {
   const partes: string[] = [];
 
@@ -337,22 +382,7 @@ function descricaoPlanoPagamento(h: {
       `Valor base: ${formatCurrencyOrNull(h.valorBaseAnterior)} → ${formatCurrencyOrNull(h.valorBaseNovo)}`
     );
   }
-  if (diferente(h.entradaValorAnterior, h.entradaValorNovo) || h.entradaTipoAnterior !== h.entradaTipoNovo) {
-    partes.push(
-      `Entrada: ${formatValorPlano(h.entradaValorAnterior, h.entradaTipoAnterior)} → ${formatValorPlano(h.entradaValorNovo, h.entradaTipoNovo)}`
-    );
-  }
-  if (
-    diferente(h.entregaChavesValorAnterior, h.entregaChavesValorNovo) ||
-    h.entregaChavesTipoAnterior !== h.entregaChavesTipoNovo
-  ) {
-    partes.push(
-      `Entrega das chaves: ${formatValorPlano(h.entregaChavesValorAnterior, h.entregaChavesTipoAnterior)} → ${formatValorPlano(h.entregaChavesValorNovo, h.entregaChavesTipoNovo)}`
-    );
-  }
-  if (diferente(h.parcelasAnterior, h.parcelasNovo)) {
-    partes.push(`Parcelas: ${formatIntOrNull(h.parcelasAnterior)} → ${formatIntOrNull(h.parcelasNovo)}`);
-  }
+  partes.push(...descricaoCondicoes(h.condicoesAnteriores, h.condicoesNovas));
 
   return partes.join(" · ");
 }
