@@ -621,9 +621,9 @@ model UnidadeRevenda {
   condicoesPagamento String? @db.Text
   localizacaoNota    String? @db.Text
 
-  corretorNome     String?
-  corretorTelefone String?
-  corretorEmail    String?
+  /// Substitui, na página da unidade, o rodapé padrão ("Interessado nesta unidade?" +
+  /// contato do corretor + nome da construtora) — texto livre, com quebras de linha.
+  informacoes String? @db.Text
 
   fotos FotoRevenda[]
 

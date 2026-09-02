@@ -90,9 +90,7 @@ export const RevendaSchema = z.object({
   condicoesPagamento: opcional,
   localizacaoNota: opcional,
 
-  corretorNome: opcional,
-  corretorTelefone: opcional,
-  corretorEmail: opcional,
+  informacoes: opcional,
 });
 
 export type RevendaInput = z.infer<typeof RevendaSchema>;

@@ -39,9 +39,7 @@ function parseForm(formData: FormData) {
     amenidades: formData.get("amenidades"),
     condicoesPagamento: formData.get("condicoesPagamento"),
     localizacaoNota: formData.get("localizacaoNota"),
-    corretorNome: formData.get("corretorNome"),
-    corretorTelefone: formData.get("corretorTelefone"),
-    corretorEmail: formData.get("corretorEmail"),
+    informacoes: formData.get("informacoes"),
   });
 }
 
@@ -74,9 +72,7 @@ function montarDados(data: ReturnType<typeof RevendaSchema.parse>) {
     amenidades: data.amenidades || null,
     condicoesPagamento: data.condicoesPagamento || null,
     localizacaoNota: data.localizacaoNota || null,
-    corretorNome: data.corretorNome || null,
-    corretorTelefone: data.corretorTelefone || null,
-    corretorEmail: data.corretorEmail || null,
+    informacoes: data.informacoes || null,
   };
 }
 

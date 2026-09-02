@@ -42,9 +42,7 @@ export type UnidadeRevendaRow = {
   condicoesPagamento: string | null;
   localizacaoNota: string | null;
 
-  corretorNome: string | null;
-  corretorTelefone: string | null;
-  corretorEmail: string | null;
+  informacoes: string | null;
 
   fotos: FotoRevendaRow[];
 };

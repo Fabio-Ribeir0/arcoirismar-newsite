@@ -1,11 +1,11 @@
 import { escapeHtml } from "../comum";
 import {
   area,
-  corretorPresente,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
   imgSlot,
+  informacoesHtml,
   moeda,
   unidadeTorre,
 } from "./helpers";
@@ -35,10 +35,8 @@ export const BROCHURA_CSS = `
   .tpl-brochura .placeholder-floorplan{ height:28mm; border-radius:2px; overflow:hidden; position:relative; border:1px solid rgba(211,189,126,.35); background:repeating-linear-gradient(45deg, rgba(255,255,255,.035) 0 2px, transparent 2px 10px), linear-gradient(155deg, #4a4e4f 0%, #34373a 100%); }
   .tpl-brochura .placeholder-floorplan img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
   .tpl-brochura .block-contact{ margin-top:auto; padding-top:4mm; border-top:1px solid rgba(211,189,126,.4); }
-  .tpl-brochura .block-contact h3{ margin:0 0 1.5mm; font-weight:700; font-size:13px; color:#fff; }
-  .tpl-brochura .block-contact p{ margin:0 0 2.5mm; font-size:9.5px; line-height:1.45; color:#d9d7d3; }
-  .tpl-brochura .agent-card strong{ display:block; font-size:12px; font-weight:700; color:#d3bd7e; margin-bottom:.8mm; }
-  .tpl-brochura .agent-contact{ font-size:10px; color:#fff; line-height:1.5; }
+  .tpl-brochura .block-contact h3{ margin:0 0 1.5mm; font-weight:700; font-size:13px; color:#d3bd7e; letter-spacing:.08em; text-transform:uppercase; }
+  .tpl-brochura .block-contact p{ margin:0; font-size:9.5px; line-height:1.5; color:#fff; }
 
   .tpl-brochura .main-column{ flex:1; background:#f4f2ee; padding:9mm 9mm 7mm; display:flex; flex-direction:column; gap:4mm; }
   .tpl-brochura .main-column h2{ margin:0 0 2mm; font-weight:700; font-size:13.5px; color:#3c3f40; }
@@ -106,18 +104,14 @@ export function renderBrochura(u: UnidadeRevendaTemplateData): string {
             <div class="placeholder-floorplan">${imgSlot(f1)}</div>
           </section>
 
-          <section class="block-contact">
-            <h3>Interessado nesta unidade?</h3>
-            <p>Fale com nossa equipe e agende uma visita.</p>
-            ${
-              corretorPresente(u)
-                ? `<div class="agent-card">
-                    ${u.corretorNome ? `<strong>${escapeHtml(u.corretorNome)}</strong>` : ""}
-                    <p class="agent-contact">${[u.corretorTelefone, u.corretorEmail].filter((v): v is string => Boolean(v)).map(escapeHtml).join("<br>")}</p>
-                  </div>`
-                : ""
-            }
-          </section>
+          ${
+            u.informacoes
+              ? `<section class="block-contact">
+                  <h3>Informações</h3>
+                  <p>${informacoesHtml(u.informacoes)}</p>
+                </section>`
+              : ""
+          }
         </div>
       </aside>
 

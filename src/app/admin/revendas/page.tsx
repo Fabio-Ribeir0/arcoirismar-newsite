@@ -44,9 +44,7 @@ export default async function RevendasPage() {
     amenidades: u.amenidades,
     condicoesPagamento: u.condicoesPagamento,
     localizacaoNota: u.localizacaoNota,
-    corretorNome: u.corretorNome,
-    corretorTelefone: u.corretorTelefone,
-    corretorEmail: u.corretorEmail,
+    informacoes: u.informacoes,
     fotos: u.fotos.map((f) => ({ id: f.id, url: f.url, legenda: f.legenda, ordem: f.ordem })),
   }));
 

@@ -1,11 +1,11 @@
 import { escapeHtml } from "../comum";
 import {
   area,
-  corretorPresente,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
   imgSlot,
+  informacoesHtml,
   moeda,
   unidadeTorre,
 } from "./helpers";
@@ -66,12 +66,8 @@ export const EDITORIAL_CSS = `
 
   .tpl-editorial .block-cta{ background:#3c3f40; color:#fff; padding:7mm 12mm; margin-top:auto; display:flex; justify-content:space-between; align-items:center; gap:8mm; position:relative; }
   .tpl-editorial .block-cta::before{ content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,#c2a558,#d3bd7e,#c2a558); }
-  .tpl-editorial .cta-heading h2{ font-size:16.5px; font-weight:700; color:#fff; }
-  .tpl-editorial .cta-heading p{ font-size:9.5px; color:#d8d6d3; margin-top:3px; }
-  .tpl-editorial .cta-contact{ text-align:right; flex:none; }
-  .tpl-editorial .cta-broker{ font-family:'Red Hat Display',sans-serif; font-weight:700; font-size:13.5px; color:#d3bd7e; }
-  .tpl-editorial .cta-phone{ font-size:12.5px; font-weight:600; color:#fff; margin-top:2px; }
-  .tpl-editorial .cta-email{ font-size:8.6px; color:#c7c5c2; margin-top:3px; }
+  .tpl-editorial .cta-heading h2{ font-size:16.5px; font-weight:700; color:#d3bd7e; letter-spacing:.08em; text-transform:uppercase; }
+  .tpl-editorial .cta-heading p{ font-size:10px; line-height:1.5; color:#fff; margin-top:5px; }
 `;
 
 export function renderEditorial(u: UnidadeRevendaTemplateData): string {
@@ -176,21 +172,16 @@ export function renderEditorial(u: UnidadeRevendaTemplateData): string {
           : ""
       }
 
-      <section class="block-cta">
-        <div class="cta-heading">
-          <h2>Interessado nesta unidade?</h2>
-          <p>Fale com nossa equipe e agende uma visita.</p>
-        </div>
-        ${
-          corretorPresente(u)
-            ? `<div class="cta-contact">
-                ${u.corretorNome ? `<p class="cta-broker">${escapeHtml(u.corretorNome)}</p>` : ""}
-                ${u.corretorTelefone ? `<p class="cta-phone">${escapeHtml(u.corretorTelefone)}</p>` : ""}
-                ${u.corretorEmail ? `<p class="cta-email">${escapeHtml(u.corretorEmail)}</p>` : ""}
-              </div>`
-            : ""
-        }
-      </section>
+      ${
+        u.informacoes
+          ? `<section class="block-cta">
+              <div class="cta-heading">
+                <h2>Informações</h2>
+                <p>${informacoesHtml(u.informacoes)}</p>
+              </div>
+            </section>`
+          : ""
+      }
     </div>
   `;
 }

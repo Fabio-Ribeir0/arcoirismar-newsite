@@ -300,32 +300,15 @@ export function UnidadeModal({
         />
       </fieldset>
 
-      <fieldset className="space-y-4 rounded-lg border border-line p-4">
-        <legend className="px-1 text-sm font-medium text-ink">Corretor (opcional)</legend>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Campo
-            id={`${PREFIXO_IDS}corretorNome`}
-            name="corretorNome"
-            label="Nome"
-            defaultValue={unidade?.corretorNome}
-            errors={errors?.corretorNome}
-          />
-          <Campo
-            id={`${PREFIXO_IDS}corretorTelefone`}
-            name="corretorTelefone"
-            label="Telefone"
-            defaultValue={unidade?.corretorTelefone}
-            errors={errors?.corretorTelefone}
-          />
-          <Campo
-            id={`${PREFIXO_IDS}corretorEmail`}
-            name="corretorEmail"
-            label="E-mail"
-            defaultValue={unidade?.corretorEmail}
-            errors={errors?.corretorEmail}
-          />
-        </div>
-      </fieldset>
+      <TextArea
+        id={`${PREFIXO_IDS}informacoes`}
+        name="informacoes"
+        label="Informações (opcional)"
+        defaultValue={unidade?.informacoes}
+        errors={errors?.informacoes}
+        hint='Substitui, no rodapé escuro da página, o "Interessado nesta unidade?" + contato do corretor + nome da construtora. Uma linha por informação (ex.: nome do corretor, telefone, e-mail).'
+        rows={4}
+      />
 
       {mensagem && <p className="text-sm text-red-600">{mensagem}</p>}
       {state?.success && (

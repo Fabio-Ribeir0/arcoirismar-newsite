@@ -1,11 +1,11 @@
 import { escapeHtml } from "../comum";
 import {
   area,
-  corretorPresente,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
   imgSlot,
+  informacoesHtml,
   moeda,
   unidadeTorre,
 } from "./helpers";
@@ -61,12 +61,9 @@ export const DUPLA_CSS = `
   .tpl-dupla .loc-address{ font-weight:700; font-size:10.5pt; color:#3c3f40; }
   .tpl-dupla .loc-note{ font-size:8.6pt; color:#54585a; line-height:1.4; max-width:78mm; text-align:right; }
 
-  .tpl-dupla .block-cta{ margin-top:auto; background:#3c3f40; color:#fff; padding:4mm 6mm; display:flex; justify-content:space-between; align-items:center; gap:6mm; }
-  .tpl-dupla .block-cta h2{ font-weight:700; font-size:13.5pt; margin-bottom:1mm; }
-  .tpl-dupla .cta-broker{ font-size:8.8pt; color:#d3bd7e; line-height:1.5; }
-  .tpl-dupla .cta-broker strong{ color:#fff; font-weight:700; font-size:9.6pt; }
-  .tpl-dupla .cta-brand{ text-align:right; font-weight:700; font-size:9.5pt; letter-spacing:.03em; color:#c2a558; white-space:nowrap; }
-  .tpl-dupla .cta-brand small{ display:block; font-weight:500; font-size:6.6pt; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.55); margin-top:.8mm; }
+  .tpl-dupla .block-cta{ margin-top:auto; background:#3c3f40; color:#fff; padding:4mm 6mm; }
+  .tpl-dupla .block-cta h2{ font-weight:700; font-size:13.5pt; margin-bottom:2mm; color:#d3bd7e; letter-spacing:.06em; text-transform:uppercase; }
+  .tpl-dupla .cta-broker{ font-size:8.8pt; color:#fff; line-height:1.5; }
 
   .tpl-dupla .block-gallery{ flex:0 0 33mm; width:33mm; display:flex; flex-direction:column; gap:3.2mm; }
   .tpl-dupla .photo-tile{ flex:1; position:relative; overflow:hidden; background:linear-gradient(160deg,#d3bd7e,#c2a558 65%,#9c7f41); }
@@ -146,17 +143,16 @@ export function renderDupla(u: UnidadeRevendaTemplateData): string {
             : ""
         }
 
-        <section class="block-cta">
-          <div>
-            <h2>Interessado nesta unidade?</h2>
-            ${
-              corretorPresente(u)
-                ? `<p class="cta-broker">${u.corretorNome ? `<strong>${escapeHtml(u.corretorNome)}</strong> — Corretor(a)<br>` : ""}${[u.corretorTelefone, u.corretorEmail].filter((v): v is string => Boolean(v)).map(escapeHtml).join(" · ")}</p>`
-                : ""
-            }
-          </div>
-          <div class="cta-brand">Arco-Íris Mar<small>Construtora</small></div>
-        </section>
+        ${
+          u.informacoes
+            ? `<section class="block-cta">
+                <div>
+                  <h2>Informações</h2>
+                  <p class="cta-broker">${informacoesHtml(u.informacoes)}</p>
+                </div>
+              </section>`
+            : ""
+        }
       </div>
 
       <aside class="block-gallery">${gallery}</aside>

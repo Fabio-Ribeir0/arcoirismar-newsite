@@ -1,11 +1,11 @@
 import { escapeHtml } from "../comum";
 import {
   area,
-  corretorPresente,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
   imgSlot,
+  informacoesHtml,
   moeda,
   unidadeTorre,
 } from "./helpers";
@@ -62,11 +62,8 @@ export const MOSAICO_CSS = `
   .tpl-mosaico .loc-address{ font-weight:700; font-size:8.8pt; color:#3c3f40; margin-top:.8mm; line-height:1.3; }
   .tpl-mosaico .loc-note{ margin-top:1.6mm; font-size:7.6pt; line-height:1.35; color:#54585a; }
   .tpl-mosaico .block-cta{ background:#3c3f40; color:#fff; }
-  .tpl-mosaico .block-cta .eyebrow{ color:#d3bd7e; }
-  .tpl-mosaico .block-cta h3{ color:#fff; font-size:11.5pt; font-weight:700; margin-top:1.2mm; }
-  .tpl-mosaico .broker{ margin-top:1.8mm; padding-top:1.8mm; border-top:1px solid rgba(255,255,255,.18); }
-  .tpl-mosaico .broker-name{ font-weight:700; font-size:8.8pt; color:#fff; }
-  .tpl-mosaico .broker-contact{ margin-top:1.2mm; font-size:7.8pt; color:#d3bd7e; font-weight:600; }
+  .tpl-mosaico .block-cta h3{ color:#d3bd7e; font-size:11.5pt; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+  .tpl-mosaico .block-cta p{ margin-top:1.8mm; font-size:8pt; line-height:1.5; color:#fff; }
   .tpl-mosaico .block-footer{ margin-top:auto; padding:2mm 9mm 2.5mm; display:flex; justify-content:space-between; border-top:1px solid #e4e0d8; }
   .tpl-mosaico .brand{ font-weight:700; font-size:7.4pt; color:#3c3f40; }
   .tpl-mosaico .footer-tag{ font-size:6.4pt; color:#54585a; }
@@ -145,18 +142,14 @@ export function renderMosaico(u: UnidadeRevendaTemplateData): string {
                   </section>`
                 : ""
             }
-            <section class="card block-cta card-pad">
-              <span class="eyebrow">Fale com a corretora</span>
-              <h3>Interessado nesta unidade?</h3>
-              ${
-                corretorPresente(u)
-                  ? `<div class="broker">
-                      ${u.corretorNome ? `<div class="broker-name">${escapeHtml(u.corretorNome)}</div>` : ""}
-                      <div class="broker-contact">${[u.corretorTelefone, u.corretorEmail].filter((v): v is string => Boolean(v)).map(escapeHtml).join(" · ")}</div>
-                    </div>`
-                  : ""
-              }
-            </section>
+            ${
+              u.informacoes
+                ? `<section class="card block-cta card-pad">
+                    <h3>Informações</h3>
+                    <p>${informacoesHtml(u.informacoes)}</p>
+                  </section>`
+                : ""
+            }
           </div>
         </div>
       </div>

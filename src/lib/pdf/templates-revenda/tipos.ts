@@ -33,9 +33,9 @@ export type UnidadeRevendaTemplateData = {
   amenidades: string[];
   condicoesPagamento: string[];
 
-  corretorNome: string | null;
-  corretorTelefone: string | null;
-  corretorEmail: string | null;
+  /// Substitui, no rodapé escuro da página, o "Interessado nesta unidade?" + contato do
+  /// corretor + nome da construtora — texto livre, com quebras de linha.
+  informacoes: string | null;
 
   fotos: FotoRevendaTemplate[];
 };

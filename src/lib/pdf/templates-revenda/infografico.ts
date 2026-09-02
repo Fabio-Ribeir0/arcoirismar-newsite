@@ -1,11 +1,11 @@
 import { escapeHtml } from "../comum";
 import {
   area,
-  corretorPresente,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
   imgSlot,
+  informacoesHtml,
   legendaSlot,
   moeda,
   unidadeTorre,
@@ -64,12 +64,9 @@ export const INFOGRAFICO_CSS = `
   .tpl-infografico .block-location .addr{ font-family:'Red Hat Display',sans-serif; font-weight:700; font-size:12px; color:#3c3f40; }
   .tpl-infografico .block-location .desc{ font-size:10px; color:#54585a; margin-top:2px; }
 
-  .tpl-infografico .block-cta{ margin-top:auto; background:#3c3f40; border-radius:2px; padding:13px 16px; display:flex; justify-content:space-between; align-items:center; color:#fff; }
-  .tpl-infografico .block-cta h2{ font-size:17px; font-weight:800; color:#fff; }
-  .tpl-infografico .block-cta .sub{ font-size:10.5px; color:#d8d6d2; margin-top:3px; }
-  .tpl-infografico .broker{ text-align:right; }
-  .tpl-infografico .broker .name{ font-family:'Red Hat Display',sans-serif; font-weight:700; font-size:13px; color:#d3bd7e; }
-  .tpl-infografico .broker .phone{ margin-top:5px; font-family:'Red Hat Display',sans-serif; font-weight:700; font-size:14px; color:#fff; }
+  .tpl-infografico .block-cta{ margin-top:auto; background:#3c3f40; border-radius:2px; padding:13px 16px; color:#fff; }
+  .tpl-infografico .block-cta h2{ font-size:17px; font-weight:800; color:#d3bd7e; letter-spacing:.08em; text-transform:uppercase; }
+  .tpl-infografico .block-cta .sub{ font-size:10.5px; line-height:1.5; color:#fff; margin-top:5px; }
   .tpl-infografico .footnote{ font-size:7.5px; color:#9a9793; text-align:center; }
 `;
 
@@ -148,20 +145,16 @@ export function renderInfografico(u: UnidadeRevendaTemplateData): string {
           : ""
       }
 
-      <section class="block-cta">
-        <div>
-          <h2>Interessado nesta unidade?</h2>
-          <p class="sub">Fale com nossa equipe e agende uma visita.</p>
-        </div>
-        ${
-          corretorPresente(u)
-            ? `<div class="broker">
-                ${u.corretorNome ? `<p class="name">${escapeHtml(u.corretorNome)}</p>` : ""}
-                ${u.corretorTelefone ? `<p class="phone">${escapeHtml(u.corretorTelefone)}</p>` : ""}
-              </div>`
-            : ""
-        }
-      </section>
+      ${
+        u.informacoes
+          ? `<section class="block-cta">
+              <div>
+                <h2>Informações</h2>
+                <p class="sub">${informacoesHtml(u.informacoes)}</p>
+              </div>
+            </section>`
+          : ""
+      }
 
       <p class="footnote">Imagens meramente ilustrativas. Valores e condições sujeitos a alteração e disponibilidade.</p>
     </div>

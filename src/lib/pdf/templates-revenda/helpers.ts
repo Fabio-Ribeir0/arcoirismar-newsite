@@ -58,8 +58,9 @@ export function legendaSlot(f: FotoRevendaTemplate | null, classe: string): stri
   return `<span class="${classe}">${escapeHtml(f.legenda)}</span>`;
 }
 
-export function corretorPresente(u: UnidadeRevendaTemplateData): boolean {
-  return Boolean(u.corretorNome || u.corretorTelefone || u.corretorEmail);
+/** Texto livre do rodapé escuro, com quebras de linha preservadas como `<br>`. */
+export function informacoesHtml(texto: string): string {
+  return escapeHtml(texto).replace(/\n/g, "<br>");
 }
 
 export { escapeHtml, escapeAttr };
