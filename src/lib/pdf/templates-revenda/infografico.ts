@@ -1,6 +1,7 @@
 import { escapeHtml } from "../comum";
 import {
   area,
+  carimboReservado,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
@@ -53,7 +54,7 @@ export const INFOGRAFICO_CSS = `
   .tpl-infografico .amenity{ display:flex; align-items:center; gap:7px; font-size:10.5px; color:#26282a; font-weight:500; }
   .tpl-infografico .amenity::before{ content:""; width:5px; height:5px; border-radius:50%; background:#c2a558; flex:none; }
 
-  .tpl-infografico .block-pricing{ background:#f4f2ee; border:1px solid #e4e0d8; border-radius:2px; padding:11px 14px 12px; }
+  .tpl-infografico .block-pricing{ position:relative; overflow:hidden; background:#f4f2ee; border:1px solid #e4e0d8; border-radius:2px; padding:11px 14px 12px; }
   .tpl-infografico .value-lbl{ font-size:9px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:#54585a; }
   .tpl-infografico .value{ font-family:'Red Hat Display',sans-serif; font-weight:900; font-size:24px; color:#3c3f40; margin-top:2px; }
   .tpl-infografico .price-notes{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
@@ -132,6 +133,7 @@ export function renderInfografico(u: UnidadeRevendaTemplateData): string {
         <p class="value-lbl">Valor da unidade</p>
         <p class="value">${moeda(u.valor)}</p>
         ${u.condicoesPagamento.length ? `<ul class="price-notes">${u.condicoesPagamento.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>` : ""}
+        ${carimboReservado(u)}
       </section>
 
       ${

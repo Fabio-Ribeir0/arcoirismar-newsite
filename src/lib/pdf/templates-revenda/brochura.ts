@@ -1,6 +1,7 @@
 import { escapeHtml } from "../comum";
 import {
   area,
+  carimboReservado,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
@@ -51,7 +52,7 @@ export const BROCHURA_CSS = `
   .tpl-brochura .amenities-list{ display:grid; grid-template-columns:1fr 1fr; gap:.5mm 6mm; }
   .tpl-brochura .amenities-list li{ font-size:10.5px; color:#54585a; padding:1.4mm 0 1.4mm 4mm; border-bottom:1px solid #e4e0d8; position:relative; }
   .tpl-brochura .amenities-list li::before{ content:""; position:absolute; left:0; top:50%; transform:translateY(-50%); width:5px; height:5px; background:#c2a558; border-radius:50%; }
-  .tpl-brochura .pricing-block{ display:flex; gap:7mm; align-items:flex-start; background:#fff; border:1px solid #e4e0d8; border-left:3px solid #c2a558; padding:3.5mm 6mm; }
+  .tpl-brochura .pricing-block{ position:relative; overflow:hidden; display:flex; gap:7mm; align-items:flex-start; background:#fff; border:1px solid #e4e0d8; border-left:3px solid #c2a558; padding:3.5mm 6mm; }
   .tpl-brochura .price-label{ display:block; font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:#54585a; margin-bottom:1mm; }
   .tpl-brochura .price-figure strong{ font-weight:900; font-size:19px; color:#3c3f40; white-space:nowrap; }
   .tpl-brochura .pricing-block ul{ flex:1; display:flex; flex-direction:column; gap:1.2mm; border-left:1px solid #e4e0d8; padding-left:6mm; }
@@ -142,6 +143,7 @@ export function renderBrochura(u: UnidadeRevendaTemplateData): string {
           <div class="pricing-block">
             <div class="price-figure"><span class="price-label">Valor da unidade</span><strong>${moeda(u.valor)}</strong></div>
             ${u.condicoesPagamento.length ? `<ul>${u.condicoesPagamento.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>` : ""}
+            ${carimboReservado(u)}
           </div>
         </section>
 

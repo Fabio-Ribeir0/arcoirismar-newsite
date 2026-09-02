@@ -38,4 +38,8 @@ export type UnidadeRevendaTemplateData = {
   informacoes: string | null;
 
   fotos: FotoRevendaTemplate[];
+
+  /// Unidade com status Reservada — cada template estampa "RESERVADO" por cima do
+  /// bloco de valor/condições de pagamento (não a página inteira).
+  reservada: boolean;
 };

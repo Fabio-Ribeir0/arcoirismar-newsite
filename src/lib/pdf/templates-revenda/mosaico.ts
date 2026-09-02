@@ -1,6 +1,7 @@
 import { escapeHtml } from "../comum";
 import {
   area,
+  carimboReservado,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
@@ -53,6 +54,7 @@ export const MOSAICO_CSS = `
   .tpl-mosaico .amenity::before{ content:""; width:2mm; height:2mm; border-radius:50%; background:#c2a558; flex:none; }
   .tpl-mosaico .sidebar > * + *{ margin-top:2.4mm; }
   .tpl-mosaico .card{ border:1px solid #e4e0d8; background:#f4f2ee; }
+  .tpl-mosaico .block-pricing{ position:relative; overflow:hidden; }
   .tpl-mosaico .card-accent-top{ border-top:2.6px solid #c2a558; }
   .tpl-mosaico .card-pad{ padding:3.4mm 4.5mm; }
   .tpl-mosaico .price-value{ font-weight:800; font-size:15pt; color:#3c3f40; line-height:1; margin-top:1.2mm; }
@@ -128,10 +130,11 @@ export function renderMosaico(u: UnidadeRevendaTemplateData): string {
             ${u.amenidades.length ? `<section><h2 class="section-title">Área de lazer</h2><ul class="amenities-grid">${u.amenidades.map((a) => `<li class="amenity">${escapeHtml(a)}</li>`).join("")}</ul></section>` : ""}
           </div>
           <div class="sidebar">
-            <section class="card card-accent-top card-pad">
+            <section class="card block-pricing card-accent-top card-pad">
               <h2 class="section-title" style="border-bottom:none;padding-bottom:0;margin-bottom:0;">Valores e condições</h2>
               <div class="price-value">${moeda(u.valor)}</div>
               ${u.condicoesPagamento.length ? `<ul class="payment-list">${u.condicoesPagamento.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>` : ""}
+              ${carimboReservado(u)}
             </section>
             ${
               endereco || u.localizacaoNota

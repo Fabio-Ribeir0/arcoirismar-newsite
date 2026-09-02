@@ -1,6 +1,7 @@
 import { escapeHtml } from "../comum";
 import {
   area,
+  carimboReservado,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
@@ -49,7 +50,7 @@ export const DUPLA_CSS = `
   .tpl-dupla .block-amenities li{ font-size:8.6pt; color:#54585a; padding-left:3.6mm; position:relative; line-height:1.3; }
   .tpl-dupla .block-amenities li::before{ content:""; position:absolute; left:0; top:.55em; width:1.8mm; height:1.8mm; background:#c2a558; border-radius:50%; }
 
-  .tpl-dupla .block-valores{ background:#f4f2ee; border-left:3px solid #c2a558; padding:3.4mm 5mm; display:flex; gap:6mm; align-items:center; }
+  .tpl-dupla .block-valores{ position:relative; overflow:hidden; background:#f4f2ee; border-left:3px solid #c2a558; padding:3.4mm 5mm; display:flex; gap:6mm; align-items:center; }
   .tpl-dupla .valores-price{ flex:0 0 auto; border-right:1px solid #e4e0d8; padding-right:6mm; }
   .tpl-dupla .vp-label{ font-weight:700; font-size:7pt; letter-spacing:.14em; text-transform:uppercase; color:#54585a; display:block; margin-bottom:1mm; }
   .tpl-dupla .vp-value{ font-weight:900; font-size:19pt; color:#3c3f40; white-space:nowrap; }
@@ -129,6 +130,7 @@ export function renderDupla(u: UnidadeRevendaTemplateData): string {
             <span class="vp-value">${moeda(u.valor)}</span>
           </div>
           ${u.condicoesPagamento.length ? `<ul>${u.condicoesPagamento.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>` : ""}
+          ${carimboReservado(u)}
         </section>
 
         ${

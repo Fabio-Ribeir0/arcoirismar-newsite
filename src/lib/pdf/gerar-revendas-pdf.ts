@@ -34,16 +34,20 @@ const ESTILOS = `
 
   .tpl-conteudo{ width: 100%; height: 100%; overflow: hidden; }
 
-  .carimbo { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; }
+  /* Selo "RESERVADO" — cada template insere isto dentro do próprio bloco de
+     valor/condições de pagamento (não a página inteira), que carrega
+     position:relative + overflow:hidden pra conter o selo no seu tamanho. */
+  .carimbo { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; }
   .carimbo > span {
-    transform: rotate(-14deg);
-    border: 0.9mm solid rgba(185, 28, 28, 0.5);
-    color: rgba(185, 28, 28, 0.55);
-    background: rgba(185, 28, 28, 0.06);
-    font: 800 26px/1 Arial, Helvetica, sans-serif;
-    letter-spacing: 3px;
-    padding: 3mm 7mm;
-    border-radius: 2mm;
+    transform: rotate(-12deg);
+    border: 0.6mm solid rgba(185, 28, 28, 0.55);
+    color: rgba(185, 28, 28, 0.6);
+    background: rgba(185, 28, 28, 0.08);
+    font: 800 15px/1 Arial, Helvetica, sans-serif;
+    letter-spacing: 1.5px;
+    padding: 1.6mm 4mm;
+    border-radius: 1.5mm;
+    white-space: nowrap;
   }
 
   .vazio { padding: 12mm; text-align: center; color: rgba(60, 63, 64, 0.5); font-size: 12px; }
@@ -53,7 +57,6 @@ const ESTILOS = `
 
 export type UnidadeRevendaPdf = UnidadeRevendaTemplateData & {
   template: TemplateRevenda;
-  reservada: boolean;
 };
 
 export type DadosPdfRevendas = {
@@ -68,9 +71,8 @@ export type ResultadoPdfRevendas = {
 };
 
 function paginaHtml(u: UnidadeRevendaPdf): string {
-  const carimbo = u.reservada ? `<div class="carimbo"><span>RESERVADO</span></div>` : "";
   const identificador = [u.nome, u.numeroUnidade].filter(Boolean).join(" — ");
-  return `<section class="pagina" data-unidade="${escapeAttr(identificador)}">${renderizarUnidade(u.template, u)}${carimbo}</section>`;
+  return `<section class="pagina" data-unidade="${escapeAttr(identificador)}">${renderizarUnidade(u.template, u)}</section>`;
 }
 
 /**

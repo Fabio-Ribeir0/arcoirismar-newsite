@@ -63,4 +63,10 @@ export function informacoesHtml(texto: string): string {
   return escapeHtml(texto).replace(/\n/g, "<br>");
 }
 
+/** Selo "RESERVADO" — o chamador insere isto dentro do bloco de valor/condições de
+ * pagamento, que precisa ter `position:relative;overflow:hidden` pra conter o selo. */
+export function carimboReservado(u: UnidadeRevendaTemplateData): string {
+  return u.reservada ? `<div class="carimbo"><span>RESERVADO</span></div>` : "";
+}
+
 export { escapeHtml, escapeAttr };

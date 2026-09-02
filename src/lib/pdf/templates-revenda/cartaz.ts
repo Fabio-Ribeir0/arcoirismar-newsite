@@ -1,6 +1,7 @@
 import { escapeHtml } from "../comum";
 import {
   area,
+  carimboReservado,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
@@ -35,6 +36,7 @@ export const CARTAZ_CSS = `
   .tpl-cartaz .qf-label{ font-size:7.2pt; letter-spacing:.09em; text-transform:uppercase; color:#54585a; }
 
   .tpl-cartaz .row-2col{ display:grid; grid-template-columns:1.28fr 1fr; gap:9mm; }
+  .tpl-cartaz .block-pricing{ position:relative; overflow:hidden; }
   .tpl-cartaz .col-title{ font-family:'Red Hat Display',sans-serif; font-weight:700; font-size:10.4pt; letter-spacing:.03em; text-transform:uppercase; color:#3c3f40; margin-bottom:3mm; padding-bottom:1.6mm; border-bottom:1.4pt solid #c2a558; display:inline-block; }
   .tpl-cartaz .block-description p{ font-size:9.2pt; line-height:1.6; color:#54585a; }
   .tpl-cartaz .specs-grid{ margin-top:3.6mm; display:grid; grid-template-columns:1fr 1fr; gap:2.2mm 4mm; }
@@ -112,6 +114,7 @@ export function renderCartaz(u: UnidadeRevendaTemplateData): string {
             <h2 class="col-title">Valores e condições</h2>
             <div class="price-value">${moeda(u.valor)}</div>
             ${u.condicoesPagamento.length ? `<ul class="price-terms">${u.condicoesPagamento.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>` : ""}
+            ${carimboReservado(u)}
           </div>
           <div class="block-location">
             ${endereco || u.localizacaoNota ? `<h2 class="col-title">Localização</h2>` : ""}

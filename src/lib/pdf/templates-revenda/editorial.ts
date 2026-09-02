@@ -1,6 +1,7 @@
 import { escapeHtml } from "../comum";
 import {
   area,
+  carimboReservado,
   enderecoCompleto,
   eyebrowLocalizacao,
   foto,
@@ -55,7 +56,7 @@ export const EDITORIAL_CSS = `
   .tpl-editorial .lazer-list li{ font-size:10.3px; color:#3c3f40; padding:3.6px 0; border-bottom:1px solid #e4e0d8; display:flex; align-items:baseline; gap:7px; }
   .tpl-editorial .lazer-list li::before{ content:""; width:5px; height:5px; border-radius:50%; background:#c2a558; flex:none; transform:translateY(-1px); }
 
-  .tpl-editorial .block-valores{ margin:0 12mm; padding:5mm 0; border-top:1px solid #e4e0d8; border-bottom:1px solid #e4e0d8; display:grid; grid-template-columns:56mm 1fr; gap:10mm; align-items:center; }
+  .tpl-editorial .block-valores{ position:relative; overflow:hidden; margin:0 12mm; padding:5mm 0; border-top:1px solid #e4e0d8; border-bottom:1px solid #e4e0d8; display:grid; grid-template-columns:56mm 1fr; gap:10mm; align-items:center; }
   .tpl-editorial .valores-amount{ font-family:'Red Hat Display',sans-serif; font-weight:900; font-size:25px; color:#3c3f40; line-height:1; }
   .tpl-editorial .valores-conditions li{ font-size:10.3px; color:#54585a; padding-left:13px; position:relative; line-height:1.4; }
   .tpl-editorial .valores-conditions li::before{ content:"—"; position:absolute; left:0; color:#c2a558; font-weight:700; }
@@ -158,6 +159,7 @@ export function renderEditorial(u: UnidadeRevendaTemplateData): string {
             ? `<ul class="valores-conditions">${condicoes.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>`
             : ""
         }
+        ${carimboReservado(u)}
       </section>
 
       ${
