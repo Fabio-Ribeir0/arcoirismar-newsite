@@ -22,6 +22,7 @@ export default async function RevendasPage() {
     valor: u.valor.toString(),
     status: u.status,
     template: u.template,
+    updatedAt: u.updatedAt.toISOString(),
     endereco: u.endereco,
     numeroEndereco: u.numeroEndereco,
     cep: u.cep,

@@ -24,9 +24,19 @@ export function RevendasClient({
   unidades: UnidadeRevendaRow[];
   config: ConfiguracaoRevendaRow;
 }) {
-  // `undefined` = fechado; `null` = aberto em modo criação.
-  const [modalUnidade, setModalUnidade] = useState<UnidadeRevendaRow | null | undefined>(undefined);
+  // `undefined` = fechado; `null` = aberto em modo criação; string = id da unidade em edição.
+  // Guarda só o id (não o objeto) e deriva `modalUnidade` do `unidades` atual a cada
+  // render — assim, depois de salvar e o router.refresh() trazer dados novos, o modal
+  // sempre enxerga a linha mais recente, sem precisar sincronizar estado manualmente.
+  const [modalUnidadeId, setModalUnidadeId] = useState<string | null | undefined>(undefined);
   const [modalConfig, setModalConfig] = useState(false);
+
+  const modalUnidade =
+    modalUnidadeId === undefined
+      ? undefined
+      : modalUnidadeId === null
+        ? null
+        : (unidades.find((u) => u.id === modalUnidadeId) ?? undefined);
 
   const [state, formAction, pending] = useActionState<GerarTabelaRevendasState, FormData>(
     (prev) => gerarTabelaRevendas(prev),
@@ -53,7 +63,7 @@ export function RevendasClient({
           </form>
           <button
             type="button"
-            onClick={() => setModalUnidade(null)}
+            onClick={() => setModalUnidadeId(null)}
             className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-light"
           >
             Nova unidade
@@ -131,7 +141,7 @@ export function RevendasClient({
                 <td className="px-4 py-3">
                   <button
                     type="button"
-                    onClick={() => setModalUnidade(unidade)}
+                    onClick={() => setModalUnidadeId(unidade.id)}
                     className="font-medium text-primary hover:underline"
                   >
                     {unidade.nome}
@@ -169,7 +179,11 @@ export function RevendasClient({
       </div>
 
       {modalUnidade !== undefined && (
-        <UnidadeModal unidade={modalUnidade} onFechar={() => setModalUnidade(undefined)} />
+        <UnidadeModal
+          key={`${modalUnidade?.id ?? "novo"}-${modalUnidade?.updatedAt ?? "0"}`}
+          unidade={modalUnidade}
+          onFechar={() => setModalUnidadeId(undefined)}
+        />
       )}
 
       {modalConfig && (

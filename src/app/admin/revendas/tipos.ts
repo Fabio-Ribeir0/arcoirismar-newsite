@@ -15,6 +15,8 @@ export type UnidadeRevendaRow = {
   valor: string;
   status: string;
   template: (typeof TEMPLATE_REVENDA_OPCOES)[number];
+  /// Usado só para saber se os dados mudaram desde a última renderização do modal — não exibido.
+  updatedAt: string;
 
   endereco: string | null;
   numeroEndereco: string | null;
