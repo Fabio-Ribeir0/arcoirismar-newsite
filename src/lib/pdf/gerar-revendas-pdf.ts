@@ -40,9 +40,9 @@ const ESTILOS = `
   .carimbo { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; }
   .carimbo > span {
     transform: rotate(-12deg);
-    border: 0.6mm solid rgba(185, 28, 28, 0.55);
-    color: rgba(185, 28, 28, 0.6);
-    background: rgba(185, 28, 28, 0.08);
+    border: 0.6mm solid rgba(185, 28, 28, 0.85);
+    color: rgba(185, 28, 28, 0.9);
+    background: rgba(185, 28, 28, 0.18);
     font: 800 15px/1 Arial, Helvetica, sans-serif;
     letter-spacing: 1.5px;
     padding: 1.6mm 4mm;
