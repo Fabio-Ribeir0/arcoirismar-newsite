@@ -61,6 +61,43 @@ export async function convidarAdmin(
   return { success: true, link, emailEnviado: enviado };
 }
 
+export type AtualizarPermissoesState =
+  | { success: true }
+  | { success: false; message: string }
+  | undefined;
+
+export async function atualizarPermissoesAdmin(
+  adminId: string,
+  _prevState: AtualizarPermissoesState,
+  formData: FormData
+): Promise<AtualizarPermissoesState> {
+  const admin = await requireAdmin();
+
+  const alvo = await prisma.user.findUnique({ where: { id: adminId } });
+  if (!alvo || alvo.role !== "ADMIN") {
+    return { success: false, message: "Administrador não encontrado." };
+  }
+
+  const chavesValidas = new Set<string>(PAGINAS_ADMIN.map((p) => p.chave));
+  const paginasPermitidas = formData.getAll("paginas").filter((valor): valor is string => {
+    return typeof valor === "string" && chavesValidas.has(valor);
+  });
+
+  // Sem isto, remover o próprio acesso a esta página tranca a pessoa fora dela —
+  // só outro administrador poderia desfazer, direto no banco.
+  if (adminId === admin.id && !paginasPermitidas.includes("administradores")) {
+    return {
+      success: false,
+      message: 'Você não pode remover seu próprio acesso a "Administradores" — peça a outro administrador pra fazer essa alteração.',
+    };
+  }
+
+  await prisma.user.update({ where: { id: adminId }, data: { paginasPermitidas } });
+  revalidatePath("/admin/administradores");
+
+  return { success: true };
+}
+
 export async function cancelarConviteAdmin(adminId: string) {
   const admin = await requireAdmin();
 

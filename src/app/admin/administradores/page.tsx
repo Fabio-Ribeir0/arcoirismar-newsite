@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/dal";
 import { ConvidarAdminForm } from "./convidar-admin-form";
 import { DeleteButton } from "@/components/delete-button";
 import { cancelarConviteAdmin } from "./actions";
+import { EditarPermissoesButton } from "./editar-permissoes";
 import { PAGINAS_ADMIN } from "@/lib/admin-paginas";
 
 const PAGINA_LABEL: Record<string, string> = Object.fromEntries(
@@ -74,14 +75,19 @@ export default async function AdministradoresPage() {
                     <td className="px-4 py-3 text-ink/60">
                       {a.createdAt.toLocaleDateString("pt-BR")}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      {!ativo && a.id !== admin.id && (
-                        <DeleteButton
-                          action={cancelarConviteAdmin.bind(null, a.id)}
-                          label="Cancelar convite"
-                          confirmMessage={`Cancelar o convite pendente para ${a.email}?`}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-3">
+                        <EditarPermissoesButton
+                          admin={{ id: a.id, nome: a.name ?? a.email, paginasPermitidas: a.paginasPermitidas }}
                         />
-                      )}
+                        {!ativo && a.id !== admin.id && (
+                          <DeleteButton
+                            action={cancelarConviteAdmin.bind(null, a.id)}
+                            label="Cancelar convite"
+                            confirmMessage={`Cancelar o convite pendente para ${a.email}?`}
+                          />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
