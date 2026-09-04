@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import type { UnidadeRevenda } from "@/generated/prisma/client";
+import type { UnidadeRevenda, RevendaStatus } from "@/generated/prisma/client";
 import { RevendaSchema } from "./schema";
 
 /**
@@ -56,6 +56,37 @@ export async function criarUnidadeRevendaCore(data: RevendaData): Promise<Result
 
   const unidade = await prisma.unidadeRevenda.create({
     data: { ...montarDadosRevenda(data), ordem: (ultima?.ordem ?? -1) + 1 },
+  });
+
+  return { sucesso: true, unidade };
+}
+
+/**
+ * Muda só o status, sem exigir o restante dos campos da unidade — usada pelas rotas
+ * "atalho" da API de agente (`/status`, `/reservar`), pensadas pra um agente de IA chamar
+ * com o menor número possível de parâmetros.
+ */
+export async function atualizarStatusRevendaCore(
+  id: string,
+  novoStatus: RevendaStatus,
+  autorId: string,
+  motivo: string | null = null
+): Promise<ResultadoRevenda> {
+  const atual = await prisma.unidadeRevenda.findUnique({ where: { id } });
+  if (!atual) {
+    return { sucesso: false, mensagem: "Unidade não encontrada." };
+  }
+
+  const unidade = await prisma.$transaction(async (tx) => {
+    const atualizada = await tx.unidadeRevenda.update({ where: { id }, data: { status: novoStatus } });
+
+    if (novoStatus !== atual.status) {
+      await tx.historicoStatusRevenda.create({
+        data: { unidadeId: id, statusAnterior: atual.status, statusNovo: novoStatus, autorId, motivo },
+      });
+    }
+
+    return atualizada;
   });
 
   return { sucesso: true, unidade };
