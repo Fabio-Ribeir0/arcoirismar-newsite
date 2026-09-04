@@ -23,6 +23,14 @@ const nextConfig: NextConfig = {
       "node_modules/@sparticuz/chromium/bin/**/*",
       "src/lib/pdf/templates-revenda/fonts/*.woff2",
     ],
+    // Mesma geração de PDF, agora também chamada pela API de agente — cada rota vira um
+    // bundle serverless próprio, então precisa da própria entrada aqui (a das páginas do
+    // painel acima não cobre estas).
+    "/api/agente/empreendimentos/\\[id\\]/gerar-tabela": ["node_modules/@sparticuz/chromium/bin/**/*"],
+    "/api/agente/revendas/gerar-tabela": [
+      "node_modules/@sparticuz/chromium/bin/**/*",
+      "src/lib/pdf/templates-revenda/fonts/*.woff2",
+    ],
   },
 };
 
