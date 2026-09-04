@@ -4,6 +4,7 @@ import { ConvidarAdminForm } from "./convidar-admin-form";
 import { DeleteButton } from "@/components/delete-button";
 import { cancelarConviteAdmin } from "./actions";
 import { EditarPermissoesButton } from "./editar-permissoes";
+import { TokensApiSection } from "./tokens-section";
 import { PAGINAS_ADMIN } from "@/lib/admin-paginas";
 
 const PAGINA_LABEL: Record<string, string> = Object.fromEntries(
@@ -17,6 +18,8 @@ export default async function AdministradoresPage() {
     where: { role: "ADMIN" },
     orderBy: { createdAt: "asc" },
   });
+
+  const tokens = await prisma.apiToken.findMany({ orderBy: { criadoEm: "desc" } });
 
   return (
     <main className="px-6 py-16">
@@ -95,6 +98,11 @@ export default async function AdministradoresPage() {
             </tbody>
           </table>
         </div>
+
+        <TokensApiSection
+          admins={administradores.map((a) => ({ id: a.id, nome: a.name ?? a.email }))}
+          tokens={tokens}
+        />
       </div>
     </main>
   );

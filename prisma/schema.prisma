@@ -110,7 +110,8 @@ model User {
   role Role @default(CORRETOR)
 
   /// Chaves das páginas do admin liberadas para este usuário (ver src/lib/admin-paginas.ts) — só
-  /// tem efeito para role=ADMIN; definido no convite, sem tela de edição por enquanto
+  /// tem efeito para role=ADMIN; editável em /admin/administradores. Também vale como escopo
+  /// de qualquer ApiToken emitido pra este usuário.
   paginasPermitidas String[] @default([])
 
   // Campos específicos do cadastro de corretor
@@ -127,7 +128,9 @@ model User {
   historicoPrecosAlterados         HistoricoPrecoUnidade[]                 @relation("HistoricoPrecoAutor")
   historicoStatusAlterados         HistoricoStatusUnidade[]                @relation("HistoricoStatusAutor")
   historicoPlanoPagamentoAlterados HistoricoPlanoPagamentoEmpreendimento[] @relation("HistoricoPlanoPagamentoAutor")
+  historicoStatusRevendaAlterados  HistoricoStatusRevenda[]                @relation("HistoricoStatusRevendaAutor")
   configuracoesSimulacao           ConfiguracaoSimulacao[]                 @relation("ConfiguracaoSimulacaoAutor")
+  apiTokens                        ApiToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -626,6 +629,7 @@ model UnidadeRevenda {
   informacoes String? @db.Text
 
   fotos FotoRevenda[]
+  historicoStatus HistoricoStatusRevenda[]
 
   /// Ordem da página dentro do PDF — sem UI de reordenação por enquanto
   ordem Int @default(0)
@@ -635,6 +639,43 @@ model UnidadeRevenda {
 
   @@index([status])
   @@map("unidades_revenda")
+}
+
+/// Histórico de mudanças de status de uma unidade de revenda — mesmo padrão de
+/// HistoricoStatusUnidade, usado tanto pela UI quanto pela API de agente (ver ApiToken).
+model HistoricoStatusRevenda {
+  id             String        @id @default(cuid())
+  unidadeId      String
+  statusAnterior RevendaStatus
+  statusNovo     RevendaStatus
+  autorId        String
+  motivo         String?
+
+  unidade UnidadeRevenda @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  autor   User           @relation("HistoricoStatusRevendaAutor", fields: [autorId], references: [id], onDelete: Restrict)
+
+  criadoEm DateTime @default(now())
+
+  @@index([unidadeId, criadoEm])
+  @@map("historico_status_revenda")
+}
+
+/// Token de acesso à API para automações (agentes de IA, scripts) — age em nome do
+/// `User` associado (normalmente uma conta ADMIN dedicada, sem senha, só pra atribuição).
+/// Só tem efeito nas páginas que esse `User` também tem liberadas (paginasPermitidas).
+model ApiToken {
+  id          String    @id @default(cuid())
+  nome        String
+  /// SHA-256 do token — o valor em si só existe na tela, uma vez, na criação.
+  tokenHash   String    @unique
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  criadoEm    DateTime  @default(now())
+  ultimoUsoEm DateTime?
+  revogadoEm  DateTime?
+
+  @@index([tokenHash])
+  @@map("api_tokens")
 }
 
 /// Galeria ordenada de fotos de uma unidade de revenda — cada template consome quantas

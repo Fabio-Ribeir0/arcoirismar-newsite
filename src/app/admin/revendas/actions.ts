@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/dal";
 import { RevendaSchema } from "./schema";
+import { criarUnidadeRevendaCore, atualizarUnidadeRevendaCore } from "./core";
 
 export type RevendaFormState =
   | { success: true; id: string }
@@ -43,39 +44,6 @@ function parseForm(formData: FormData) {
   });
 }
 
-function montarDados(data: ReturnType<typeof RevendaSchema.parse>) {
-  return {
-    nome: data.nome,
-    numeroUnidade: data.numeroUnidade || null,
-    valor: data.valor,
-    status: data.status,
-    template: data.template,
-    endereco: data.endereco || null,
-    numeroEndereco: data.numeroEndereco || null,
-    cep: data.cep || null,
-    bairro: data.bairro || null,
-    cidade: data.cidade || null,
-    estado: data.estado || null,
-    latitude: data.latitude ? Number(data.latitude) : null,
-    longitude: data.longitude ? Number(data.longitude) : null,
-    torre: data.torre || null,
-    tagline: data.tagline || null,
-    areaPrivativa: data.areaPrivativa || null,
-    dormitorios: data.dormitorios ? Number(data.dormitorios) : null,
-    suites: data.suites ? Number(data.suites) : null,
-    vagas: data.vagas ? Number(data.vagas) : null,
-    andar: data.andar || null,
-    elevadores: data.elevadores ? Number(data.elevadores) : null,
-    entregaPrevista: data.entregaPrevista || null,
-    diferencial: data.diferencial || null,
-    descricao: data.descricao || null,
-    amenidades: data.amenidades || null,
-    condicoesPagamento: data.condicoesPagamento || null,
-    localizacaoNota: data.localizacaoNota || null,
-    informacoes: data.informacoes || null,
-  };
-}
-
 export async function criarUnidadeRevenda(
   _prevState: RevendaFormState,
   formData: FormData
@@ -87,17 +55,15 @@ export async function criarUnidadeRevenda(
     return { success: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  // Nova unidade entra no fim da ordem de páginas do PDF.
-  const ultima = await prisma.unidadeRevenda.findFirst({ orderBy: { ordem: "desc" } });
-
-  const unidade = await prisma.unidadeRevenda.create({
-    data: { ...montarDados(parsed.data), ordem: (ultima?.ordem ?? -1) + 1 },
-  });
+  const resultado = await criarUnidadeRevendaCore(parsed.data);
+  if (!resultado.sucesso) {
+    return { success: false, message: resultado.mensagem };
+  }
 
   revalidatePath("/admin/revendas");
   revalidatePath("/corretores/empreendimentos");
 
-  return { success: true, id: unidade.id };
+  return { success: true, id: resultado.unidade.id };
 }
 
 export async function atualizarUnidadeRevenda(
@@ -105,19 +71,17 @@ export async function atualizarUnidadeRevenda(
   _prevState: RevendaFormState,
   formData: FormData
 ): Promise<RevendaFormState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
   const parsed = parseForm(formData);
   if (!parsed.success) {
     return { success: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const atual = await prisma.unidadeRevenda.findUnique({ where: { id } });
-  if (!atual) {
-    return { success: false, message: "Unidade não encontrada." };
+  const resultado = await atualizarUnidadeRevendaCore(id, parsed.data, admin.id);
+  if (!resultado.sucesso) {
+    return { success: false, message: resultado.mensagem };
   }
-
-  await prisma.unidadeRevenda.update({ where: { id }, data: montarDados(parsed.data) });
 
   revalidatePath("/admin/revendas");
   revalidatePath("/corretores/empreendimentos");

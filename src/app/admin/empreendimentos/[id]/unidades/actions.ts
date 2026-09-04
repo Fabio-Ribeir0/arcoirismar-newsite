@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/dal";
 import { gerarIdentificadorUnidade } from "@/lib/numeracao-unidade";
 import { UnidadeSchema } from "./schema";
-import { registrarHistoricoUnidade } from "./service";
+import { criarUnidadeCore, atualizarUnidadeCore } from "./core";
 
 export type UnidadeFormState =
   | { success: true }
@@ -44,38 +44,10 @@ export async function criarUnidade(
     return { success: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const data = parsed.data;
-
-  const existing = await prisma.unidade.findUnique({
-    where: {
-      empreendimentoId_identificador: {
-        empreendimentoId,
-        identificador: data.identificador,
-      },
-    },
-  });
-  if (existing) {
-    return {
-      success: false,
-      message: "Já existe uma unidade com esse identificador neste empreendimento.",
-    };
+  const resultado = await criarUnidadeCore(empreendimentoId, parsed.data);
+  if (!resultado.sucesso) {
+    return { success: false, message: resultado.mensagem };
   }
-
-  await prisma.unidade.create({
-    data: {
-      empreendimentoId,
-      identificador: data.identificador,
-      dormitorios: data.dormitorios,
-      suites: data.suites,
-      areaPrivativa: data.areaPrivativa,
-      vagas: data.vagas,
-      areaGaragem: data.areaGaragem,
-      areaComum: data.areaComum,
-      andar: data.andar ? Number(data.andar) : null,
-      preco: data.preco,
-      status: data.status,
-    },
-  });
 
   revalidatePath(`/admin/empreendimentos/${empreendimentoId}`);
   redirect(`/admin/empreendimentos/${empreendimentoId}`);
@@ -94,56 +66,10 @@ export async function atualizarUnidade(
     return { success: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const data = parsed.data;
-
-  const atual = await prisma.unidade.findUnique({ where: { id: unidadeId } });
-  if (!atual) {
-    return { success: false, message: "Unidade não encontrada." };
+  const resultado = await atualizarUnidadeCore(empreendimentoId, unidadeId, parsed.data, admin.id);
+  if (!resultado.sucesso) {
+    return { success: false, message: resultado.mensagem };
   }
-
-  const conflict = await prisma.unidade.findFirst({
-    where: {
-      empreendimentoId,
-      identificador: data.identificador,
-      NOT: { id: unidadeId },
-    },
-  });
-  if (conflict) {
-    return {
-      success: false,
-      message: "Já existe outra unidade com esse identificador neste empreendimento.",
-    };
-  }
-
-  const motivo = data.motivo || null;
-
-  await prisma.$transaction(async (tx) => {
-    await tx.unidade.update({
-      where: { id: unidadeId },
-      data: {
-        identificador: data.identificador,
-        dormitorios: data.dormitorios,
-        suites: data.suites,
-        areaPrivativa: data.areaPrivativa,
-        vagas: data.vagas,
-        areaGaragem: data.areaGaragem,
-        areaComum: data.areaComum,
-        andar: data.andar ? Number(data.andar) : null,
-        preco: data.preco,
-        status: data.status,
-      },
-    });
-
-    await registrarHistoricoUnidade(tx, {
-      unidadeId,
-      precoAnterior: atual.preco,
-      precoNovo: data.preco,
-      statusAnterior: atual.status,
-      statusNovo: data.status,
-      autorId: admin.id,
-      motivo,
-    });
-  });
 
   revalidatePath(`/admin/empreendimentos/${empreendimentoId}`);
   redirect(`/admin/empreendimentos/${empreendimentoId}`);

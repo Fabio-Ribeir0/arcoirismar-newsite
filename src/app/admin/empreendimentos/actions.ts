@@ -4,9 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/dal";
-import { slugify } from "@/lib/slug";
 import { EmpreendimentoSchema } from "./schema";
-import { registrarHistoricoPlanoPagamento } from "./service";
+import { criarEmpreendimentoCore, atualizarEmpreendimentoCore } from "./core";
 
 export type EmpreendimentoFormState =
   | { success: true }
@@ -45,33 +44,6 @@ function parseForm(formData: FormData) {
   });
 }
 
-function buildEmpreendimentoData(data: ReturnType<typeof EmpreendimentoSchema.parse>, slug: string) {
-  return {
-    nome: data.nome,
-    slug,
-    status: data.status,
-    destaque: data.destaque,
-    espelhoVenda: data.espelhoVenda === "on",
-    slogan: data.slogan || null,
-    descricao: data.descricao || null,
-    endereco: data.endereco || null,
-    bairro: data.bairro || null,
-    cidade: data.cidade || null,
-    estado: data.estado || null,
-    cep: data.cep || null,
-    latitude: data.latitude ? Number(data.latitude) : null,
-    longitude: data.longitude ? Number(data.longitude) : null,
-    entregaPrevista: data.entregaPrevista ? new Date(data.entregaPrevista) : null,
-    andares: data.andares ? Number(data.andares) : null,
-    unidadesPorAndar: data.unidadesPorAndar ? Number(data.unidadesPorAndar) : null,
-    valorBase: data.valorBase || null,
-    dormitoriosPadrao: data.dormitoriosPadrao ? Number(data.dormitoriosPadrao) : null,
-    suitesPadrao: data.suitesPadrao ? Number(data.suitesPadrao) : null,
-    areaPrivativaPadrao: data.areaPrivativaPadrao ? Number(data.areaPrivativaPadrao) : null,
-    vagasPadrao: data.vagasPadrao ? Number(data.vagasPadrao) : null,
-  };
-}
-
 export async function criarEmpreendimento(
   _prevState: EmpreendimentoFormState,
   formData: FormData
@@ -83,20 +55,13 @@ export async function criarEmpreendimento(
     return { success: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const data = parsed.data;
-  const slug = data.slug || slugify(data.nome);
-
-  const existing = await prisma.empreendimento.findUnique({ where: { slug } });
-  if (existing) {
-    return { success: false, message: "Já existe um empreendimento com esse slug." };
+  const resultado = await criarEmpreendimentoCore(parsed.data);
+  if (!resultado.sucesso) {
+    return { success: false, message: resultado.mensagem };
   }
 
-  const empreendimento = await prisma.empreendimento.create({
-    data: buildEmpreendimentoData(data, slug),
-  });
-
   revalidatePath("/admin/empreendimentos");
-  redirect(`/admin/empreendimentos/${empreendimento.id}`);
+  redirect(`/admin/empreendimentos/${resultado.empreendimento.id}`);
 }
 
 export async function atualizarEmpreendimento(
@@ -111,47 +76,10 @@ export async function atualizarEmpreendimento(
     return { success: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const data = parsed.data;
-  const slug = data.slug || slugify(data.nome);
-
-  const atual = await prisma.empreendimento.findUnique({ where: { id } });
-  if (!atual) {
-    return { success: false, message: "Empreendimento não encontrado." };
+  const resultado = await atualizarEmpreendimentoCore(id, parsed.data, admin.id);
+  if (!resultado.sucesso) {
+    return { success: false, message: resultado.mensagem };
   }
-
-  const conflict = await prisma.empreendimento.findFirst({
-    where: { slug, NOT: { id } },
-  });
-  if (conflict) {
-    return { success: false, message: "Já existe outro empreendimento com esse slug." };
-  }
-
-  const novaData = buildEmpreendimentoData(data, slug);
-  const motivo = data.motivo || null;
-
-  await prisma.$transaction(async (tx) => {
-    await tx.empreendimento.update({
-      where: { id },
-      data: novaData,
-    });
-
-    // Só valorBase muda por aqui — as condições de pagamento têm suas próprias
-    // actions (condicoes-pagamento-actions.ts), então entram inalteradas.
-    const condicoesAtuais = await tx.condicaoPagamentoEmpreendimento.findMany({
-      where: { empreendimentoId: id },
-      orderBy: { ordem: "asc" },
-    });
-
-    await registrarHistoricoPlanoPagamento(tx, {
-      empreendimentoId: id,
-      valorBaseAnterior: atual.valorBase,
-      valorBaseNovo: novaData.valorBase,
-      condicoesAnteriores: condicoesAtuais,
-      condicoesNovas: condicoesAtuais,
-      autorId: admin.id,
-      motivo,
-    });
-  });
 
   revalidatePath("/admin/empreendimentos");
   revalidatePath(`/admin/empreendimentos/${id}`);
