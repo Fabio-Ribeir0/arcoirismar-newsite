@@ -31,6 +31,7 @@ export async function gerarTabelaRevendasCore(): Promise<ResultadoTabelaRevendas
   try {
     const resultado = await gerarRevendasPdf({
       capaUrl: config?.capaTabelaUrl ?? null,
+      linkMidiaPublica: config?.linkMidiaPublica ?? null,
       unidades: unidades.map((u) => ({
         nome: u.nome,
         numeroUnidade: u.numeroUnidade,

@@ -1,5 +1,5 @@
 import "server-only";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PDFName, PDFString, StandardFonts, rgb } from "pdf-lib";
 import { abrirNavegador } from "./browser";
 import { escapeAttr, esperarImagens, carimbarRodapePaginas } from "./comum";
 import { renderizarUnidade, templatesCss, type UnidadeRevendaTemplateData } from "./templates-revenda";
@@ -61,6 +61,9 @@ export type UnidadeRevendaPdf = UnidadeRevendaTemplateData & {
 
 export type DadosPdfRevendas = {
   capaUrl: string | null;
+  /** Link público de fotos/vídeos cadastrado nas configurações da tabela — quando presente,
+   * vira um link clicável "FOTOS E VÍDEOS" no rodapé de toda página. */
+  linkMidiaPublica: string | null;
   unidades: UnidadeRevendaPdf[];
 };
 
@@ -105,6 +108,47 @@ async function detectarUnidadesCortadas(page: import("puppeteer-core").Page): Pr
   });
 }
 
+/**
+ * "FOTOS E VÍDEOS" centralizado no rodapé de toda página, como link clicável pro
+ * `linkMidiaPublica` das configurações da tabela — exclusivo da tabela de revendas, por
+ * isso não fica em `comum.ts` (que só guarda o que é idêntico nos dois documentos).
+ */
+async function desenharLinkMidiaRodape(documento: PDFDocument, link: string): Promise<void> {
+  const fonte = await documento.embedFont(StandardFonts.HelveticaBold);
+  const texto = "FOTOS E VÍDEOS";
+  const tamanhoFonte = 7;
+  const larguraTexto = fonte.widthOfTextAtSize(texto, tamanhoFonte);
+  const y = 10;
+
+  for (const pagina of documento.getPages()) {
+    const { width } = pagina.getSize();
+    const x = (width - larguraTexto) / 2;
+
+    pagina.drawText(texto, { x, y, size: tamanhoFonte, font: fonte, color: rgb(0, 0, 0) });
+
+    const alturaTexto = fonte.heightAtSize(tamanhoFonte);
+    const anotacao = documento.context.obj({
+      Type: "Annot",
+      Subtype: "Link",
+      Rect: [x, y - 1, x + larguraTexto, y + alturaTexto],
+      Border: [0, 0, 0],
+      A: {
+        Type: "Action",
+        S: "URI",
+        URI: PDFString.of(link),
+      },
+    });
+    const anotacaoRef = documento.context.register(anotacao);
+
+    const anotacoesExistentes = pagina.node.Annots();
+    if (anotacoesExistentes) {
+      anotacoesExistentes.push(anotacaoRef);
+    } else {
+      pagina.node.set(PDFName.of("Annots"), documento.context.obj([anotacaoRef]));
+    }
+  }
+}
+
 export async function gerarRevendasPdf(dados: DadosPdfRevendas): Promise<ResultadoPdfRevendas> {
   const browser = await abrirNavegador();
 
@@ -142,6 +186,9 @@ export async function gerarRevendasPdf(dados: DadosPdfRevendas): Promise<Resulta
 
     const documento = await PDFDocument.load(pdf);
     await carimbarRodapePaginas(documento, new Date());
+    if (dados.linkMidiaPublica) {
+      await desenharLinkMidiaRodape(documento, dados.linkMidiaPublica);
+    }
 
     return { bytes: await documento.save(), avisos };
   } finally {
