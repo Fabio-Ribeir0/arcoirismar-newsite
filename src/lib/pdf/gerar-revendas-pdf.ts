@@ -1,5 +1,5 @@
 import "server-only";
-import { PDFDocument, PDFName, PDFString, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, PDFName, PDFString, StandardFonts, rgb, LineCapStyle } from "pdf-lib";
 import { abrirNavegador } from "./browser";
 import { escapeAttr, esperarImagens, carimbarRodapePaginas } from "./comum";
 import { renderizarUnidade, templatesCss, type UnidadeRevendaTemplateData } from "./templates-revenda";
@@ -108,29 +108,54 @@ async function detectarUnidadesCortadas(page: import("puppeteer-core").Page): Pr
   });
 }
 
+// Ícone de corrente (Feather Icons "link", licença MIT, viewBox 24x24, traço só de contorno).
+const ICONE_LINK_SVG =
+  "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" +
+  "M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71";
+const ICONE_LINK_VIEWBOX = 24;
+const ICONE_LINK_TRACO = 2; // espessura do traço no viewBox original de 24, escala junto com o ícone.
+
 /**
- * "FOTOS E VÍDEOS" centralizado no rodapé de toda página, como link clicável pro
- * `linkMidiaPublica` das configurações da tabela — exclusivo da tabela de revendas, por
- * isso não fica em `comum.ts` (que só guarda o que é idêntico nos dois documentos).
+ * Ícone de corrente + "LINK COM FOTOS E VÍDEOS" centralizados no rodapé de toda página,
+ * como link clicável pro `linkMidiaPublica` das configurações da tabela — exclusivo da
+ * tabela de revendas, por isso não fica em `comum.ts` (que só guarda o que é idêntico nos
+ * dois documentos).
  */
 async function desenharLinkMidiaRodape(documento: PDFDocument, link: string): Promise<void> {
   const fonte = await documento.embedFont(StandardFonts.HelveticaBold);
-  const texto = "FOTOS E VÍDEOS";
+  const texto = "LINK COM FOTOS E VÍDEOS";
   const tamanhoFonte = 7;
   const larguraTexto = fonte.widthOfTextAtSize(texto, tamanhoFonte);
   const y = 10;
 
+  const iconeAltura = 6;
+  const escalaIcone = iconeAltura / ICONE_LINK_VIEWBOX;
+  const espacoIconeTexto = 2.5;
+  const larguraTotal = iconeAltura + espacoIconeTexto + larguraTexto;
+
   for (const pagina of documento.getPages()) {
     const { width } = pagina.getSize();
-    const x = (width - larguraTexto) / 2;
+    const xIcone = (width - larguraTotal) / 2;
+    const xTexto = xIcone + iconeAltura + espacoIconeTexto;
+    // Centraliza o ícone com a altura de caixa do texto (cap height ~ 0.72 do tamanho da fonte).
+    const yTopoIcone = y + tamanhoFonte * 0.72 / 2 + iconeAltura / 2;
 
-    pagina.drawText(texto, { x, y, size: tamanhoFonte, font: fonte, color: rgb(0, 0, 0) });
+    pagina.drawSvgPath(ICONE_LINK_SVG, {
+      x: xIcone,
+      y: yTopoIcone,
+      scale: escalaIcone,
+      borderColor: rgb(0, 0, 0),
+      borderWidth: ICONE_LINK_TRACO * escalaIcone,
+      borderLineCap: LineCapStyle.Round,
+    });
+
+    pagina.drawText(texto, { x: xTexto, y, size: tamanhoFonte, font: fonte, color: rgb(0, 0, 0) });
 
     const alturaTexto = fonte.heightAtSize(tamanhoFonte);
     const anotacao = documento.context.obj({
       Type: "Annot",
       Subtype: "Link",
-      Rect: [x, y - 1, x + larguraTexto, y + alturaTexto],
+      Rect: [xIcone, y - 1, xTexto + larguraTexto, y + alturaTexto],
       Border: [0, 0, 0],
       A: {
         Type: "Action",
